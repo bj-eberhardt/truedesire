@@ -102,7 +102,7 @@ export async function importBackup(text: string): Promise<void> {
   await saveStored({
     userId: parsed.userId ?? null,
     nickname: String(parsed.nickname ?? 'Anon').slice(0, 40),
-    code: (parsed as any).code ?? null,
+    code: parsed.code ?? null,
     keys: parsed.keys,
   })
 }

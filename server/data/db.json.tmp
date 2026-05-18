@@ -1,0 +1,100 @@
+{
+  "users": [
+    {
+      "id": "2912a2a5-25dc-418f-817f-d05632326e2b",
+      "nickname": "Anon1",
+      "signPublicJwk": {
+        "alg": "ES256",
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [
+          "verify"
+        ],
+        "kty": "EC",
+        "x": "MmXnlqMPJQnKnMzyev1tKqoqE85fD0q8z9Ujbc10ULw",
+        "y": "ehSC23wVWSt4XfXJ1WWiseya7W4tLLi40xoHO7gOtbg"
+      },
+      "ecdhPublicRawB64": "BLeKVRqY6kZWEwxVDTHQetrzlWbngyx+yMCr1e5SM4XAxU6nYnGSE2i7t7bRR/IP4xA3lvEqX84pWhxkeuZaUsI=",
+      "createdAt": 1776057292591
+    },
+    {
+      "id": "8f0b7b50-9171-43fe-ae78-4ae2d805a387",
+      "nickname": "Anon2",
+      "signPublicJwk": {
+        "alg": "ES256",
+        "crv": "P-256",
+        "ext": true,
+        "key_ops": [
+          "verify"
+        ],
+        "kty": "EC",
+        "x": "DbQqU6EQjqPG2XIBtCivBRAliZToICp3CO2BAdmzfWE",
+        "y": "WAgr-tO-9wlhKRXnmQ77SJhJH35mVjwJGlrb18tpgPE"
+      },
+      "ecdhPublicRawB64": "BAq6VyFrX8dZTdk/q4MSULFeeQXsFCj9Gf/UpJfo8c/c+cxE2N4XkxJmDO665W9XRRTHDP07Vavx6Of81BLlOLU=",
+      "createdAt": 1776057393132
+    }
+  ],
+  "pairs": [
+    {
+      "id": "da6e3fe1",
+      "userA": "2912a2a5-25dc-418f-817f-d05632326e2b",
+      "userB": null,
+      "confirmA": false,
+      "confirmB": false,
+      "status": "pending",
+      "weeklyLimit": 5,
+      "weeklyLimitProposals": {},
+      "createdAt": 1776057338594,
+      "updatedAt": 1776057338595
+    },
+    {
+      "id": "5eecf15c",
+      "userA": "8f0b7b50-9171-43fe-ae78-4ae2d805a387",
+      "userB": null,
+      "confirmA": false,
+      "confirmB": false,
+      "status": "pending",
+      "weeklyLimit": 5,
+      "weeklyLimitProposals": {},
+      "createdAt": 1776057396629,
+      "updatedAt": 1776057396629
+    }
+  ],
+  "questions": [],
+  "answers": [],
+  "nonces": {
+    "2912a2a5-25dc-418f-817f-d05632326e2b": [
+      {
+        "nonce": "dd0b27fc0432d6342e4bc2c4",
+        "expiresAt": 1776058823128
+      },
+      {
+        "nonce": "1c579a03b7942af0b9385bd8",
+        "expiresAt": 1776058823154
+      },
+      {
+        "nonce": "4546c6f443aa59591bc960b1",
+        "expiresAt": 1776058828278
+      },
+      {
+        "nonce": "e55090e4614b3ff394312f7f",
+        "expiresAt": 1776058828310
+      }
+    ],
+    "8f0b7b50-9171-43fe-ae78-4ae2d805a387": [
+      {
+        "nonce": "809d1d820d1d222c909b054e",
+        "expiresAt": 1776057996624
+      },
+      {
+        "nonce": "b072d585b19ac9c8b85f6bf4",
+        "expiresAt": 1776057996639
+      },
+      {
+        "nonce": "46d12a9c84e4482b8d7d8de7",
+        "expiresAt": 1776058018781
+      }
+    ]
+  }
+}

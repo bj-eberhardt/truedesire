@@ -111,7 +111,28 @@ export function api(opts: ApiOpts) {
       respondWeeklyLimit: (pairId: string, proposalId: string, action: 'accept' | 'reject' | 'cancel') =>
         signedFetch<{ ok: true; weeklyLimit: number }>(opts, '/pair/weekly-limit/respond', { method: 'POST', body: { pairId, proposalId, action } }),
       get: async (pairId: string): Promise<PairView> => {
-        const raw = await signedFetch<any>(opts, `/pair/${encodeURIComponent(pairId)}`)
+        type RawPairUser = {
+          id: string
+          code?: string
+          nickname: string
+          ecdhPublicRawB64: string
+        }
+
+        type RawPair = {
+          id: string
+          status: 'pending' | 'active'
+          weeklyLimit: number
+          seededSystemQuestionsAt?: number | null
+          weeklyLimitPending?: PairView['weeklyLimitPending'] | null
+          usage?: PairView['usage']
+          partnerDeleted?: boolean
+          confirmA: boolean
+          confirmB: boolean
+          userA: RawPairUser
+          userB: RawPairUser | null
+        }
+
+        const raw = await signedFetch<RawPair>(opts, `/pair/${encodeURIComponent(pairId)}`)
         const auth = await opts.getAuthMaterial()
         const meIsA = raw?.userA?.id === auth.userId
         const me = meIsA ? raw.userA : raw.userB
