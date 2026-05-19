@@ -1,17 +1,24 @@
 import { useCallback, useRef, useState } from 'react'
 
+export type ToastKind = 'default' | 'success' | 'error'
+
+export type ToastState = {
+  message: string
+  kind?: ToastKind
+}
+
 type UseToastResult = {
-  toast: string | null
-  showToast: (message: string) => void
+  toast: ToastState | null
+  showToast: (message: string, kind?: ToastKind) => void
 }
 
 export function useToast(timeoutMs = 1600): UseToastResult {
-  const [toast, setToast] = useState<string | null>(null)
+  const [toast, setToast] = useState<ToastState | null>(null)
   const timerRef = useRef<number | null>(null)
 
   const showToast = useCallback(
-    (message: string) => {
-      setToast(message)
+    (message: string, kind: ToastKind = 'default') => {
+      setToast({ message, kind })
       if (timerRef.current) window.clearTimeout(timerRef.current)
       timerRef.current = window.setTimeout(() => setToast(null), timeoutMs)
     },
@@ -20,4 +27,3 @@ export function useToast(timeoutMs = 1600): UseToastResult {
 
   return { toast, showToast }
 }
-

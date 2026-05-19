@@ -33,11 +33,42 @@ export async function loadIdentity(opts?: { nickname?: string; ensureRegistered?
 
   if (!stored) {
     const keys = await generateKeys()
-    const nickname = (opts?.nickname ?? 'Anon').slice(0, 40)
+    const nickname = (opts?.nickname ?? 'Anon').slice(0, 30)
     const next: StoredIdentity = { userId: null, nickname, code: null, keys }
     await saveStored(next)
     const runtime = await importRuntimeKeys(keys)
-    return { userId: null, code: null, nickname, keys: runtime, auth: { userId: '', signPrivateKey: runtime.signPrivateKey } }
+    const identity: Identity = { userId: null, code: null, nickname, keys: runtime, auth: { userId: '', signPrivateKey: runtime.signPrivateKey } }
+
+    // If requested, immediately register this newly created identity on the server.
+    if (opts?.ensureRegistered) {
+      const client = api({
+        baseUrl,
+        getAuthMaterial: async () => ({ userId: '', signPrivateKey: runtime.signPrivateKey }),
+      })
+      const res = await client.auth.register({
+        nickname,
+        signPublicJwk: keys.signPublicJwk,
+        ecdhPublicRawB64: keys.ecdhPublicRawB64,
+      })
+      next.userId = res.userId
+      await saveStored(next)
+      identity.userId = res.userId
+      identity.auth.userId = res.userId
+
+      // hydrate code + canonical nickname
+      const authed = api({
+        baseUrl,
+        getAuthMaterial: async () => ({ userId: res.userId, signPrivateKey: runtime.signPrivateKey }),
+      })
+      const me = await authed.auth.me()
+      next.code = me.code
+      next.nickname = me.nickname
+      await saveStored(next)
+      identity.code = me.code
+      identity.nickname = me.nickname
+    }
+
+    return identity
   }
 
   const runtime = await importRuntimeKeys(stored.keys)
@@ -50,7 +81,7 @@ export async function loadIdentity(opts?: { nickname?: string; ensureRegistered?
   }
 
   if (opts?.nickname && opts.nickname !== stored.nickname) {
-    stored.nickname = opts.nickname.slice(0, 40)
+    stored.nickname = opts.nickname.slice(0, 30)
     await saveStored(stored)
     identity.nickname = stored.nickname
   }
@@ -101,7 +132,7 @@ export async function importBackup(text: string): Promise<void> {
   if (!parsed?.keys?.signPrivateJwk || !parsed?.keys?.ecdhPrivateJwk) throw new Error('bad_backup')
   await saveStored({
     userId: parsed.userId ?? null,
-    nickname: String(parsed.nickname ?? 'Anon').slice(0, 40),
+    nickname: String(parsed.nickname ?? 'Anon').slice(0, 30),
     code: parsed.code ?? null,
     keys: parsed.keys,
   })

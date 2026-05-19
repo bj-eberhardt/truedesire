@@ -3,6 +3,25 @@
   { "id": "q_roleplay", "text": "Möchtest du mal ein Rollenspiel ausprobieren?" },
   { "id": "q_talk", "text": "Möchtest du über Fantasien offener sprechen (z.B. 1x pro Woche 10 Minuten)?" },
   { "id": "q_surprise", "text": "Hättest du Lust auf ein Überraschungs-Date (abwechselnd geplant)?" },
-  { "id": "q_rules", "text": "Sollen wir Grenzen/No-Gos einmal gemeinsam festhalten (ohne Druck)?" }
+  { "id": "q_rules", "text": "Sollen wir Grenzen/No-Gos einmal gemeinsam festhalten (ohne Druck)?" },
+  { "id": "q_love_language", "text": "Wie zeigst du am liebsten Liebe: Zeit, Worte, Berührung, Hilfe oder Geschenke?" },
+  { "id": "q_checkin", "text": "Wollen wir einen regelmäßigen Check-in machen (z.B. sonntags 10 Minuten)?" },
+  { "id": "q_conflict_style", "text": "Wenn wir uns streiten: Lieber direkt klären oder erstmal Abstand und später reden?" },
+  { "id": "q_boundaries_phone", "text": "Sollen Handys bei Dates eher weggelegt werden (z.B. auf lautlos)?" },
+  { "id": "q_money_split", "text": "Wie sollen wir bei gemeinsamen Ausgaben vorgehen: 50/50, abwechselnd, oder nach Einkommen?" },
+  { "id": "q_travel_style", "text": "Wie reist du am liebsten: spontan, geplant, eher aktiv oder eher entspannt?" },
+  { "id": "q_sleepover", "text": "Hast du Lust, dass wir mal öfter zusammen übernachten?" },
+  { "id": "q_public_affection", "text": "Magst du Zuneigung in der Öffentlichkeit (Händchen halten, Küssen)?" },
+  { "id": "q_frequency_sex", "text": "Wie wichtig ist dir sexuelle Häufigkeit im Alltag?" },
+  { "id": "q_initiative", "text": "Wünschst du dir, dass wir beide gleich oft Initiative zeigen (Dates, Sex, Nähe)?" },
+  { "id": "q_aftercare", "text": "Ist dir Aftercare wichtig (kuscheln, reden, Nähe nach Sex)?" },
+  { "id": "q_kinks_list", "text": "Wollen wir eine kleine Liste machen: 'Neugierig', 'Vielleicht', 'Nein' (ohne Bewertung)?" },
+  { "id": "q_safeword", "text": "Sollen wir ein Safeword vereinbaren, falls etwas zu viel wird?" },
+  { "id": "q_toys", "text": "Hättest du Lust, zusammen ein Toy auszusuchen (online oder im Shop)?" },
+  { "id": "q_porn", "text": "Wie stehst du zu Pornos: okay, nur gemeinsam, oder lieber gar nicht?" },
+  { "id": "q_flirting_others", "text": "Ist Flirten mit anderen für dich okay, und wo wäre die Grenze?" },
+  { "id": "q_exes_contact", "text": "Wie gehen wir mit Kontakt zu Ex-Partnern um?" },
+  { "id": "q_texting_frequency", "text": "Wie viel Schreiben/Telefonieren am Tag fühlt sich für dich gut an?" },
+  { "id": "q_future_3months", "text": "Was wünschst du dir von uns in den nächsten 3 Monaten?" },
+  { "id": "q_date_ideas", "text": "Sollen wir eine gemeinsame Date-Ideen-Liste anlegen und abwechselnd etwas auswählen?" }
 ]
-

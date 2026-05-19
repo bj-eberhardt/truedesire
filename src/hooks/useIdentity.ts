@@ -7,7 +7,7 @@ type UseIdentityResult = {
   setNickname: (next: string) => void
   isBootstrappingAccount: boolean
   setIdentity: (next: Identity | null) => void
-  bootstrap: () => Promise<void>
+  bootstrap: () => Promise<Identity | null>
   register: () => Promise<void>
   resetLocalIdentity: () => Promise<void>
 }
@@ -17,13 +17,14 @@ export function useIdentity(): UseIdentityResult {
   const [nickname, setNickname] = useState('')
   const [isBootstrappingAccount, setIsBootstrappingAccount] = useState(true)
 
-  const bootstrap = useCallback(async () => {
+  const bootstrap = useCallback(async (): Promise<Identity | null> => {
     setIsBootstrappingAccount(true)
     try {
       const id = await loadIdentity()
       const hydrated = id?.userId ? await loadIdentity({ ensureRegistered: true }) : id
       setIdentity(hydrated)
       setNickname(hydrated?.nickname ?? '')
+      return hydrated
     } finally {
       setIsBootstrappingAccount(false)
     }
@@ -34,8 +35,13 @@ export function useIdentity(): UseIdentityResult {
   }, [bootstrap])
 
   const register = useCallback(async () => {
-    const next = await loadIdentity({ nickname: nickname.trim() || 'Anon', ensureRegistered: true })
+    const trimmed = nickname.trim()
+    if (!trimmed) throw new Error('nickname_required')
+    const next = await loadIdentity({ nickname: trimmed, ensureRegistered: true })
     if (!next) throw new Error('identity_not_available')
+    if (!next.userId) {
+      throw new Error('register_failed')
+    }
     setIdentity(next)
     setNickname(next.nickname)
   }, [nickname])
@@ -48,4 +54,3 @@ export function useIdentity(): UseIdentityResult {
 
   return { identity, nickname, setNickname, isBootstrappingAccount, setIdentity, bootstrap, register, resetLocalIdentity }
 }
-

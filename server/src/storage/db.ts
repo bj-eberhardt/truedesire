@@ -18,7 +18,7 @@ export type PairRecord = {
   userB: string | null
   confirmA: boolean
   confirmB: boolean
-  status: 'pending' | 'active'
+  status: 'pending' | 'active' | 'ended'
   weeklyLimit: number
   weeklyLimitProposals: { [userId: string]: number | undefined }
   weeklyLimitPending: { id: string; proposedBy: string; limit: number; createdAt: number } | null

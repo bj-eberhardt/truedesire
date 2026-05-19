@@ -768,6 +768,12 @@ button.danger {
   color: color-mix(in oklab, #7a5b00 75%, var(--text-h));
 }
 
+.status.ended {
+  border-color: color-mix(in oklab, #94a3b8 55%, var(--border));
+  background: color-mix(in oklab, #94a3b8 18%, var(--bg));
+  color: color-mix(in oklab, #334155 75%, var(--text-h));
+}
+
 .inline-error {
   margin-top: 8px;
   border: 1px solid color-mix(in oklab, #ff3b6b 50%, var(--border));

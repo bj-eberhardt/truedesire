@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { parseV2Route } from './routes'
-import { AppHeader } from '../components/AppHeader'
+import { parseAppRoute } from './routes'
 import { ErrorPanel } from '../components/ErrorPanel'
-import { Toast } from '../components/Toast'
 import { exportBackup, importBackup } from '../state/identity'
 import { idbGet, idbSet } from '../storage/idb'
 import { useApiClient } from '../hooks/useApiClient'
@@ -16,11 +14,16 @@ import { useQuestions } from '../hooks/useQuestions'
 import { useToast } from '../hooks/useToast'
 import { V1Page } from '../features/v1/V1Page'
 import { V2Shell } from '../features/v2/V2Shell'
+import { V3Shell } from '../features/v3/V3Shell'
+import { VersionHome } from './VersionHome'
+import { InfoModal } from '../components/InfoModal'
 
 export default function App() {
   const MIN_LOADING_MS = 1500
-  const [uiVersion, setUiVersion] = useState<1 | 2>(1)
   const [error, setError] = useState<string | null>(null)
+  const [accountDeletedModalOpen, setAccountDeletedModalOpen] = useState(false)
+  const [v3InlineNotice, setV3InlineNotice] = useState<string | null>(null)
+  const v3InlineNoticeTimerRef = useRef<number | null>(null)
 
   const { identity, nickname, setNickname, isBootstrappingAccount, bootstrap, register, resetLocalIdentity, setIdentity } = useIdentity()
   const apiClient = useApiClient(identity)
@@ -93,25 +96,31 @@ export default function App() {
   const [autoRefresh, setAutoRefresh] = useState(false)
   useAutoRefresh(autoRefresh, async () => refreshPairing(), 5000)
 
-  const [route, setRoute] = useState(() => parseV2Route(window.location.hash))
+  const [route, setRoute] = useState(() => parseAppRoute(window.location.hash))
+  const pairRoute = route.kind === 'v2' || route.kind === 'v3' ? route.route : null
+  const pairRouteMode = pairRoute?.mode ?? null
+  const pairRoutePairId = pairRoute?.pairId ?? null
   useEffect(() => {
-    const onHash = () => setRoute(parseV2Route(window.location.hash))
+    const onHash = () => setRoute(parseAppRoute(window.location.hash))
     onHash()
     window.addEventListener('hashchange', onHash)
     return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
+  // URL-based version routing:
+  // - `#/` shows the chooser.
+  // - `#/v1` renders v1.
+  // - `#/v2...` renders v2.
+  // - `#/v3...` renders v3.
+  // - missing version prefix but old v2 routes => treated as v2.
+  // - no hash at all (`''` or `'#'`) => redirect to newest (`#/v3`).
+
+  // URL fallback to newest version when no version is specified (no hash at all).
   useEffect(() => {
-    ;(async () => {
-      const savedVersion = await idbGet<number>('ui:version')
-      if (savedVersion === 2) setUiVersion(2)
-    })()
+    if (window.location.hash === '' || window.location.hash === '#') window.location.hash = '#/v3'
   }, [])
 
-  const switchVersion = useCallback(async (v: 1 | 2) => {
-    setUiVersion(v)
-    await idbSet('ui:version', v)
-  }, [])
+  // Version switch is done via the VersionHome page links (no global header).
 
   const openPair = useCallback(
     async (pairId: string) => {
@@ -135,7 +144,12 @@ export default function App() {
     ;(async () => {
       try {
         await refreshPairing()
-        const routeTargetPairId = uiVersion === 2 && route.pairId && (route.mode === 'pair' || route.mode === 'ask' || route.mode === 'played') ? route.pairId : null
+        const routeTargetPairId =
+          (route.kind === 'v2' || route.kind === 'v3') &&
+          pairRoutePairId &&
+          (pairRouteMode === 'pair' || pairRouteMode === 'ask' || pairRouteMode === 'played')
+            ? pairRoutePairId
+            : null
         const last = await idbGet<string>('ui:lastPairId')
         const targetPairId = routeTargetPairId ?? last
         if (targetPairId) await openPair(targetPairId)
@@ -143,23 +157,27 @@ export default function App() {
         // ignore
       }
     })()
-  }, [apiClient, openPair, refreshPairing, route.mode, route.pairId, uiVersion])
+  }, [apiClient, openPair, refreshPairing, pairRouteMode, pairRoutePairId, route.kind])
 
   const refreshV2PairView = useCallback(async () => {
     await refreshPairing()
-    const targetPairId = route.pairId ?? pair?.id
+    const targetPairId = (route.kind === 'v2' || route.kind === 'v3') ? pairRoutePairId ?? pair?.id : pair?.id
     if (!targetPairId) return
     try {
       await openPair(targetPairId)
     } catch {
       // ignore
     }
-  }, [openPair, pair?.id, refreshPairing, route.pairId])
+  }, [openPair, pair?.id, refreshPairing, route.kind, pairRoutePairId])
 
   const doExportBackup = useCallback(async () => {
     const txt = await exportBackup()
     await navigator.clipboard.writeText(txt)
     alert('Backup (JSON) wurde in die Zwischenablage kopiert.')
+  }, [])
+
+  const exportBackupText = useCallback(async (): Promise<string> => {
+    return await exportBackup()
   }, [])
 
   const doImportBackup = useCallback(async () => {
@@ -192,9 +210,8 @@ export default function App() {
   )
 
   const deleteAccount = useCallback(async () => {
-    if (!apiClient) return
     try {
-      await apiClient.auth.deleteMe()
+      if (apiClient) await apiClient.auth.deleteMe()
     } catch {
       // allow local delete even if server delete fails
     }
@@ -204,19 +221,25 @@ export default function App() {
     clearMatches()
     clearQuestions()
     setIdentity(null)
-    window.location.hash = '#/'
+    window.location.hash = '#/v3'
+    setAccountDeletedModalOpen(true)
   }, [apiClient, clearMatches, clearQuestions, resetLocalIdentity, setIdentity, setPair])
-
-  const header = (
-    <AppHeader uiVersion={uiVersion} onSwitchVersion={switchVersion} onExportBackup={doExportBackup} onImportBackup={doImportBackup} />
-  )
 
   const v2VisibleMatchesCount = useMemo(() => visibleMatchesCount(matches.map((m) => m.id)), [matches, visibleMatchesCount])
 
   return (
     <div className="app-shell">
-      {header}
-      {uiVersion === 1 ? (
+      <InfoModal
+        open={accountDeletedModalOpen}
+        title="Account gelöscht"
+        message="Der Account wurde gelöscht. Das lässt sich nicht rückgängig machen."
+        okLabel="OK"
+        autoCloseMs={1800}
+        onClose={() => setAccountDeletedModalOpen(false)}
+      />
+      {route.kind === 'versionHome' ? (
+        <VersionHome />
+      ) : route.kind === 'v1' ? (
         <V1Page
           identityUserId={identity?.userId ?? null}
           identityCode={identity?.code ?? null}
@@ -258,9 +281,9 @@ export default function App() {
           onComputeMatches={async () => computeMatches(pair ?? undefined)}
           onError={setError}
         />
-      ) : (
+      ) : route.kind === 'v2' ? (
         <V2Shell
-          route={route}
+          route={route.kind === 'v2' ? route.route : { mode: 'home', pairId: null }}
           isBootstrappingAccount={isBootstrappingAccount}
           identity={identity ? { userId: identity.userId!, nickname: identity.nickname, code: identity.code } : null}
           nickname={nickname}
@@ -271,6 +294,7 @@ export default function App() {
             await refreshPairing()
           }}
           onExportBackup={doExportBackup}
+          onImportBackup={doImportBackup}
           onDeleteAccount={async () => {
             setError(null)
             await deleteAccount()
@@ -332,9 +356,94 @@ export default function App() {
           onRefreshGroupSettings={refreshGroupSettingsPanel}
           onProposeGroupSettings={proposeV2GroupSettings}
           onRespondGroupSettings={respondV2GroupSettings}
+          toast={toast}
+        />
+      ) : (
+        <V3Shell
+          route={route.kind === 'v3' ? route.route : { mode: 'home', pairId: null }}
+          isBootstrappingAccount={isBootstrappingAccount}
+          identity={identity ? { userId: identity.userId!, nickname: identity.nickname, code: identity.code } : null}
+          nickname={nickname}
+          onNicknameChange={setNickname}
+          onBootstrap={bootstrap}
+          onRegister={async () => {
+            setError(null)
+            await register()
+            await refreshPairing()
+          }}
+          onDeleteAccount={async () => {
+            setError(null)
+            await deleteAccount()
+          }}
+          onImportBackupText={async (txt) => {
+            setError(null)
+            await importBackupText(txt)
+          }}
+          pairingIncoming={pairingIncoming}
+          pairingOutgoing={pairingOutgoing}
+          myPairs={myPairs}
+          pairingInlineError={pairingInlineError}
+          onClearPairingInlineError={clearPairingInlineError}
+          onSendPairRequest={async (code) => {
+            setError(null)
+            await sendPairRequest(code)
+          }}
+          onRespondPairing={async (requestId, action) => {
+            setError(null)
+            await respondPairing(requestId, action)
+          }}
+          pair={pair}
+          isLoadingPairData={isLoadingPairData}
+          onOpenPair={openPair}
+          onRefreshPairView={refreshV2PairView}
+          questions={questions}
+          answerSummary={answerSummary}
+          onAnswer={async (questionId, choice) => {
+            setError(null)
+            try {
+              await answer(questionId, choice)
+            } catch (e: unknown) {
+              setError(e instanceof Error ? e.message : String(e))
+              try {
+                await refreshCurrentPair()
+                await loadQuestionsAndDecrypt()
+              } catch {
+                // ignore
+              }
+            }
+          }}
+          onAddQuestion={async (text, selfAnswer) => {
+            setError(null)
+            await addQuestion(text, selfAnswer)
+          }}
+          matches={matches}
+          isLoadingMatches={isLoadingMatches}
+          onComputeMatches={async () => computeMatches(pair ?? undefined)}
+          hiddenMatchIds={hiddenMatchIds}
+          setHiddenMatchIds={setHiddenMatchIds}
+          showHiddenMatches={showHiddenMatches}
+          setShowHiddenMatches={setShowHiddenMatches}
+          visibleMatchesCount={v2VisibleMatchesCount}
+          weeklyLimitInput={weeklyLimitInput}
+          setWeeklyLimitInput={setWeeklyLimitInput}
+          v2AllowAllQuestions={v2AllowAllQuestions}
+          setV2AllowAllQuestions={setV2AllowAllQuestions}
+          isLoadingGroupSettings={isLoadingGroupSettings}
+          onRefreshGroupSettings={refreshGroupSettingsPanel}
+          onProposeGroupSettings={proposeV2GroupSettings}
+          onRespondGroupSettings={respondV2GroupSettings}
+          toast={toast}
+          onExportBackupText={exportBackupText}
+          onCopyPairingCode={async () => {
+            if (!identity?.code) return
+            await navigator.clipboard.writeText(identity.code)
+            setV3InlineNotice('Pairing-Code wurde in die Zwischenablage kopiert.')
+            if (v3InlineNoticeTimerRef.current) window.clearTimeout(v3InlineNoticeTimerRef.current)
+            v3InlineNoticeTimerRef.current = window.setTimeout(() => setV3InlineNotice(null), 1400)
+          }}
+          inlineNotice={v3InlineNotice}
         />
       )}
-      {uiVersion === 2 && toast ? <Toast message={toast} /> : null}
       {error ? <ErrorPanel error={error} /> : null}
     </div>
   )

@@ -87,7 +87,7 @@ export function api(opts: ApiOpts) {
     },
     pairs: {
       list: () =>
-        signedFetch<{ pairs: Array<{ id: string; status: 'pending' | 'active'; weeklyLimit: number; partnerDeleted: boolean; partner: { id: string; nickname: string; code: string } | null; updatedAt: number }> }>(
+        signedFetch<{ pairs: Array<{ id: string; status: 'pending' | 'active' | 'ended'; weeklyLimit: number; partnerDeleted: boolean; partner: { id: string; nickname: string; code: string } | null; updatedAt: number }> }>(
           opts,
           '/pairs',
         ),

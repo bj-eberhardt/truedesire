@@ -1,4 +1,7 @@
 import { useCallback, useMemo, useState } from 'react'
+import '../../styles/v1.css'
+import { V1Footer } from './components/V1Footer'
+import { V1Header } from './components/V1Header'
 import type { PairingIncoming, PairingOutgoing, MyPairs } from '../../hooks/usePairing'
 import type { AnswerChoice, DecryptedQuestion, PairView } from '../../types'
 
@@ -67,7 +70,9 @@ export function V1Page(props: V1PageProps) {
   )
 
   return (
-    <main className="grid">
+    <div className="feature-shell v1-shell">
+      <V1Header onExportBackup={props.onExportBackup} onImportBackup={props.onImportBackup} />
+      <main className="grid">
       <section className="card">
         <h2>1) Account</h2>
         <p className="hint">Ohne E-Mail/Passwort. Dein Gerät hält die privaten Schlüssel. Backup ist wichtig.</p>
@@ -650,6 +655,8 @@ export function V1Page(props: V1PageProps) {
           </>
         ) : null}
       </section>
-    </main>
+      </main>
+      <V1Footer />
+    </div>
   )
 }

@@ -138,7 +138,7 @@ export function PairPage(props: PairPageProps) {
           <ProfileAvatar name={pair.partner?.nickname ?? '??'} />
           <h2 style={{ margin: 0 }}>{pair.partner ? `${pair.partner.nickname} (${pair.partner.code ?? '—'})` : pair.id}</h2>
         </div>
-        <div className={`pill status ${pair.status === 'active' ? 'ok' : 'pending'}`}>{pair.status}</div>
+        <div className={`pill status ${pair.status === 'active' ? 'ok' : pair.status === 'ended' ? 'ended' : 'pending'}`}>{pair.status}</div>
       </div>
 
       <div className="row pair-quick-links">

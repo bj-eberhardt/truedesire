@@ -230,7 +230,11 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, { ok: true })
 
   if (req.method === 'POST' && url.pathname === '/auth/register') {
-    const nickname = typeof body?.nickname === 'string' ? body.nickname.slice(0, 40) : 'Anon'
+    const rawNickname = typeof body?.nickname === 'string' ? body.nickname : 'Anon'
+    const nicknameTrimmed = rawNickname.trim()
+    if (!nicknameTrimmed) return bad(res, 'nickname_required', 400)
+    if (nicknameTrimmed.length > 30) return bad(res, 'nickname_too_long', 400)
+    const nickname = (nicknameTrimmed || 'Anon').slice(0, 30)
     const signPublicJwk = body?.signPublicJwk as JsonWebKey | undefined
     const ecdhPublicRawB64 = body?.ecdhPublicRawB64 as string | undefined
     if (!signPublicJwk || !ecdhPublicRawB64) return bad(res, 'bad_request')
@@ -266,6 +270,12 @@ const server = http.createServer(async (req, res) => {
     user.code = ''
     // Remove pending pairing requests involving this user.
     db.pairRequests = db.pairRequests.filter((r: any) => r.fromUserId !== userId && r.toUserId !== userId)
+    // Mark all pairs involving this user as ended (so the other side sees a consistent state).
+    for (const p of db.pairs) {
+      if (p.userA !== userId && p.userB !== userId) continue
+      p.status = 'ended'
+      p.updatedAt = now
+    }
     await dbStore.write(db)
     return json(res, 200, { ok: true })
   }
@@ -369,9 +379,10 @@ const server = http.createServer(async (req, res) => {
         const otherId = p.userA === userId ? p.userB : p.userA
         const other = otherId ? usersById.get(otherId) : null
         const partnerDeleted = !!other?.deletedAt
+        const status = partnerDeleted ? 'ended' : p.status
         return {
           id: p.id,
-          status: p.status,
+          status,
           weeklyLimit: p.weeklyLimit,
           partnerDeleted,
           partner: other

@@ -250,7 +250,7 @@ export function HomePage(props: HomePageProps) {
                     </div>
                   </div>
                   <div className="pair-card-meta">
-                    <div className={`pill mono status ${p.status === 'active' ? 'ok' : 'pending'}`}>{p.status}</div>
+                    <div className={`pill mono status ${p.status === 'active' ? 'ok' : p.status === 'ended' ? 'ended' : 'pending'}`}>{p.status}</div>
                     <div className="hint">Öffnen →</div>
                   </div>
                 </button>

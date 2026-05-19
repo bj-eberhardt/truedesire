@@ -8,7 +8,7 @@ export type PairingIncoming = Array<{ id: string; from: { id: string; code: stri
 export type PairingOutgoing = Array<{ id: string; to: { id: string; code: string; nickname: string }; createdAt: number }>
 export type MyPairs = Array<{
   id: string
-  status: 'pending' | 'active'
+  status: 'pending' | 'active' | 'ended'
   weeklyLimit: number
   partnerDeleted: boolean
   partner: { id: string; nickname: string; code: string } | null

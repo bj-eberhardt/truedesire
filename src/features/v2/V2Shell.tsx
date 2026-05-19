@@ -1,6 +1,10 @@
 import type { Dispatch, SetStateAction } from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import { goAsk, goHome, goPair, goPlayed, type V2RouteMode } from '../../app/routes'
+import '../../styles/v2.css'
+import { goAsk, goPair, goPlayed, goV2, type V2RouteMode } from '../../app/routes'
+import { Toast } from '../../components/Toast'
+import { V2Footer } from './components/V2Footer'
+import { V2Header } from './components/V2Header'
 import type { PairingIncoming, PairingOutgoing, MyPairs } from '../../hooks/usePairing'
 import type { MatchView } from '../../hooks/useMatches'
 import type { AnswerChoice, DecryptedQuestion, PairView } from '../../types'
@@ -17,6 +21,7 @@ type V2ShellProps = {
   onNicknameChange: (next: string) => void
   onRegister: () => Promise<void>
   onExportBackup: () => Promise<void>
+  onImportBackup: () => Promise<void>
   onDeleteAccount: () => Promise<void>
   onImportBackupText: (txt: string) => Promise<void>
 
@@ -56,6 +61,8 @@ type V2ShellProps = {
   onRefreshGroupSettings: () => Promise<void>
   onProposeGroupSettings: () => Promise<void>
   onRespondGroupSettings: (action: 'accept' | 'reject' | 'cancel') => Promise<void>
+
+  toast: { message: string; kind?: 'default' | 'success' | 'error' } | null
 }
 
 export function V2Shell(props: V2ShellProps) {
@@ -98,8 +105,10 @@ export function V2Shell(props: V2ShellProps) {
   const visibleMatchesCount = useMemo(() => props.visibleMatchesCount, [props.visibleMatchesCount])
 
   return (
-    <main className="v2">
-      <div className="v2-shell">
+    <div className="feature-shell v2-shell">
+      <V2Header onExportBackup={props.onExportBackup} onImportBackup={props.onImportBackup} />
+      <main className="v2">
+        <div className="v2-shell">
         {routeMode === 'pair' && routePairId ? (
           <PairPage
             pairId={routePairId}
@@ -111,7 +120,7 @@ export function V2Shell(props: V2ShellProps) {
             onAnswer={props.onAnswer}
             v2CardIndex={v2CardIndex}
             onSetV2CardIndex={setV2CardIndex}
-            onBack={goHome}
+            onBack={goV2}
             onRefreshView={props.onRefreshPairView}
             onGoAsk={() => goAsk(routePairId)}
             onGoPlayed={() => goPlayed(routePairId)}
@@ -175,7 +184,10 @@ export function V2Shell(props: V2ShellProps) {
             onImportBackupText={props.onImportBackupText}
           />
         )}
-      </div>
-    </main>
+        </div>
+      </main>
+      {props.toast ? <Toast message={props.toast.message} kind={props.toast.kind} /> : null}
+      <V2Footer />
+    </div>
   )
 }

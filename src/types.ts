@@ -16,7 +16,7 @@ export type PairUserView = {
 
 export type PairView = {
   id: string
-  status: 'pending' | 'active'
+  status: 'pending' | 'active' | 'ended'
   weeklyLimit: number
   weeklyLimitPending?: { id: string; proposedBy: string; limit: number; createdAt: number } | null
   seededSystemQuestionsAt?: number | null

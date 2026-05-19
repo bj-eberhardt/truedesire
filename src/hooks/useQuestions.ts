@@ -177,7 +177,6 @@ export function useQuestions(opts: {
         onAnswerLimitReached?.(false)
         await refreshCurrentPair?.()
         await loadQuestionsAndDecrypt()
-        onSaved?.('Antwort gespeichert')
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e)
         if (msg === 'weekly_limit_reached') {
