@@ -8,21 +8,13 @@ import type { MyPairs, PairingIncoming, PairingOutgoing } from '../../hooks/useP
 import type { AnswerChoice, DecryptedQuestion, PairView } from '../../types'
 import { V3Footer } from './components/V3Footer'
 import { V3Header } from './components/V3Header'
+import { V3Notice } from './components/V3Notice'
+import { InfoIcon } from './components/icons/InfoIcon'
 import { AskPage } from './pages/Ask'
 import { BackupPage } from './pages/Backup'
 import { HomePage } from './pages/Home'
 import { PairPage } from './pages/Pair'
 import { PlayedPage } from './pages/Played'
-
-function NoticeIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="v3-notice-icon" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
-      <path d="M12 10v7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="12" cy="7" r="1.2" fill="currentColor" />
-    </svg>
-  )
-}
 
 type V3ShellProps = {
   route: V3Route
@@ -125,13 +117,7 @@ export function V3Shell(props: V3ShellProps) {
       <main className="v3">
         <div className="v3-container">
           {props.inlineNotice ? (
-            <div className="v3-notice v3-notice-success" role="status" aria-live="polite">
-              <NoticeIcon />
-              <div className="v3-notice-text">
-                <strong>Kopiert</strong>
-                <span className="hint">{props.inlineNotice}</span>
-              </div>
-            </div>
+            <V3Notice className="v3-notice-success" icon={<InfoIcon />} title="Kopiert" hint={props.inlineNotice} />
           ) : null}
           {(routeMode === 'pair' || routeMode === 'pairMatches' || routeMode === 'pairSettings') && routePairId ? (
             <PairPage

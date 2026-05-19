@@ -3,6 +3,10 @@ import { ProfileAvatar } from '../../../components/ProfileAvatar'
 import type { PairingIncoming, PairingOutgoing, MyPairs } from '../../../hooks/usePairing'
 import { OnboardingStepper } from '../components/OnboardingStepper'
 import { goV3Onboarding } from '../../../app/routes'
+import { V3Notice } from '../components/V3Notice'
+import { InfoIcon } from '../components/icons/InfoIcon'
+import { downloadTextFile, formatJsonMaybe, safeBackupFilename } from '../lib/backup'
+import { toUserMessage } from '../lib/errors'
 
 type HomePageProps = {
   isBootstrappingAccount: boolean
@@ -23,16 +27,6 @@ type HomePageProps = {
   onSendPairRequest: (partnerCodeInput: string) => Promise<void>
   onRespondPairing: (requestId: string, action: 'accept' | 'reject' | 'cancel') => Promise<void>
   onOpenPair: (pairId: string) => Promise<void>
-}
-
-function InfoIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="v3-notice-icon" aria-hidden="true">
-      <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" strokeWidth="2" />
-      <path d="M12 10v7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <circle cx="12" cy="7" r="1.2" fill="currentColor" />
-    </svg>
-  )
 }
 
 function CodeExchangeIcon() {
@@ -87,29 +81,6 @@ function scrollToSection(ref: React.RefObject<HTMLElement | null>) {
   }
   const top = el.getBoundingClientRect().top + window.scrollY - 92
   window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
-}
-
-function formatJsonMaybe(text: string): string {
-  try {
-    return JSON.stringify(JSON.parse(text), null, 2)
-  } catch {
-    return text
-  }
-}
-
-function downloadTextFile(filename: string, content: string) {
-  const blob = new Blob([content], { type: 'application/json;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  try {
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-  } finally {
-    URL.revokeObjectURL(url)
-  }
 }
 
 export function HomePage(props: HomePageProps) {
@@ -213,8 +184,7 @@ export function HomePage(props: HomePageProps) {
         if (backupFileInputRef.current) backupFileInputRef.current.value = ''
         setOnboardingStep('start')
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : String(e)
-        setOnboardError(msg === 'bad_backup' ? 'Die Datei konnte nicht gelesen werden oder ist keine valide Backup-Datei.' : msg)
+        setOnboardError(toUserMessage(e))
       }
     }
 
@@ -233,7 +203,7 @@ export function HomePage(props: HomePageProps) {
         }
         await importBackupText(txt)
       } catch (e: unknown) {
-        setOnboardError('Die Datei konnte nicht gelesen werden und ist keine valide Backup-Datei.')
+        setOnboardError(toUserMessage(e))
       }
     }
 
@@ -396,16 +366,7 @@ export function HomePage(props: HomePageProps) {
                         }
                         setOnboardingStep('backup-save')
                        } catch (e: unknown) {
-                         const msg = e instanceof Error ? e.message : String(e)
-                         setOnboardError(
-                           msg === 'nickname_required'
-                             ? 'Bitte gib einen Nickname ein.'
-                             : msg === 'identity_not_available'
-                               ? 'Dein Konto konnte lokal nicht gespeichert werden. Bitte prüfe Browser-Speicher/Privatmodus und versuche es erneut.'
-                               : msg === 'register_failed'
-                                 ? 'Konto konnte nicht erstellt werden. Bitte erneut versuchen.'
-                                 : msg,
-                         )
+                         setOnboardError(toUserMessage(e))
                        } finally {
                          setIsRegistering(false)
                        }
@@ -445,11 +406,10 @@ export function HomePage(props: HomePageProps) {
                     setIsDownloadingBackup(true)
                     const txt = await props.onExportBackupText()
                     const formatted = formatJsonMaybe(txt)
-                    const base = (props.identity?.code ?? 'backup').trim()
-                    const safe = base.replace(/[^a-zA-Z0-9_-]+/g, '') || 'backup'
-                    downloadTextFile(`${safe}.json`, formatted)
+                    const filename = safeBackupFilename(props.identity?.code ?? 'backup')
+                    downloadTextFile({ filename, content: formatted })
                   } catch (e: unknown) {
-                    setOnboardError(e instanceof Error ? e.message : String(e))
+                    setOnboardError(toUserMessage(e))
                   } finally {
                     setIsDownloadingBackup(false)
                   }
@@ -493,13 +453,12 @@ export function HomePage(props: HomePageProps) {
   return (
     <div className="v3-home-stack">
       {hasRequests ? (
-        <button type="button" className="v3-notice" onClick={() => scrollToSection(requestsPanelRef)}>
-          <InfoIcon />
-          <div className="v3-notice-text">
-            <strong>Offene Verknüpfungen vorhanden</strong>
-            <span className="hint">Tippe hier, um die Anfragen anzusehen.</span>
-          </div>
-        </button>
+        <V3Notice
+          icon={<InfoIcon />}
+          title="Offene Verknüpfungen vorhanden"
+          hint="Tippe hier, um die Anfragen anzusehen."
+          onClick={() => scrollToSection(requestsPanelRef)}
+        />
       ) : null}
 
       {hasPairs ? (

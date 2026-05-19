@@ -1,0 +1,49 @@
+.app-shell {
+  text-align: left;
+}
+
+.home-shell {
+  padding: 20px;
+}
+
+.card {
+  border: 1px solid var(--border);
+  background: color-mix(in oklab, var(--bg) 86%, transparent);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+}
+
+.hint {
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+button {
+  font: 14px/1.2 var(--sans);
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--accent-border);
+  background: var(--accent-bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+button.secondary {
+  border-color: var(--border);
+  background: color-mix(in oklab, var(--bg) 80%, transparent);
+}
+
+button.primary {
+  border-color: color-mix(in oklab, var(--accent) 55%, var(--border));
+  background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 20%, var(--bg)), var(--accent-bg));
+  font-weight: 650;
+}
+

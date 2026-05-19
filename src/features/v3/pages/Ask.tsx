@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import type { AnswerChoice, PairView } from '../../../types'
+import { InlineError } from '../components/InlineError'
+import { V3View } from '../components/V3View'
+import { toUserMessage } from '../lib/errors'
 
 type AskPageProps = {
   pairId: string
@@ -16,19 +19,7 @@ export function AskPage(props: AskPageProps) {
   const canSave = !!props.pair && props.pair.status === 'active' && !!questionText.trim() && !!questionSelfAnswer
 
   return (
-    <section className="card v3-card v3-view">
-      <div className="v3-view-head">
-        <button className="secondary" onClick={props.onBack}>
-          ← Zurück
-        </button>
-        <div>
-          <h2 style={{ margin: 0 }}>Eigene Frage stellen</h2>
-          <p className="hint v3-subtitle">Neue Frage erstellen und deine eigene Antwort direkt speichern.</p>
-        </div>
-      </div>
-
-      <div className="divider" />
-
+    <V3View title="Eigene Frage stellen" subtitle="Neue Frage erstellen und deine eigene Antwort direkt speichern." onBack={props.onBack}>
       <label className="field v3-field">
         <span>Frage</span>
         <input value={questionText} onChange={(e) => setQuestionText(e.target.value)} placeholder="z.B. Möchtest du …" />
@@ -63,7 +54,7 @@ export function AskPage(props: AskPageProps) {
             try {
               await props.onSave(text, questionSelfAnswer)
             } catch (e: unknown) {
-              setAskError(e instanceof Error ? e.message : String(e))
+              setAskError(toUserMessage(e))
             }
           }}
           disabled={!canSave}
@@ -72,8 +63,7 @@ export function AskPage(props: AskPageProps) {
         </button>
       </div>
 
-      {askError ? <div className="inline-error">{askError}</div> : null}
-    </section>
+      {askError ? <InlineError>{askError}</InlineError> : null}
+    </V3View>
   )
 }
-

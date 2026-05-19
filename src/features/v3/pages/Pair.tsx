@@ -1,11 +1,18 @@
-import type { PointerEvent as ReactPointerEvent } from 'react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo } from 'react'
 import { MatchVisibilityIcon } from '../../../components/MatchVisibilityIcon'
 import { ProfileAvatar } from '../../../components/ProfileAvatar'
 import { RefreshButton } from '../../../components/RefreshButton'
 import type { MatchView } from '../../../hooks/useMatches'
 import type { AnswerChoice, DecryptedQuestion, PairView } from '../../../types'
 import { goV3Pair, goV3PairMatches, goV3PairSettings } from '../../../app/routes'
+import { V3Notice } from '../components/V3Notice'
+import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon'
+import { ChevronRightIcon } from '../components/icons/ChevronRightIcon'
+import { ClockIcon } from '../components/icons/ClockIcon'
+import { SettingsIcon } from '../components/icons/SettingsIcon'
+import { useSavedFlash } from '../hooks/useSavedFlash'
+import { useSwipeNav } from '../hooks/useSwipeNav'
+import { getOpenQuestions, sortByCreatedAtDesc } from '../lib/questions'
 
 function nextWeeklyResetDateText(now = new Date()): string {
   const d = new Date(now)
@@ -14,51 +21,6 @@ function nextWeeklyResetDateText(now = new Date()): string {
   const daysUntilMonday = (8 - (day === 0 ? 7 : day)) % 7 || 7
   d.setDate(d.getDate() + daysUntilMonday)
   return d.toLocaleDateString()
-}
-
-function ClockIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="v3-limit-notice-icon" aria-hidden="true">
-      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2" />
-      <path d="M12 7v6l4 2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function SettingsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="v3-notice-icon" aria-hidden="true">
-      <path
-        d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      />
-      <path
-        d="M19.4 13.2a7.9 7.9 0 0 0 .05-1.2 7.9 7.9 0 0 0-.05-1.2l2-1.55-1.9-3.29-2.42.97a8.1 8.1 0 0 0-2.08-1.2L14.6 2h-3.8l-.4 2.73a8.1 8.1 0 0 0-2.08 1.2L5.9 4.96 4 8.25l2 1.55A7.9 7.9 0 0 0 6 12c0 .4.02.8.05 1.2L4 14.75l1.9 3.29 2.42-.97c.63.5 1.33.9 2.08 1.2L10.8 22h3.8l.4-2.73c.75-.3 1.45-.7 2.08-1.2l2.42.97 1.9-3.29-2-1.55Z"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
-
-function NavBackIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="v3-nav-icon" aria-hidden="true">
-      <path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function NavNextIcon() {
-  return (
-    <svg viewBox="0 0 24 24" className="v3-nav-icon" aria-hidden="true">
-      <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
 }
 
 type PairPageProps = {
@@ -103,22 +65,7 @@ type PairPageProps = {
 }
 
 export function PairPage(props: PairPageProps) {
-  const [isAnswering, setIsAnswering] = useState(false)
-  const [showSaved, setShowSaved] = useState(false)
-  const [savedQuestionText, setSavedQuestionText] = useState<string | null>(null)
-  const savedTimerRef = useRef<number | null>(null)
-  const swipeRef = useRef<{ pointerId: number | null; startX: number; startY: number; moved: boolean }>({
-    pointerId: null,
-    startX: 0,
-    startY: 0,
-    moved: false,
-  })
-
-  useEffect(() => {
-    return () => {
-      if (savedTimerRef.current) window.clearTimeout(savedTimerRef.current)
-    }
-  }, [])
+  const flash = useSavedFlash({ timeoutMs: 650 })
 
   const hiddenCount = useMemo(() => props.matches.filter((m) => props.hiddenMatchIds.includes(m.id)).length, [props.hiddenMatchIds, props.matches])
 
@@ -135,7 +82,52 @@ export function PairPage(props: PairPageProps) {
     return true
   }, [props.allowAllQuestions, props.isLoadingGroupSettings, props.pair, props.weeklyLimitInput])
 
-  if (!props.pair || props.pair.id !== props.pairId) {
+  const pair = props.pair
+  const pairReady = !!pair && pair.id === props.pairId
+
+  const weeklyLimit = pairReady ? (pair.usage?.weeklyLimit ?? pair.weeklyLimit) : 0
+  const isUnlimited = weeklyLimit === 0
+  const answeredThisWeek = pairReady ? (pair.usage?.answeredThisWeek ?? 0) : 0
+  const remainingNew = isUnlimited ? Number.POSITIVE_INFINITY : Math.max(0, weeklyLimit - answeredThisWeek)
+  const remainingNewCount = isUnlimited ? null : Math.max(0, weeklyLimit - answeredThisWeek)
+  const pendingSettingsCount =
+    pairReady && pair.weeklyLimitPending && pair.weeklyLimitPending.proposedBy !== props.identityUserId ? 1 : 0
+
+  const baseOpen = pairReady ? getOpenQuestions(props.questions, props.answerSummary) : []
+  const unansweredAll = baseOpen.filter((q) => !props.answerSummary[q.id]?.mine)
+  const openNonOwn = unansweredAll.filter((q) => q.createdBy !== props.identityUserId).length
+  const playedPending = baseOpen.filter((q) => !!props.answerSummary[q.id]?.mine)
+
+  const unanswered = remainingNew > 0 ? unansweredAll : unansweredAll.filter((q) => q.createdBy === props.identityUserId)
+  const ordered = sortByCreatedAtDesc(unanswered)
+
+  const safeIndex = Math.min(props.cardIndex, Math.max(0, ordered.length - 1))
+  const q = ordered[safeIndex]
+  const canAnswerNew = q ? q.createdBy === props.identityUserId || remainingNew > 0 : false
+  const canPrev = safeIndex > 0
+  const canNext = safeIndex < ordered.length - 1
+
+  const showLimitNotice = !isUnlimited && remainingNew === 0 && openNonOwn > 0
+  const allCurrentAnswered = props.questions.length > 0 && unansweredAll.length === 0 && openNonOwn === 0
+  const limitNoticeText =
+    openNonOwn > 0
+      ? `Wochenlimit erreicht. Ab ${nextWeeklyResetDateText()} kannst du wieder neue Fragen beantworten. Es warten dann noch ${openNonOwn} offene Fragen auf dich.`
+      : `Wochenlimit erreicht. Ab ${nextWeeklyResetDateText()} kannst du wieder neue Fragen beantworten.`
+
+  const showPlay = props.activeTab === 'play'
+  const showMatches = props.activeTab === 'matches'
+  const showSettings = props.activeTab === 'settings'
+
+  const swipe = useSwipeNav({
+    enabled: pairReady && showPlay,
+    blocked: flash.isSaving || flash.showSaved,
+    canPrev,
+    canNext,
+    onPrev: () => props.onSetCardIndex(Math.max(0, safeIndex - 1)),
+    onNext: () => props.onSetCardIndex(Math.min(ordered.length - 1, safeIndex + 1)),
+  })
+
+  if (!pairReady) {
     return (
       <section className="card v3-card">
         <div className="row">
@@ -154,106 +146,15 @@ export function PairPage(props: PairPageProps) {
     )
   }
 
-  const pair = props.pair
-
-  const weeklyLimit = pair.usage?.weeklyLimit ?? pair.weeklyLimit
-  const isUnlimited = weeklyLimit === 0
-  const answeredThisWeek = pair.usage?.answeredThisWeek ?? 0
-  const remainingNew = isUnlimited ? Number.POSITIVE_INFINITY : Math.max(0, weeklyLimit - answeredThisWeek)
-  const remainingNewCount = isUnlimited ? null : Math.max(0, weeklyLimit - answeredThisWeek)
-  const pendingSettingsCount = pair.weeklyLimitPending ? 1 : 0
-
-  const baseOpen = props.questions.slice().filter((q) => (props.answerSummary[q.id]?.total ?? 0) < 2)
-  const unansweredAll = baseOpen.filter((q) => !props.answerSummary[q.id]?.mine)
-  const openNonOwn = unansweredAll.filter((q) => q.createdBy !== props.identityUserId).length
-  const playedPending = baseOpen.filter((q) => !!props.answerSummary[q.id]?.mine)
-
-  const unanswered = remainingNew > 0 ? unansweredAll : unansweredAll.filter((q) => q.createdBy === props.identityUserId)
-  const ordered = unanswered.sort((a, b) => b.createdAt - a.createdAt)
-
-  const safeIndex = Math.min(props.cardIndex, Math.max(0, ordered.length - 1))
-  const q = ordered[safeIndex]
-  const canAnswerNew = q ? q.createdBy === props.identityUserId || remainingNew > 0 : false
-
-  const showLimitNotice = !isUnlimited && remainingNew === 0 && openNonOwn > 0
-  const allCurrentAnswered = props.questions.length > 0 && unansweredAll.length === 0 && openNonOwn === 0
-  const limitNoticeText =
-    openNonOwn > 0
-      ? `Wochenlimit erreicht. Ab ${nextWeeklyResetDateText()} kannst du wieder neue Fragen beantworten. Es warten dann noch ${openNonOwn} offene Fragen auf dich.`
-      : `Wochenlimit erreicht. Ab ${nextWeeklyResetDateText()} kannst du wieder neue Fragen beantworten.`
-
-  const showPlay = props.activeTab === 'play'
-  const showMatches = props.activeTab === 'matches'
-  const showSettings = props.activeTab === 'settings'
-
-  function canSwipeTarget(el: EventTarget | null): boolean {
-    const node = el as HTMLElement | null
-    if (!node) return true
-    const tag = node.tagName?.toLowerCase?.() ?? ''
-    if (tag === 'button' || tag === 'input' || tag === 'textarea' || tag === 'select' || tag === 'a') return false
-    if (node.closest?.('button, a, input, textarea, select, label')) return false
-    return true
-  }
-
-  function onSwipePointerDown(e: ReactPointerEvent<HTMLDivElement>) {
-    if (e.pointerType === 'mouse') return
-    if (!canSwipeTarget(e.target)) return
-    swipeRef.current.pointerId = e.pointerId
-    swipeRef.current.startX = e.clientX
-    swipeRef.current.startY = e.clientY
-    swipeRef.current.moved = false
-    try {
-      e.currentTarget.setPointerCapture(e.pointerId)
-    } catch {
-      // ignore
-    }
-  }
-
-  function onSwipePointerMove(e: ReactPointerEvent<HTMLDivElement>) {
-    if (swipeRef.current.pointerId !== e.pointerId) return
-    swipeRef.current.moved = true
-  }
-
-  function onSwipePointerEnd(e: ReactPointerEvent<HTMLDivElement>) {
-    if (swipeRef.current.pointerId !== e.pointerId) return
-    swipeRef.current.pointerId = null
-    if (!swipeRef.current.moved) return
-    if (showSaved || isAnswering) return
-    if (!ordered.length) return
-
-    const dx = e.clientX - swipeRef.current.startX
-    const dy = e.clientY - swipeRef.current.startY
-    const absX = Math.abs(dx)
-    const absY = Math.abs(dy)
-    const isHorizontal = absX >= 38 && absX > absY * 1.2
-    if (!isHorizontal) return
-
-    if (dx < 0 && safeIndex < ordered.length - 1) {
-      props.onSetCardIndex(Math.min(ordered.length - 1, safeIndex + 1))
-    } else if (dx > 0 && safeIndex > 0) {
-      props.onSetCardIndex(Math.max(0, safeIndex - 1))
-    }
-  }
-
   async function handleAnswer(questionId: string, choice: AnswerChoice, questionText: string) {
-    if (isAnswering) return
+    if (flash.isSaving) return
     try {
       props.onAnswerBegin()
-      setIsAnswering(true)
-      setSavedQuestionText(questionText)
+      flash.begin(questionId, questionText)
       await props.onAnswer(questionId, choice)
-      setShowSaved(true)
-      if (savedTimerRef.current) window.clearTimeout(savedTimerRef.current)
-      savedTimerRef.current = window.setTimeout(() => {
-        setShowSaved(false)
-        setIsAnswering(false)
-        setSavedQuestionText(null)
-        props.onAnswerSaved()
-      }, 650)
+      flash.success(() => props.onAnswerSaved())
     } catch (e: unknown) {
-      setIsAnswering(false)
-      setShowSaved(false)
-      setSavedQuestionText(null)
+      flash.fail()
       props.onAnswerAbort()
       // App-level handler already surfaces errors; avoid unhandled rejections from click handlers.
       return
@@ -270,13 +171,12 @@ export function PairPage(props: PairPageProps) {
       </div>
 
       {pendingSettingsCount ? (
-        <button type="button" className="v3-notice" onClick={() => goV3PairSettings(props.pairId)}>
-          <SettingsIcon />
-          <div className="v3-notice-text">
-            <strong>Offene Einstellungsanfrage</strong>
-            <span className="hint">Tippe hier, um sie in den Einstellungen zu prüfen.</span>
-          </div>
-        </button>
+        <V3Notice
+          icon={<SettingsIcon />}
+          title="Offene Einstellungsanfrage"
+          hint="Tippe hier, um sie in den Einstellungen zu prüfen."
+          onClick={() => goV3PairSettings(props.pairId)}
+        />
       ) : null}
 
       {pair.partnerDeleted ? <div className="notice">Partner ist gelöscht. Keine weitere Interaktion möglich.</div> : null}
@@ -389,11 +289,11 @@ export function PairPage(props: PairPageProps) {
               <div className="v3-play-panel">
               <div
                 className="v3-play-card"
-                data-saved={showSaved ? 'true' : 'false'}
-                onPointerDown={onSwipePointerDown}
-                onPointerMove={onSwipePointerMove}
-                onPointerUp={onSwipePointerEnd}
-                onPointerCancel={onSwipePointerEnd}
+                data-saved={flash.showSaved ? 'true' : 'false'}
+                onPointerDown={swipe.onPointerDown}
+                onPointerMove={swipe.onPointerMove}
+                onPointerUp={swipe.onPointerUp}
+                onPointerCancel={swipe.onPointerCancel}
               >
                 <div className="v3-play-card-top">
                   <div className="pill mono">
@@ -403,28 +303,28 @@ export function PairPage(props: PairPageProps) {
                     <div className="pill v3-badge-partner-answered">Vom Partner beantwortet</div>
                   ) : null}
                 </div>
-                <div className="v3-play-question">{showSaved ? savedQuestionText ?? q.text : q.text}</div>
-                {showSaved ? <div className="v3-answer-saved">Antwort wurde gespeichert.</div> : null}
+                <div className="v3-play-question">{flash.showSaved ? flash.savedText ?? q.text : q.text}</div>
+                {flash.showSaved ? <div className="v3-answer-saved">Antwort wurde gespeichert.</div> : null}
                 <div className="v3-choice-row">
-                  <button className="choice yes" onClick={() => handleAnswer(q.id, 'yes', q.text)} disabled={!canAnswerNew || isAnswering}>
+                  <button className="choice yes" onClick={() => handleAnswer(q.id, 'yes', q.text)} disabled={!canAnswerNew || flash.isSaving}>
                     Ja
                   </button>
-                  <button className="choice maybe" onClick={() => handleAnswer(q.id, 'maybe', q.text)} disabled={!canAnswerNew || isAnswering}>
+                  <button className="choice maybe" onClick={() => handleAnswer(q.id, 'maybe', q.text)} disabled={!canAnswerNew || flash.isSaving}>
                     Vielleicht
                   </button>
-                  <button className="choice no" onClick={() => handleAnswer(q.id, 'no', q.text)} disabled={!canAnswerNew || isAnswering}>
+                  <button className="choice no" onClick={() => handleAnswer(q.id, 'no', q.text)} disabled={!canAnswerNew || flash.isSaving}>
                     Nein
                   </button>
                 </div>
                 <div className="v3-play-nav">
-                  {safeIndex > 0 ? (
+                  {canPrev ? (
                     <button className="secondary v3-play-prev" onClick={() => props.onSetCardIndex(Math.max(0, safeIndex - 1))} title="Vorige Frage" aria-label="Vorige Frage">
-                      <NavBackIcon />
+                      <ChevronLeftIcon />
                     </button>
                   ) : null}
-                  {safeIndex < ordered.length - 1 ? (
+                  {canNext ? (
                     <button className="secondary v3-play-next" onClick={() => props.onSetCardIndex(Math.min(ordered.length - 1, safeIndex + 1))} title="Nächste Frage" aria-label="Nächste Frage">
-                      <NavNextIcon />
+                      <ChevronRightIcon />
                     </button>
                   ) : null}
                 </div>

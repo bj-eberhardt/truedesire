@@ -1,32 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { InlineError } from '../components/InlineError'
+import { V3View } from '../components/V3View'
+import { downloadTextFile, formatJsonMaybe, safeBackupFilename } from '../lib/backup'
+import { toUserMessage } from '../lib/errors'
 
 type BackupPageProps = {
   identityCode: string | null
   onBack: () => void
   onExportBackupText: () => Promise<string>
-}
-
-function formatJsonMaybe(text: string): string {
-  try {
-    return JSON.stringify(JSON.parse(text), null, 2)
-  } catch {
-    return text
-  }
-}
-
-function downloadTextFile(filename: string, content: string) {
-  const blob = new Blob([content], { type: 'application/json;charset=utf-8' })
-  const url = URL.createObjectURL(blob)
-  try {
-    const a = document.createElement('a')
-    a.href = url
-    a.download = filename
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-  } finally {
-    URL.revokeObjectURL(url)
-  }
 }
 
 export function BackupPage(props: BackupPageProps) {
@@ -38,11 +19,7 @@ export function BackupPage(props: BackupPageProps) {
   const copyTimerRef = useRef<number | null>(null)
   const [copied, setCopied] = useState(false)
 
-  const filename = useMemo(() => {
-    const base = (identityCode ?? 'backup').trim()
-    const safe = base.replace(/[^a-zA-Z0-9_-]+/g, '') || 'backup'
-    return `${safe}.json`
-  }, [identityCode])
+  const filename = useMemo(() => safeBackupFilename(identityCode), [identityCode])
 
   useEffect(() => {
     let cancelled = false
@@ -55,7 +32,7 @@ export function BackupPage(props: BackupPageProps) {
       })
       .catch((e: unknown) => {
         if (cancelled) return
-        setError(e instanceof Error ? e.message : String(e))
+        setError(toUserMessage(e))
       })
       .finally(() => {
         if (cancelled) return
@@ -73,21 +50,14 @@ export function BackupPage(props: BackupPageProps) {
   }, [])
 
   return (
-    <section className="card v3-card v3-view v3-backup">
-      <div className="v3-view-head">
-        <button className="secondary" onClick={onBack}>
-          ← Zurück
-        </button>
-        <div>
-          <h2 style={{ margin: 0 }}>Backup erstellen</h2>
-          <p className="hint v3-subtitle">Speichere diese Informationen sicher. Ohne Backup sind alte Daten nicht wiederherstellbar.</p>
-        </div>
-      </div>
-
-      <div className="divider" />
-
+    <V3View
+      className="v3-backup"
+      title="Backup erstellen"
+      subtitle="Speichere diese Informationen sicher. Ohne Backup sind alte Daten nicht wiederherstellbar."
+      onBack={onBack}
+    >
       {error ? (
-        <div className="inline-error">{error}</div>
+        <InlineError>{error}</InlineError>
       ) : (
         <div className="v3-backup-grid">
           <label className="field v3-field v3-backup-text">
@@ -109,7 +79,7 @@ export function BackupPage(props: BackupPageProps) {
             </button>
             <button
               className="secondary"
-              onClick={() => downloadTextFile(filename, backupText)}
+              onClick={() => downloadTextFile({ filename, content: backupText })}
               disabled={!backupText.trim()}
               title={`Lädt ${filename} herunter`}
             >
@@ -120,12 +90,10 @@ export function BackupPage(props: BackupPageProps) {
                 Kopiert.
               </div>
             ) : null}
-            <div className="hint">
-              Tipp: Lege das Backup in einem sicheren Passwort-Manager oder als Datei ab.
-            </div>
+            <div className="hint">Tipp: Lege das Backup in einem sicheren Passwort-Manager oder als Datei ab.</div>
           </div>
         </div>
       )}
-    </section>
+    </V3View>
   )
 }
