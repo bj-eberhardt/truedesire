@@ -9,8 +9,8 @@ export function V2Header(props: V2HeaderProps) {
       <div className="brand">
         <div className="logo">LI</div>
         <div>
-          <div className="title">love.interests</div>
-          <div className="subtitle">Version 2</div>
+          <div className="title">TrueDesire</div>
+          <div className="subtitle">Wahre Wünsche</div>
         </div>
       </div>
       <div className="top-actions">

@@ -56,8 +56,12 @@ export function V3Header(props: V3HeaderProps) {
 
   return (
     <header className="v3-header" data-hidden={hidden ? 'true' : 'false'}>
-      <button type="button" className="v3-brand" aria-label="love.interests" onClick={() => goV3()}>
+      <button type="button" className="v3-brand" aria-label="TrueDesire" onClick={() => goV3()}>
         <HeartChecklistLogo />
+        <span className="v3-brand-text">
+          <span className="v3-brand-title">TrueDesire</span>
+          <span className="v3-brand-subtitle">Wahre Wünsche</span>
+        </span>
       </button>
 
       {hasAccount ? (

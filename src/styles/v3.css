@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Playwrite+AU+SA:wght@400;500;600&display=swap");
+
 .v3-shell {
   --accent: #e11d48;
   --accent2: #fb7185;
@@ -81,14 +83,45 @@
 }
 
 .v3-shell .v3-brand {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border: 0;
+  background: transparent;
   color: color-mix(in oklab, var(--accent) 78%, var(--text-h));
+  cursor: pointer;
 }
 
 .v3-shell .v3-logo-svg {
+  flex: 0 0 auto;
   width: 30px;
   height: 30px;
+}
+
+.v3-shell .v3-brand-text {
+  display: grid;
+  gap: 1px;
+  line-height: 1;
+  text-align: left;
+}
+
+.v3-shell .v3-brand-title {
+  font-family: "Playwrite AU SA", "Segoe Script", "Brush Script MT", cursive;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.08;
+}
+
+.v3-shell .v3-brand-subtitle {
+  display: block;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--text-m);
+  white-space: nowrap;
 }
 
 .v3-shell .v3-profile {
@@ -174,7 +207,7 @@
   right: 0;
   top: calc(100% - 2px);
   z-index: 30;
-  width: min(340px, calc(100vw - 28px));
+  width: min(300px, calc(100vw - 28px));
   border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
   background: var(--bg);
   border-radius: 18px;
@@ -240,7 +273,9 @@
 }
 
 .v3-shell .v3-notice {
+  box-sizing: border-box;
   width: 100%;
+  max-width: 100%;
   border: 1px solid color-mix(in oklab, var(--accent) 28%, var(--border));
   background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 14%, var(--bg)), color-mix(in oklab, var(--accent2) 10%, var(--bg)));
   color: var(--text-h);
@@ -276,7 +311,22 @@
 
 .v3-shell .v3-notice-text {
   display: grid;
+  min-width: 0;
   gap: 2px;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .v3-shell .v3-notice {
+    gap: 9px;
+    padding: 10px 11px;
+    border-radius: 14px;
+  }
+
+  .v3-shell .v3-notice-icon {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 .v3-shell .v3-guide {

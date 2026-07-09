@@ -1,4 +1,6 @@
-﻿# love.interests
+﻿# TrueDesire
+
+**Wahre Wünsche. Ehrliche Antworten.**
 
 Privacy-first „Fragen-Spiel“ für Paare:
 

@@ -11,8 +11,8 @@ export function AppHeader({ uiVersion, onSwitchVersion, onExportBackup, onImport
       <div className="brand">
         <div className="logo">LI</div>
         <div>
-          <div className="title">love.interests</div>
-          <div className="subtitle">E2E Fragen-Spiel für Paare</div>
+          <div className="title">TrueDesire</div>
+          <div className="subtitle">Wahre Wünsche</div>
         </div>
       </div>
       <div className="top-actions">

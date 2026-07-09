@@ -10,9 +10,6 @@ type ProfileMenuProps = {
   onClose: () => void
 }
 
-const HINT_TEXT =
-  'Hinweis: Beide Partner müssen gegenseitig den Code eingeben und die Anfrage jeweils annehmen, damit eine Verknüpfung aktiv wird.'
-
 export function ProfileMenu(props: ProfileMenuProps) {
   const itemTabIndex = props.open ? 0 : -1
   const [confirmOpen, setConfirmOpen] = useState(false)
@@ -61,7 +58,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
           Account löschen
         </button>
 
-        <div className="v3-menu-hint">{HINT_TEXT}</div>
+        <div className="v3-menu-hint"></div>
       </div>
 
       <ConfirmDialog
