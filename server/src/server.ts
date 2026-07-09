@@ -17,9 +17,28 @@ const PAIRING_LIMIT_USER_PER_MIN = Number(process.env.PAIRING_LIMIT_USER_PER_MIN
 const PAIRING_LIMIT_USER_PER_HOUR = Number(process.env.PAIRING_LIMIT_USER_PER_HOUR ?? 50)
 const PAIRING_LIMIT_IP_PER_MIN = Number(process.env.PAIRING_LIMIT_IP_PER_MIN ?? 30)
 const PAIRING_LIMIT_IP_PER_HOUR = Number(process.env.PAIRING_LIMIT_IP_PER_HOUR ?? 200)
+const LOG_LEVELS = ['debug', 'info', 'warn', 'error'] as const
+type LogLevel = (typeof LOG_LEVELS)[number]
+const LOG_LEVEL = String(process.env.LOG_LEVEL ?? 'info').toLowerCase()
+const REQUEST_LOGS = String(process.env.REQUEST_LOGS ?? 'true').toLowerCase() !== 'false'
+const ACTIVE_LOG_LEVEL: LogLevel | 'silent' = LOG_LEVEL === 'silent' ? 'silent' : LOG_LEVELS.includes(LOG_LEVEL as LogLevel) ? (LOG_LEVEL as LogLevel) : 'info'
 
 const pairingReqTimestampsByUser = new Map<string, number[]>()
 const pairingReqTimestampsByIp = new Map<string, number[]>()
+
+function shouldLog(level: LogLevel): boolean {
+  if (ACTIVE_LOG_LEVEL === 'silent') return false
+  return LOG_LEVELS.indexOf(level) >= LOG_LEVELS.indexOf(ACTIVE_LOG_LEVEL)
+}
+
+function log(level: LogLevel, message: string, meta?: Record<string, unknown>) {
+  if (!shouldLog(level)) return
+  const payload = meta && Object.keys(meta).length ? ` ${JSON.stringify(meta)}` : ''
+  const line = `${new Date().toISOString()} ${level.toUpperCase()} ${message}${payload}`
+  if (level === 'error') console.error(line)
+  else if (level === 'warn') console.warn(line)
+  else console.log(line)
+}
 
 function json(res: http.ServerResponse, status: number, body: Json) {
   const data = Buffer.from(JSON.stringify(body))
@@ -190,11 +209,25 @@ function getUserByCode(db: any, code: string) {
 
 function ensurePairForUsers(db: any, user1: string, user2: string): PairRecord {
   const [a, b] = [user1, user2].sort()
+  log('debug', 'ensure pair start', { userA: a, userB: b, pairCount: db.pairs.length })
   const existing = db.pairs.find((p: PairRecord) => {
     const ids = [p.userA, p.userB].filter(Boolean).sort()
     return ids.length === 2 && ids[0] === a && ids[1] === b
   })
-  if (existing) return existing
+  if (existing) {
+    log('info', 'pair already exists', { pairId: existing.id, userA: a, userB: b, status: existing.status })
+    return existing
+  }
+  const userA = db.users.find((u: any) => u.id === a)
+  const userB = db.users.find((u: any) => u.id === b)
+  if (!userA || !userB) {
+    log('error', 'pair users missing', { userA: a, userB: b, userAExists: !!userA, userBExists: !!userB })
+    throw new Error('pair_users_missing')
+  }
+  if (userA.deletedAt || userB.deletedAt) {
+    log('warn', 'pair user deleted', { userA: a, userB: b, userADeleted: !!userA.deletedAt, userBDeleted: !!userB.deletedAt })
+    throw new Error('pair_user_deleted')
+  }
   const pair: PairRecord = {
     id: newId().slice(0, 8),
     userA: a,
@@ -210,21 +243,52 @@ function ensurePairForUsers(db: any, user1: string, user2: string): PairRecord {
     updatedAt: Date.now(),
   }
   db.pairs.push(pair)
+  log('info', 'pair created', { pairId: pair.id, userA: a, userB: b })
   return pair
 }
 
-function findMutualAcceptedRequest(db: any, u1: string, u2: string): boolean {
-  const a = db.pairRequests.find((r: PairRequestRecord) => r.fromUserId === u1 && r.toUserId === u2 && r.status === 'accepted')
-  const b = db.pairRequests.find((r: PairRequestRecord) => r.fromUserId === u2 && r.toUserId === u1 && r.status === 'accepted')
-  return !!(a && b)
+
+function ensurePairsForAcceptedRequests(db: any, userId: string): number {
+  const before = db.pairs.length
+  for (const r of db.pairRequests) {
+    if (r.status !== 'accepted') continue
+    if (r.fromUserId !== userId && r.toUserId !== userId) continue
+    ensurePairForUsers(db, r.fromUserId, r.toUserId)
+  }
+  return db.pairs.length - before
 }
 
 const server = http.createServer(async (req, res) => {
+  const startedAt = Date.now()
+  const requestId = newId().slice(0, 8)
+  const ip = getClientIp(req)
+  let pathname = req.url ?? ''
+  let responseLogged = false
+  const originalEnd = res.end.bind(res)
+  res.end = ((...args: Parameters<typeof res.end>) => {
+    if (!responseLogged && REQUEST_LOGS) {
+      responseLogged = true
+      const level: LogLevel = res.statusCode >= 500 ? 'error' : res.statusCode >= 400 ? 'warn' : 'info'
+      log(level, 'request', {
+        requestId,
+        method: req.method,
+        path: pathname,
+        status: res.statusCode,
+        durationMs: Date.now() - startedAt,
+        ip,
+        userId: req.headers['x-user-id'] ? String(req.headers['x-user-id']) : undefined,
+      })
+    }
+    return originalEnd(...args)
+  }) as typeof res.end
+
+  try {
   if (!req.url) return bad(res, 'bad_request')
 
   if (req.method === 'OPTIONS') return text(res, 204, '')
 
   const url = new URL(req.url, 'http://localhost')
+  pathname = url.pathname
   const { raw, json: body } = await readBody(req)
 
   if (req.method === 'GET' && url.pathname === '/health') return json(res, 200, { ok: true })
@@ -246,6 +310,7 @@ const server = http.createServer(async (req, res) => {
     const code = makeUserCode(existingCodes)
     db.users.push({ id: userId, code, nickname, deletedAt: null, signPublicJwk, ecdhPublicRawB64, createdAt: Date.now() })
     await dbStore.write(db)
+    log('info', 'user registered', { userId, code })
     return json(res, 200, { userId })
   }
 
@@ -277,6 +342,7 @@ const server = http.createServer(async (req, res) => {
       p.updatedAt = now
     }
     await dbStore.write(db)
+    log('info', 'user deleted', { userId })
     return json(res, 200, { ok: true })
   }
 
@@ -305,10 +371,28 @@ const server = http.createServer(async (req, res) => {
       const ids = [p.userA, p.userB].filter(Boolean).sort()
       return ids.length === 2 && ids[0] === a && ids[1] === b
     })
-    if (existingPair) return bad(res, 'already_linked', 409)
+    if (existingPair) {
+      log('info', 'pair request rejected because pair exists', { userId, partnerId: partner.id, pairId: existingPair.id, status: existingPair.status })
+      return bad(res, 'already_linked', 409)
+    }
+
+    const acceptedWithoutPair = db.pairRequests.find((r: PairRequestRecord) => {
+      if (r.status !== 'accepted') return false
+      const ids = [r.fromUserId, r.toUserId].sort()
+      return ids[0] === a && ids[1] === b
+    })
+    if (acceptedWithoutPair) {
+      const pair = ensurePairForUsers(db, userId, partner.id)
+      await dbStore.write(db)
+      log('warn', 'accepted pair request repaired during request', { requestId: acceptedWithoutPair.id, userId, partnerId: partner.id, pairId: pair.id })
+      return json(res, 200, { ok: true, requestId: acceptedWithoutPair.id, pairId: pair.id, repaired: true })
+    }
 
     const existing = db.pairRequests.find((r: PairRequestRecord) => r.fromUserId === userId && r.toUserId === partner.id && r.status === 'pending')
-    if (existing) return json(res, 200, { ok: true, requestId: existing.id })
+    if (existing) {
+      log('info', 'pair request reused existing pending request', { requestId: existing.id, userId, partnerId: partner.id })
+      return json(res, 200, { ok: true, requestId: existing.id })
+    }
 
     const reqRec: PairRequestRecord = {
       id: newId(),
@@ -320,6 +404,7 @@ const server = http.createServer(async (req, res) => {
     }
     db.pairRequests.push(reqRec)
     await dbStore.write(db)
+    log('info', 'pair request created', { requestId: reqRec.id, fromUserId: userId, toUserId: partner.id })
     return json(res, 200, { ok: true, requestId: reqRec.id })
   }
 
@@ -341,12 +426,33 @@ const server = http.createServer(async (req, res) => {
     if (action === 'cancel') r.status = 'canceled'
     r.updatedAt = Date.now()
 
-    if (r.status === 'accepted' && findMutualAcceptedRequest(db, r.fromUserId, r.toUserId)) {
-      ensurePairForUsers(db, r.fromUserId, r.toUserId)
+    log('info', 'pair request response requested', { requestId, action, userId, fromUserId: r.fromUserId, toUserId: r.toUserId, previousStatus: r.status })
+
+    let pair: PairRecord | null = null
+    if (r.status === 'accepted') {
+      try {
+        pair = ensurePairForUsers(db, r.fromUserId, r.toUserId)
+      } catch (err) {
+        log('error', 'pair ensure failed', {
+          requestId,
+          action,
+          fromUserId: r.fromUserId,
+          toUserId: r.toUserId,
+          error: err instanceof Error ? err.message : String(err),
+        })
+        if (err instanceof Error && err.message === 'pair_users_missing') return bad(res, 'pair_users_missing', 409)
+        if (err instanceof Error && err.message === 'pair_user_deleted') return bad(res, 'pair_user_deleted', 409)
+        return bad(res, 'pair_not_created', 500)
+      }
+      if (!pair?.id) {
+        log('error', 'pair ensure returned no id', { requestId, fromUserId: r.fromUserId, toUserId: r.toUserId })
+        return bad(res, 'pair_not_created', 500)
+      }
     }
 
     await dbStore.write(db)
-    return json(res, 200, { ok: true })
+    log('info', 'pair request responded', { requestId, action, fromUserId: r.fromUserId, toUserId: r.toUserId, status: r.status, pairId: pair?.id })
+    return json(res, 200, { ok: true, pairId: pair?.id ?? null })
   }
 
   if (req.method === 'GET' && url.pathname === '/pairing/requests') {
@@ -372,6 +478,11 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === 'GET' && url.pathname === '/pairs') {
     const db = normalizeDb(dbStore.readSync())
+    const repairedPairs = ensurePairsForAcceptedRequests(db, userId)
+    if (repairedPairs > 0) {
+      await dbStore.write(db)
+      log('info', 'accepted pair requests repaired', { userId, repairedPairs })
+    }
     const usersById = new Map<string, any>(db.users.map((u: any) => [u.id, u]))
     const pairs = db.pairs
       .filter((p: PairRecord) => [p.userA, p.userB].includes(userId))
@@ -455,6 +566,7 @@ const server = http.createServer(async (req, res) => {
     if (![pair.userA, pair.userB].includes(userId)) return bad(res, 'forbidden', 403)
     db.pairs = db.pairs.filter((p: PairRecord) => p.id !== pairId)
     await dbStore.write(db)
+    log('info', 'pair removed', { pairId, userId })
     return json(res, 200, { ok: true })
   }
 
@@ -718,7 +830,19 @@ const server = http.createServer(async (req, res) => {
   }
 
   return bad(res, 'not_found', 404)
+  } catch (err) {
+    log('error', 'unhandled request error', {
+      requestId,
+      method: req.method,
+      path: pathname,
+      ip,
+      error: err instanceof Error ? err.message : String(err),
+      stack: err instanceof Error ? err.stack : undefined,
+    })
+    if (!res.headersSent) return bad(res, 'internal_error', 500)
+    res.destroy(err instanceof Error ? err : undefined)
+  }
 })
 
 const port = Number(process.env.PORT ?? 3001)
-server.listen(port, () => console.log(`Server listening on http://localhost:${port}`))
+server.listen(port, () => log('info', 'server listening', { url: `http://localhost:${port}`, logLevel: ACTIVE_LOG_LEVEL, requestLogs: REQUEST_LOGS }))

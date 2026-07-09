@@ -970,6 +970,36 @@ button.danger {
   margin-top: 10px;
 }
 
+
+.pairing-refresh-row {
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.pairing-refresh-row h2 {
+  margin: 0;
+}
+
+.pairing-refresh-meta {
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.pairing-refresh-meta .hint {
+  line-height: 1.25;
+}
+
+.pairing-refresh-meta .icon-btn {
+  min-width: 30px;
+  width: 30px;
+  height: 30px;
+  font-size: 13px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
 .request-panel-list {
   display: grid;
   gap: 10px;

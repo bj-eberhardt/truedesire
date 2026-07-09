@@ -37,6 +37,7 @@ export default function App() {
     pairingInlineError,
     clearPairingInlineError,
     refreshPairing,
+    refreshPairingRequests,
     sendPairRequest,
     respond: respondPairing,
   } = usePairing(apiClient, identity)
@@ -257,7 +258,9 @@ export default function App() {
           onSendPairRequest={async (code) => {
             await sendPairRequest(code)
           }}
-          onRespondPairing={respondPairing}
+          onRespondPairing={async (requestId, action) => {
+            await respondPairing(requestId, action)
+          }}
           pair={pair}
           onSelectPair={openPair}
           weeklyLimitInput={weeklyLimitInput}
@@ -308,6 +311,7 @@ export default function App() {
           myPairs={myPairs}
           pairingInlineError={pairingInlineError}
           onClearPairingInlineError={clearPairingInlineError}
+          onRefreshPairingRequests={refreshPairingRequests}
           onSendPairRequest={async (code) => {
             setError(null)
             await sendPairRequest(code)
@@ -384,6 +388,7 @@ export default function App() {
           myPairs={myPairs}
           pairingInlineError={pairingInlineError}
           onClearPairingInlineError={clearPairingInlineError}
+          onRefreshPairingRequests={refreshPairingRequests}
           onSendPairRequest={async (code) => {
             setError(null)
             await sendPairRequest(code)

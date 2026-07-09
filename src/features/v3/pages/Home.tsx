@@ -1,5 +1,6 @@
-import { useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ProfileAvatar } from '../../../components/ProfileAvatar'
+import { RefreshButton } from '../../../components/RefreshButton'
 import type { PairingIncoming, PairingOutgoing, MyPairs } from '../../../hooks/usePairing'
 import { OnboardingStepper } from '../components/OnboardingStepper'
 import { goV3Onboarding } from '../../../app/routes'
@@ -24,8 +25,9 @@ type HomePageProps = {
   pairingOutgoing: PairingOutgoing
   pairingInlineError: string | null
   onClearPairingInlineError: () => void
+  onRefreshPairingRequests: () => Promise<void>
   onSendPairRequest: (partnerCodeInput: string) => Promise<void>
-  onRespondPairing: (requestId: string, action: 'accept' | 'reject' | 'cancel') => Promise<void>
+  onRespondPairing: (requestId: string, action: 'accept' | 'reject' | 'cancel') => Promise<{ pairId?: string | null } | void>
   onOpenPair: (pairId: string) => Promise<void>
 }
 
@@ -93,9 +95,40 @@ export function HomePage(props: HomePageProps) {
   const backupFileInputRef = useRef<HTMLInputElement | null>(null)
   const [isDownloadingBackup, setIsDownloadingBackup] = useState(false)
   const [isRegistering, setIsRegistering] = useState(false)
+  const [pairingRequestsLastCheckedAt, setPairingRequestsLastCheckedAt] = useState<number | null>(null)
+  const [pairingRequestsNextCheckAt, setPairingRequestsNextCheckAt] = useState(() => Date.now() + 30_000)
+  const [pairingRequestsNow, setPairingRequestsNow] = useState(() => Date.now())
+  const [isRefreshingPairingRequests, setIsRefreshingPairingRequests] = useState(false)
+  const pairingRequestsRefreshInFlightRef = useRef(false)
 
   const hasIdentity = !!props.identity?.userId
+  const pairingRequestsSecondsUntilRefresh = Math.max(0, Math.ceil((pairingRequestsNextCheckAt - pairingRequestsNow) / 1000))
+  const pairingRequestsLastCheckedLabel = pairingRequestsLastCheckedAt ? new Date(pairingRequestsLastCheckedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'noch nicht geprüft'
 
+  const refreshPairingRequestsOnly = useCallback(async () => {
+    if (!hasIdentity) return
+    if (pairingRequestsRefreshInFlightRef.current) return
+    pairingRequestsRefreshInFlightRef.current = true
+    setIsRefreshingPairingRequests(true)
+    try {
+      await props.onRefreshPairingRequests()
+      setPairingRequestsLastCheckedAt(Date.now())
+    } finally {
+      pairingRequestsRefreshInFlightRef.current = false
+      setIsRefreshingPairingRequests(false)
+      setPairingRequestsNextCheckAt(Date.now() + 30_000)
+    }
+  }, [hasIdentity, props.onRefreshPairingRequests])
+
+  useEffect(() => {
+    if (!hasIdentity) return
+    const interval = window.setInterval(() => {
+      const now = Date.now()
+      setPairingRequestsNow(now)
+      if (now >= pairingRequestsNextCheckAt) void refreshPairingRequestsOnly()
+    }, 1000)
+    return () => window.clearInterval(interval)
+  }, [hasIdentity, pairingRequestsNextCheckAt, refreshPairingRequestsOnly])
   function setOnboardingStep(step: 'start' | 'backup' | 'new' | 'backup-save') {
     goV3Onboarding(step)
   }
@@ -496,7 +529,7 @@ export function HomePage(props: HomePageProps) {
             <CodeExchangeIcon />
             <div className="v3-guide-text">
               <h2>So verknüpft ihr euch</h2>
-              <p className="hint">Ihr müsst eure Pairing-Codes gegenseitig austauschen und beide Anfragen annehmen.</p>
+              <p className="hint">Eine Person sendet eine Anfrage an den Pairing-Code des Partners. Sobald der Partner annimmt, seid ihr verknüpft.</p>
             </div>
           </div>
           <ol className="v3-guide-steps">
@@ -507,7 +540,7 @@ export function HomePage(props: HomePageProps) {
               Teile deinem Partner deinen <strong>Pairing-Code</strong> ({props.identity?.code ?? '—'}) mit.
             </li>
             <li>
-              Ihr sendet euch <strong>beide</strong> eine Anfrage und nehmt sie jeweils an. Erst dann wird die Verknüpfung aktiv.
+              Eine Person sendet die Anfrage. Der Partner nimmt sie an, dann wird die Verknüpfung aktiv.
             </li>
             <li>Wenn ihr verbunden seid, könnt ihr euch gegenseitig Fragen ausspielen und Antworten sehen.</li>
           </ol>
@@ -517,7 +550,7 @@ export function HomePage(props: HomePageProps) {
       <section className="card v3-card v3-panel">
         <h2>Mit Partner verknüpfen</h2>
         <p className="hint">
-          Gib den Code deines Partners ein und sende die Anfrage. Dein Partner muss sie annehmen. Danach muss dein Partner ebenfalls dir eine Anfrage senden und du musst annehmen.
+          Gib den Code deines Partners ein und sende die Anfrage. Sobald dein Partner sie annimmt, ist die Verknüpfung aktiv.
         </p>
         <div className="row">
           <input
@@ -543,7 +576,13 @@ export function HomePage(props: HomePageProps) {
       </section>
 
       <section ref={requestsPanelRef} className="card v3-card v3-panel">
-        <h2>Offene Verknüpfungsanfragen</h2>
+        <div className="row v3-pairing-refresh-row">
+          <h2>Offene Verknüpfungsanfragen</h2>
+          <div className="row v3-pairing-refresh-meta">
+            <span className="hint">Nächste Prüfung in {pairingRequestsSecondsUntilRefresh}s · zuletzt: {pairingRequestsLastCheckedLabel}</span>
+            <RefreshButton onClick={refreshPairingRequestsOnly} disabled={isRefreshingPairingRequests} title="Neue Pair-Anfragen prüfen" />
+          </div>
+        </div>
         {!groupedRequests.length ? <div className="empty">Keine offenen Anfragen.</div> : null}
         <div className="v3-request-list">
           {groupedRequests.map((row) => (
@@ -558,7 +597,10 @@ export function HomePage(props: HomePageProps) {
               <div className="v3-request-actions">
                 {row.incomingIds.length ? (
                   <>
-                    <button className="secondary" onClick={() => props.onRespondPairing(row.incomingIds[0], 'accept')}>
+                    <button className="secondary" onClick={async () => {
+                      const result = await props.onRespondPairing(row.incomingIds[0], 'accept')
+                      if (result?.pairId) await props.onOpenPair(result.pairId)
+                    }}>
                       <span className="v3-action-ok">✓</span> Annehmen
                     </button>
                     <button className="secondary" onClick={() => props.onRespondPairing(row.incomingIds[0], 'reject')}>

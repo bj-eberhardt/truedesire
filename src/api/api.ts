@@ -78,7 +78,7 @@ export function api(opts: ApiOpts) {
       request: (partnerCode: string) =>
         signedFetch<{ ok: true; requestId: string }>(opts, '/pairing/request', { method: 'POST', body: { partnerCode } }),
       respond: (requestId: string, action: 'accept' | 'reject' | 'cancel') =>
-        signedFetch<{ ok: true }>(opts, '/pairing/respond', { method: 'POST', body: { requestId, action } }),
+        signedFetch<{ ok: true; pairId?: string | null }>(opts, '/pairing/respond', { method: 'POST', body: { requestId, action } }),
       requests: () =>
         signedFetch<{
           incoming: Array<{ id: string; from: { id: string; code: string; nickname: string }; createdAt: number }>

@@ -30,8 +30,9 @@ type V2ShellProps = {
   myPairs: MyPairs
   pairingInlineError: string | null
   onClearPairingInlineError: () => void
+  onRefreshPairingRequests: () => Promise<void>
   onSendPairRequest: (partnerCodeInput: string) => Promise<void>
-  onRespondPairing: (requestId: string, action: 'accept' | 'reject' | 'cancel') => Promise<void>
+  onRespondPairing: (requestId: string, action: 'accept' | 'reject' | 'cancel') => Promise<{ pairId?: string | null } | void>
 
   pair: PairView | null
   isLoadingPairData: boolean
@@ -174,6 +175,7 @@ export function V2Shell(props: V2ShellProps) {
             pairingOutgoing={props.pairingOutgoing}
             pairingInlineError={props.pairingInlineError}
             onClearPairingInlineError={props.onClearPairingInlineError}
+            onRefreshPairingRequests={props.onRefreshPairingRequests}
             onSendPairRequest={props.onSendPairRequest}
             onRespondPairing={props.onRespondPairing}
             onOpenPair={async (pairId) => {

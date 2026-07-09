@@ -205,7 +205,10 @@ export function PairPage(props: PairPageProps) {
           data-active={showPlay ? 'true' : 'false'}
           role="tab"
           aria-selected={showPlay}
-          onClick={() => goV3Pair(props.pairId)}
+          onClick={() => {
+            goV3Pair(props.pairId)
+            void props.onRefreshView()
+          }}
         >
           Fragen
         </button>
@@ -215,7 +218,10 @@ export function PairPage(props: PairPageProps) {
           data-active={showMatches ? 'true' : 'false'}
           role="tab"
           aria-selected={showMatches}
-          onClick={() => goV3PairMatches(props.pairId)}
+          onClick={() => {
+            goV3PairMatches(props.pairId)
+            void props.onComputeMatches()
+          }}
         >
           Matches
         </button>
@@ -225,7 +231,10 @@ export function PairPage(props: PairPageProps) {
           data-active={showSettings ? 'true' : 'false'}
           role="tab"
           aria-selected={showSettings}
-          onClick={() => goV3PairSettings(props.pairId)}
+          onClick={() => {
+            goV3PairSettings(props.pairId)
+            void props.onRefreshGroupSettings()
+          }}
         >
           Einstellungen{pendingSettingsCount ? ` (${pendingSettingsCount})` : ''}
         </button>

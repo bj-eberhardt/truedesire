@@ -36,8 +36,9 @@ type V3ShellProps = {
   myPairs: MyPairs
   pairingInlineError: string | null
   onClearPairingInlineError: () => void
+  onRefreshPairingRequests: () => Promise<void>
   onSendPairRequest: (partnerCodeInput: string) => Promise<void>
-  onRespondPairing: (requestId: string, action: 'accept' | 'reject' | 'cancel') => Promise<void>
+  onRespondPairing: (requestId: string, action: 'accept' | 'reject' | 'cancel') => Promise<{ pairId?: string | null } | void>
 
   pair: PairView | null
   isLoadingPairData: boolean
@@ -189,6 +190,7 @@ export function V3Shell(props: V3ShellProps) {
               pairingOutgoing={props.pairingOutgoing}
               pairingInlineError={props.pairingInlineError}
               onClearPairingInlineError={props.onClearPairingInlineError}
+              onRefreshPairingRequests={props.onRefreshPairingRequests}
               onSendPairRequest={props.onSendPairRequest}
               onRespondPairing={props.onRespondPairing}
               onOpenPair={async (pairId) => {

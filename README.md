@@ -4,7 +4,7 @@ Privacy-first „Fragen-Spiel“ für Paare:
 
 - Zwei Geräte beantworten dieselben Fragen (Ja/Nein/Vielleicht)
 - Ende-zu-Ende verschlüsselte Speicherung (Server sieht nur Ciphertext)
-- Pairing via gegenseitigem Pairing-Code + Double-Accept (Multi-Pairing, ohne QR)
+- Pairing via Pairing-Code + Annahme (Multi-Pairing, ohne QR)
 - Auswertung: nur Optionen ohne „Nein“ werden als Match gezeigt
 - Wochenlimit pro Pair (nur aktiv, wenn beide zustimmen)
 
@@ -35,6 +35,41 @@ Optional `VITE_API_BASE` setzen (z.B. `.env.local`):
 VITE_API_BASE=http://localhost:3001
 ```
 
+## Start mit Docker Compose (lokale Entwicklung)
+
+Der Dev-Stack startet Backend und Frontend in Containern mit Watch-Modus:
+
+```bash
+npm run dev:docker
+```
+
+Alternativ direkt mit Docker Compose:
+
+```bash
+docker compose -f docker-compose.dev.yml up --build
+```
+
+Danach sind die Dienste erreichbar unter:
+
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3001`
+
+Der Frontend-Container setzt `VITE_API_BASE=http://localhost:3001`. Der Backend-Container läuft mit `LOG_LEVEL=debug` und `REQUEST_LOGS=true`, sodass Requests und Pairing-Diagnose im Container-Log sichtbar sind.
+
+Nützliche Befehle:
+
+```bash
+docker compose -f docker-compose.dev.yml logs -f backend
+docker compose -f docker-compose.dev.yml logs -f frontend
+docker compose -f docker-compose.dev.yml down
+```
+
+Hinweise:
+
+- Die Container verwenden eigene Named Volumes für `node_modules`, damit Host- und Container-Abhängigkeiten getrennt bleiben.
+- Der Backend-Service baut `server/src` initial nach `server/dist` und startet zusätzlich TypeScript-Watch plus `node --watch`.
+- `server/data/db.json` bleibt im Projektverzeichnis und wird über den Source-Mount lokal persistiert.
+
 ## UI/Flow (MVP)
 
 Oben im Header kannst du zwischen **Version 1** und **Version 2** umschalten.
@@ -46,7 +81,7 @@ Oben im Header kannst du zwischen **Version 1** und **Version 2** umschalten.
 
 2) **Pairing (Multi-Pairing)**
    - Du hast einen **Pairing-Code** (öffentlich für alle, die ihn kennen)
-   - Beide Partner geben gegenseitig den Code des anderen ein und bestätigen
+   - Eine Person gibt den Code des Partners ein, der Partner nimmt die Anfrage an
    - Offene Pairing-Anfragen werden angezeigt und können angenommen/abgelehnt/abgebrochen werden
 
 3) **Fragen (nur eigene)**
@@ -91,7 +126,3 @@ Integrität: Der Server kann den Klartext nicht prüfen (Zero-Knowledge). Stattd
   - **Eigene Fragen** kannst du immer beantworten – auch wenn das Wochenlimit erreicht ist.
   - **Änderungen** an bereits gespeicherten Antworten sind möglich, solange dein Partner noch nicht geantwortet hat.
   - Sobald beide geantwortet haben, sperrt die API Änderungen.
-
-## Troubleshooting
-
-- Pairing: beide Seiten müssen gegenseitig anfragen **und** akzeptieren, erst dann ist ein Pair `active`.

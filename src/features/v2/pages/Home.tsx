@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ProfileAvatar } from '../../../components/ProfileAvatar'
+import { RefreshButton } from '../../../components/RefreshButton'
 import type { PairingIncoming, PairingOutgoing, MyPairs } from '../../../hooks/usePairing'
 
 type HomePageProps = {
@@ -17,8 +18,9 @@ type HomePageProps = {
   pairingOutgoing: PairingOutgoing
   pairingInlineError: string | null
   onClearPairingInlineError: () => void
+  onRefreshPairingRequests: () => Promise<void>
   onSendPairRequest: (partnerCodeInput: string) => Promise<void>
-  onRespondPairing: (requestId: string, action: 'accept' | 'reject' | 'cancel') => Promise<void>
+  onRespondPairing: (requestId: string, action: 'accept' | 'reject' | 'cancel') => Promise<{ pairId?: string | null } | void>
   onOpenPair: (pairId: string) => Promise<void>
 
   onImportBackupText: (txt: string) => Promise<void>
@@ -29,9 +31,40 @@ export function HomePage(props: HomePageProps) {
   const [backupText, setBackupText] = useState('')
   const [onboardError, setOnboardError] = useState<string | null>(null)
   const [partnerCodeInput, setPartnerCodeInput] = useState('')
+  const [pairingRequestsLastCheckedAt, setPairingRequestsLastCheckedAt] = useState<number | null>(null)
+  const [pairingRequestsNextCheckAt, setPairingRequestsNextCheckAt] = useState(() => Date.now() + 30_000)
+  const [pairingRequestsNow, setPairingRequestsNow] = useState(() => Date.now())
+  const [isRefreshingPairingRequests, setIsRefreshingPairingRequests] = useState(false)
+  const pairingRequestsRefreshInFlightRef = useRef(false)
 
   const hasIdentity = !!props.identity?.userId
+  const pairingRequestsSecondsUntilRefresh = Math.max(0, Math.ceil((pairingRequestsNextCheckAt - pairingRequestsNow) / 1000))
+  const pairingRequestsLastCheckedLabel = pairingRequestsLastCheckedAt ? new Date(pairingRequestsLastCheckedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'noch nicht geprüft'
 
+  const refreshPairingRequestsOnly = useCallback(async () => {
+    if (!hasIdentity) return
+    if (pairingRequestsRefreshInFlightRef.current) return
+    pairingRequestsRefreshInFlightRef.current = true
+    setIsRefreshingPairingRequests(true)
+    try {
+      await props.onRefreshPairingRequests()
+      setPairingRequestsLastCheckedAt(Date.now())
+    } finally {
+      pairingRequestsRefreshInFlightRef.current = false
+      setIsRefreshingPairingRequests(false)
+      setPairingRequestsNextCheckAt(Date.now() + 30_000)
+    }
+  }, [hasIdentity, props.onRefreshPairingRequests])
+
+  useEffect(() => {
+    if (!hasIdentity) return
+    const interval = window.setInterval(() => {
+      const now = Date.now()
+      setPairingRequestsNow(now)
+      if (now >= pairingRequestsNextCheckAt) void refreshPairingRequestsOnly()
+    }, 1000)
+    return () => window.clearInterval(interval)
+  }, [hasIdentity, pairingRequestsNextCheckAt, refreshPairingRequestsOnly])
   const groupedRequests = useMemo(() => {
     const grouped = new Map<string, { nickname: string; code: string; incomingIds: string[]; outgoingIds: string[] }>()
     for (const r of props.pairingIncoming) {
@@ -222,7 +255,7 @@ export function HomePage(props: HomePageProps) {
           </button>
         </div>
         <div className="hint">
-          Hinweis: Beide Partner müssen gegenseitig den Code eingeben und die Anfrage jeweils <b>annehmen</b>, damit eine Verknüpfung aktiv wird.
+          Hinweis: Eine Person sendet die Anfrage, die andere nimmt sie an. Danach ist die Verknüpfung aktiv.
         </div>
       </div>
 
@@ -264,7 +297,7 @@ export function HomePage(props: HomePageProps) {
       <h2>Mit Partner verknüpfen</h2>
       <div className="pair-panel">
         <p className="hint">
-          Gib den Code deines Partners ein und sende die Anfrage. Dein Partner muss sie annehmen. Danach muss dein Partner ebenfalls dir eine Anfrage senden und du musst annehmen.
+          Gib den Code deines Partners ein und sende die Anfrage. Sobald dein Partner sie annimmt, ist die Verknüpfung aktiv.
         </p>
         <div className="row">
           <input
@@ -290,9 +323,14 @@ export function HomePage(props: HomePageProps) {
         </div>
       </div>
       {props.pairingInlineError ? <div className="inline-error">{props.pairingInlineError}</div> : null}
-
       <div className="divider" />
-      <h2>Offene Verknüpfungs-Anfragen</h2>
+      <div className="row pairing-refresh-row">
+        <h2>Offene Verknüpfungs-Anfragen</h2>
+        <div className="row pairing-refresh-meta">
+          <span className="hint">Nächste Prüfung in {pairingRequestsSecondsUntilRefresh}s · zuletzt: {pairingRequestsLastCheckedLabel}</span>
+          <RefreshButton onClick={refreshPairingRequestsOnly} disabled={isRefreshingPairingRequests} title="Neue Pair-Anfragen prüfen" />
+        </div>
+      </div>
       <div className="request-panel-list">
         {!groupedRequests.length ? <div className="empty">Keine offenen Anfragen.</div> : null}
         {groupedRequests.map((row) => (
@@ -309,7 +347,10 @@ export function HomePage(props: HomePageProps) {
             <div className="row request-actions">
               {row.incomingIds.length ? (
                 <>
-                  <button className="action-accept" title="Anfrage annehmen und Verknüpfung bestätigen" onClick={() => props.onRespondPairing(row.incomingIds[0], 'accept')}>
+                  <button className="action-accept" title="Anfrage annehmen und Verknüpfung bestätigen" onClick={async () => {
+                      const result = await props.onRespondPairing(row.incomingIds[0], 'accept')
+                      if (result?.pairId) await props.onOpenPair(result.pairId)
+                    }}>
                     ✓ Annehmen
                   </button>
                   <button className="action-reject" title="Anfrage ablehnen" onClick={() => props.onRespondPairing(row.incomingIds[0], 'reject')}>

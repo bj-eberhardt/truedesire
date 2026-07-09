@@ -565,6 +565,36 @@
   color: var(--text-h);
 }
 
+
+.v3-shell .v3-pairing-refresh-row {
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.v3-shell .v3-pairing-refresh-row h2 {
+  margin: 0;
+}
+
+.v3-shell .v3-pairing-refresh-meta {
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+}
+
+.v3-shell .v3-pairing-refresh-meta .hint {
+  line-height: 1.25;
+}
+
+.v3-shell .v3-pairing-refresh-meta .icon-btn {
+  min-width: 30px;
+  width: 30px;
+  height: 30px;
+  font-size: 13px;
+  line-height: 1;
+  flex: 0 0 auto;
+}
 .v3-shell .v3-request-list {
   display: grid;
   gap: 10px;

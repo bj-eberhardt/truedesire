@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { goV3 } from '../../../app/routes'
 import { ProfileAvatar } from '../../../components/ProfileAvatar'
 import { useAutoHideHeader } from '../hooks/useAutoHideHeader'
 import { HeartChecklistLogo } from './HeartChecklistLogo'
@@ -55,9 +56,9 @@ export function V3Header(props: V3HeaderProps) {
 
   return (
     <header className="v3-header" data-hidden={hidden ? 'true' : 'false'}>
-      <div className="v3-brand" aria-label="love.interests">
+      <button type="button" className="v3-brand" aria-label="love.interests" onClick={() => goV3()}>
         <HeartChecklistLogo />
-      </div>
+      </button>
 
       {hasAccount ? (
         <div className="v3-profile" ref={profileRef}>

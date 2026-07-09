@@ -22,8 +22,9 @@ type UsePairingResult = {
   pairingInlineError: string | null
   clearPairingInlineError: () => void
   refreshPairing: (identityOverride?: Identity) => Promise<void>
+  refreshPairingRequests: (identityOverride?: Identity) => Promise<void>
   sendPairRequest: (partnerCodeInput: string) => Promise<void>
-  respond: (requestId: string, action: 'accept' | 'reject' | 'cancel') => Promise<void>
+  respond: (requestId: string, action: 'accept' | 'reject' | 'cancel') => Promise<{ pairId?: string | null }>
 }
 
 export function usePairing(apiClient: ApiClient | null, identity: Identity | null): UsePairingResult {
@@ -32,23 +33,43 @@ export function usePairing(apiClient: ApiClient | null, identity: Identity | nul
   const [myPairs, setMyPairs] = useState<MyPairs>([])
   const [pairingInlineError, setPairingInlineError] = useState<string | null>(null)
 
-  const refreshPairing = useCallback(
-    async (identityOverride?: Identity) => {
+  const getClient = useCallback(
+    (identityOverride?: Identity) => {
       const id = identityOverride ?? identity
-      if (!id?.userId) return
-      const client =
+      if (!id?.userId) return null
+      return (
         apiClient ??
         api({
           baseUrl: import.meta.env.VITE_API_BASE ?? 'http://localhost:3001',
           getAuthMaterial: async () => id.auth,
         })
+      )
+    },
+    [apiClient, identity],
+  )
+
+  const refreshPairingRequests = useCallback(
+    async (identityOverride?: Identity) => {
+      const client = getClient(identityOverride)
+      if (!client) return
+      const reqs = await client.pairing.requests()
+      setPairingIncoming(reqs.incoming)
+      setPairingOutgoing(reqs.outgoing)
+    },
+    [getClient],
+  )
+
+  const refreshPairing = useCallback(
+    async (identityOverride?: Identity) => {
+      const client = getClient(identityOverride)
+      if (!client) return
       const reqs = await client.pairing.requests()
       setPairingIncoming(reqs.incoming)
       setPairingOutgoing(reqs.outgoing)
       const pairs = await client.pairs.list()
       setMyPairs(pairs.pairs)
     },
-    [apiClient, identity],
+    [getClient],
   )
 
   useEffect(() => {
@@ -93,15 +114,16 @@ export function usePairing(apiClient: ApiClient | null, identity: Identity | nul
 
   const respond = useCallback(
     async (requestId: string, action: 'accept' | 'reject' | 'cancel') => {
-      if (!apiClient) return
+      if (!apiClient) return { pairId: null }
       setPairingInlineError(null)
-      await apiClient.pairing.respond(requestId, action)
+      const result = await apiClient.pairing.respond(requestId, action)
       await refreshPairing()
+      return { pairId: result.pairId ?? null }
     },
     [apiClient, refreshPairing],
   )
 
   const clearPairingInlineError = useCallback(() => setPairingInlineError(null), [])
 
-  return { pairingIncoming, pairingOutgoing, myPairs, pairingInlineError, clearPairingInlineError, refreshPairing, sendPairRequest, respond }
+  return { pairingIncoming, pairingOutgoing, myPairs, pairingInlineError, clearPairingInlineError, refreshPairing, refreshPairingRequests, sendPairRequest, respond }
 }
