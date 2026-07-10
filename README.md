@@ -22,6 +22,7 @@ npm run server:start
 ```
 
 - Server läuft standardmäßig auf `http://localhost:3001`
+- Die API liegt unter `/api` (z.B. `/api/auth/register`); `/health` bleibt separat für Healthchecks.
 - Persistenz: `server/data/db.json`
 
 2. Client (Vite)
@@ -114,7 +115,16 @@ Ein bestimmtes DockerHub-Image starten:
 
 ```bash
 TRUEDESIRE_TAG=0.1.0 docker compose -f release/docker-compose.prod.yml up -d
+
 ```
+
+Image lokal bauen und pushen
+```
+npm run docker:prod:build
+docker tag beberhardt/truedesire:local beberhardt/truedesire:latest
+docker push beberhardt/truedesire:latest
+```
+
 
 ## UI/Flow (MVP)
 

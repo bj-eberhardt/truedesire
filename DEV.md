@@ -78,3 +78,13 @@ Frontend-Build-ENV:
 Production-Docker-ENV:
 
 - `TRUEDESIRE_TAG`: DockerHub-Tag für `beberhardt/truedesire`.
+
+## API namespace and static serving
+
+Production follows the Herzgarten pattern:
+
+- `/health` is a public health endpoint.
+- `/api/*` is handled as API traffic.
+- All other `GET`/`HEAD` requests are served from `STATIC_DIR` with an SPA fallback to `index.html`.
+
+The frontend API helper prefixes requests with `/api`, so same-origin production can leave `VITE_API_BASE` empty.
