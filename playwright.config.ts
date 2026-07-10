@@ -12,7 +12,11 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 8_000 },
   fullyParallel: true,
-  reporter: [['list'], ['json', { outputFile: 'test-results/playwright-results.json' }], ['html', { open: 'never' }]],
+  reporter: [
+    ["list"],
+    ["json", { outputFile: "test-results/playwright-results.json" }],
+    ["html", { open: "never" }]
+  ],
   webServer: shouldStartLocalServer
     ? {
         command: "npm run dev -- --host 127.0.0.1 --port 3101",
