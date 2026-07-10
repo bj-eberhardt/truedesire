@@ -37,10 +37,14 @@ export function PlayedPage(props: PlayedPageProps) {
       title="Deine änderbaren Antworten"
       subtitle="Du kannst Antworten hier noch anpassen, solange dein Partner die gleiche Frage noch nicht beantwortet hat."
       onBack={props.onBack}
+      testId="played-view"
+      backTestId="played-back-button"
     >
-      {pageError ? <InlineError>{pageError}</InlineError> : null}
+      {pageError ? <InlineError testId="played-error">{pageError}</InlineError> : null}
       {!props.pair || props.pair.id !== props.pairId ? (
-        <div className="empty">Verknüpfung wird geladen…</div>
+        <div className="empty" data-testid="played-loading-state">
+          Verknüpfung wird geladen…
+        </div>
       ) : (
         (() => {
           const open = getOpenQuestions(props.questions, props.answerSummary);
@@ -48,12 +52,12 @@ export function PlayedPage(props: PlayedPageProps) {
           const orderedPending = sortByCreatedAtDesc(pending);
           if (!orderedPending.length)
             return (
-              <div className="empty">
+              <div className="empty" data-testid="played-empty-state">
                 Du hast aktuell keine Antworten mit offenem Partner-Status.
               </div>
             );
           return (
-            <div className="v3-played-list">
+            <div className="v3-played-list" data-testid="played-list">
               {orderedPending.map((pq) => {
                 const mine = props.answerSummary[pq.id]?.mine;
                 const total = props.answerSummary[pq.id]?.total ?? 0;
@@ -62,18 +66,23 @@ export function PlayedPage(props: PlayedPageProps) {
                 return (
                   <div
                     className="v3-play-card"
+                    data-testid="played-card"
+                    data-question-id={pq.id}
                     key={pq.id}
                     data-saved={isSavedCard ? "true" : "false"}
                   >
-                    <div className="v3-play-question">
+                    <div className="v3-play-question" data-testid="played-question-text">
                       {isSavedCard ? (flash.savedText ?? pq.text) : pq.text}
                     </div>
                     {isSavedCard ? (
-                      <div className="v3-answer-saved">Antwort wurde gespeichert.</div>
+                      <div className="v3-answer-saved" data-testid="played-saved-indicator">
+                        Antwort wurde gespeichert.
+                      </div>
                     ) : null}
                     <div className="v3-choice-row">
                       <button
                         className={`choice yes ${mine === "yes" ? "active" : ""}`}
+                        data-testid="played-answer-yes-button"
                         onClick={() => handleAnswer(pq.id, pq.text, "yes")}
                         disabled={locked || flash.isSaving}
                       >
@@ -81,6 +90,7 @@ export function PlayedPage(props: PlayedPageProps) {
                       </button>
                       <button
                         className={`choice maybe ${mine === "maybe" ? "active" : ""}`}
+                        data-testid="played-answer-maybe-button"
                         onClick={() => handleAnswer(pq.id, pq.text, "maybe")}
                         disabled={locked || flash.isSaving}
                       >
@@ -88,6 +98,7 @@ export function PlayedPage(props: PlayedPageProps) {
                       </button>
                       <button
                         className={`choice no ${mine === "no" ? "active" : ""}`}
+                        data-testid="played-answer-no-button"
                         onClick={() => handleAnswer(pq.id, pq.text, "no")}
                         disabled={locked || flash.isSaving}
                       >

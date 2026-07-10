@@ -142,12 +142,22 @@ export function PairPage(props: PairPageProps) {
 
   if (!pairReady) {
     return (
-      <section className="card v3-card">
+      <section className="card v3-card" data-testid="pair-loading-view">
         <div className="row">
-          <button className="secondary" onClick={props.onBack} title="Zurück zur Partnerübersicht">
+          <button
+            className="secondary"
+            data-testid="pair-loading-back-button"
+            onClick={props.onBack}
+            title="Zurück zur Partnerübersicht"
+          >
             ← Zurück
           </button>
-          <RefreshButton onClick={props.onRefreshView} disabled title="Ansicht neu laden" />
+          <RefreshButton
+            testId="pair-loading-refresh-button"
+            onClick={props.onRefreshView}
+            disabled
+            title="Ansicht neu laden"
+          />
           <button className="primary" disabled>
             Eine Frage stellen
           </button>
@@ -175,12 +185,21 @@ export function PairPage(props: PairPageProps) {
   }
 
   return (
-    <section className="card v3-card v3-pair">
+    <section className="card v3-card v3-pair" data-testid="pair-view" data-pair-id={props.pairId}>
       <div className="row v3-pair-actions">
-        <button className="secondary" onClick={props.onBack} title="Zurück zur Partnerübersicht">
+        <button
+          className="secondary"
+          data-testid="pair-back-button"
+          onClick={props.onBack}
+          title="Zurück zur Partnerübersicht"
+        >
           ← Zurück
         </button>
-        <RefreshButton onClick={props.onRefreshView} title="Ansicht neu laden" />
+        <RefreshButton
+          testId="pair-refresh-button"
+          onClick={props.onRefreshView}
+          title="Ansicht neu laden"
+        />
       </div>
 
       {pendingSettingsCount ? (
@@ -227,6 +246,7 @@ export function PairPage(props: PairPageProps) {
           className="v3-pair-tab"
           data-active={showPlay ? "true" : "false"}
           role="tab"
+          data-testid="pair-tab-play"
           aria-selected={showPlay}
           onClick={() => {
             goV3Pair(props.pairId);
@@ -240,6 +260,7 @@ export function PairPage(props: PairPageProps) {
           className="v3-pair-tab"
           data-active={showMatches ? "true" : "false"}
           role="tab"
+          data-testid="pair-tab-matches"
           aria-selected={showMatches}
           onClick={() => {
             goV3PairMatches(props.pairId);
@@ -253,6 +274,7 @@ export function PairPage(props: PairPageProps) {
           className="v3-pair-tab"
           data-active={showSettings ? "true" : "false"}
           role="tab"
+          data-testid="pair-tab-settings"
           aria-selected={showSettings}
           onClick={() => {
             goV3PairSettings(props.pairId);
@@ -275,7 +297,7 @@ export function PairPage(props: PairPageProps) {
               : null}
           </p>
 
-          <div className="v3-play-summary">
+          <div className="v3-play-summary" data-testid="play-summary">
             <div className="pill mono">Offene Fragen: {ordered.length}</div>
             {!isUnlimited ? (
               remainingNewCount !== null && remainingNewCount <= ordered.length ? (
@@ -293,6 +315,7 @@ export function PairPage(props: PairPageProps) {
             <div className="v3-play-summary-spacer" />
             <button
               className="primary"
+              data-testid="ask-question-button"
               onClick={props.onGoAsk}
               disabled={pair.status !== "active" || !!pair.partnerDeleted}
             >
@@ -301,6 +324,7 @@ export function PairPage(props: PairPageProps) {
             {playedPending.length ? (
               <button
                 className="secondary"
+                data-testid="played-answers-button"
                 onClick={props.onGoPlayed}
                 disabled={pair.status !== "active" || !!pair.partnerDeleted}
                 title="Deine bereits abgegebenen Antworten anpassen (solange dein Partner noch nicht geantwortet hat)."
@@ -310,10 +334,14 @@ export function PairPage(props: PairPageProps) {
             ) : null}
           </div>
 
-          {props.isLoadingPairData ? <div className="hint">⏳ Fragen werden geladen…</div> : null}
+          {props.isLoadingPairData ? (
+            <div className="hint" data-testid="pair-loading-indicator">
+              ⏳ Fragen werden geladen…
+            </div>
+          ) : null}
 
           {showLimitNotice ? (
-            <div className="notice v3-limit-notice">
+            <div className="notice v3-limit-notice" data-testid="weekly-limit-notice">
               <ClockIcon />
               <div>{limitNoticeText}</div>
             </div>
@@ -322,7 +350,7 @@ export function PairPage(props: PairPageProps) {
           {!ordered.length ? (
             <>
               {allCurrentAnswered ? (
-                <div className="v3-success">
+                <div className="v3-success" data-testid="all-answered-state">
                   <strong>Alles beantwortet</strong>
                   <div className="hint">
                     Für den Moment gibt es hier nichts zu tun. Du kannst eine neue Frage stellen und
@@ -331,7 +359,9 @@ export function PairPage(props: PairPageProps) {
                   </div>
                 </div>
               ) : (
-                <div className="empty">Keine offenen Fragen für dich.</div>
+                <div className="empty" data-testid="no-open-questions">
+                  Keine offenen Fragen für dich.
+                </div>
               )}
             </>
           ) : (
@@ -339,6 +369,8 @@ export function PairPage(props: PairPageProps) {
               <div className="v3-play-panel">
                 <div
                   className="v3-play-card"
+                  data-testid="play-card"
+                  data-question-id={q.id}
                   data-saved={flash.showSaved ? "true" : "false"}
                   onPointerDown={swipe.onPointerDown}
                   onPointerMove={swipe.onPointerMove}
@@ -353,15 +385,18 @@ export function PairPage(props: PairPageProps) {
                       <div className="pill v3-badge-partner-answered">Vom Partner beantwortet</div>
                     ) : null}
                   </div>
-                  <div className="v3-play-question">
+                  <div className="v3-play-question" data-testid="play-question-text">
                     {flash.showSaved ? (flash.savedText ?? q.text) : q.text}
                   </div>
                   {flash.showSaved ? (
-                    <div className="v3-answer-saved">Antwort wurde gespeichert.</div>
+                    <div className="v3-answer-saved" data-testid="answer-saved-indicator">
+                      Antwort wurde gespeichert.
+                    </div>
                   ) : null}
                   <div className="v3-choice-row">
                     <button
                       className="choice yes"
+                      data-testid="answer-yes-button"
                       onClick={() => handleAnswer(q.id, "yes", q.text)}
                       disabled={!canAnswerNew || flash.isSaving}
                     >
@@ -369,6 +404,7 @@ export function PairPage(props: PairPageProps) {
                     </button>
                     <button
                       className="choice maybe"
+                      data-testid="answer-maybe-button"
                       onClick={() => handleAnswer(q.id, "maybe", q.text)}
                       disabled={!canAnswerNew || flash.isSaving}
                     >
@@ -376,6 +412,7 @@ export function PairPage(props: PairPageProps) {
                     </button>
                     <button
                       className="choice no"
+                      data-testid="answer-no-button"
                       onClick={() => handleAnswer(q.id, "no", q.text)}
                       disabled={!canAnswerNew || flash.isSaving}
                     >
@@ -386,6 +423,7 @@ export function PairPage(props: PairPageProps) {
                     {canPrev ? (
                       <button
                         className="secondary v3-play-prev"
+                        data-testid="play-prev-button"
                         onClick={() => props.onSetCardIndex(Math.max(0, safeIndex - 1))}
                         title="Vorige Frage"
                         aria-label="Vorige Frage"
@@ -396,6 +434,7 @@ export function PairPage(props: PairPageProps) {
                     {canNext ? (
                       <button
                         className="secondary v3-play-next"
+                        data-testid="play-next-button"
                         onClick={() =>
                           props.onSetCardIndex(Math.min(ordered.length - 1, safeIndex + 1))
                         }
@@ -422,12 +461,16 @@ export function PairPage(props: PairPageProps) {
                 ? `Ausgeblendete Matches (${props.visibleMatchesCount})`
                 : `Matches (${props.visibleMatchesCount})`}
             </h2>
-            <RefreshButton onClick={props.onComputeMatches} title="Matches neu berechnen" />
+            <RefreshButton
+              testId="matches-refresh-button"
+              onClick={props.onComputeMatches}
+              title="Matches neu berechnen"
+            />
           </div>
           {props.isLoadingMatches ? (
             <div className="hint">⏳ Matches werden geladen…</div>
           ) : props.matches.length ? (
-            <div className="match-grid">
+            <div className="match-grid" data-testid="matches-grid">
               {props.matches
                 .filter((m) =>
                   props.showHiddenMatches
@@ -435,9 +478,17 @@ export function PairPage(props: PairPageProps) {
                     : !props.hiddenMatchIds.includes(m.id)
                 )
                 .map((m) => (
-                  <div className={`match-card ${m.grade}`} key={m.id}>
+                  <div
+                    className={`match-card ${m.grade}`}
+                    data-testid="match-card"
+                    data-match-id={m.id}
+                    data-match-grade={m.grade}
+                    key={m.id}
+                  >
                     <div className="match-head">
-                      <div className="match-title">{m.question}</div>
+                      <div className="match-title" data-testid="match-question-text">
+                        {m.question}
+                      </div>
                       <div className={`badge ${m.grade}`}>
                         {m.grade === "perfect"
                           ? "💜 Perfekt"
@@ -456,6 +507,7 @@ export function PairPage(props: PairPageProps) {
                     <div className="match-card-actions">
                       <button
                         className="secondary icon-btn mini"
+                        data-testid="match-visibility-button"
                         title={
                           props.showHiddenMatches ? "Match wieder anzeigen" : "Match ausblenden"
                         }
@@ -476,13 +528,16 @@ export function PairPage(props: PairPageProps) {
                 ))}
             </div>
           ) : (
-            <div className="empty">Noch keine Matches.</div>
+            <div className="empty" data-testid="no-matches-state">
+              Noch keine Matches.
+            </div>
           )}
 
           {props.hiddenMatchIds.length ? (
             <div className="row" style={{ marginTop: 8 }}>
               <button
                 className="secondary small-btn"
+                data-testid="toggle-hidden-matches-button"
                 onClick={() => props.setShowHiddenMatches((prev) => !prev)}
                 disabled={!props.showHiddenMatches && showHiddenMatchesDisabled}
                 title={
@@ -506,6 +561,7 @@ export function PairPage(props: PairPageProps) {
           <div className="row">
             <h2 style={{ margin: 0 }}>Gruppen-Einstellungen</h2>
             <RefreshButton
+              testId="settings-refresh-button"
               onClick={props.onRefreshGroupSettings}
               title="Gruppen-Einstellungen neu laden"
             />
@@ -513,7 +569,7 @@ export function PairPage(props: PairPageProps) {
           {props.isLoadingGroupSettings ? (
             <div className="hint">⏳ Gruppen-Einstellungen werden geladen…</div>
           ) : (
-            <div className="settings-panel">
+            <div className="settings-panel" data-testid="settings-panel">
               <div className="settings-item">
                 <div className="settings-item-title">Fragenlimit pro Woche</div>
                 <p className="settings-text">
@@ -525,6 +581,7 @@ export function PairPage(props: PairPageProps) {
                   <label className="toggle">
                     <input
                       type="checkbox"
+                      data-testid="weekly-limit-toggle"
                       checked={!props.allowAllQuestions}
                       onChange={(e) => props.setAllowAllQuestions(!e.target.checked)}
                       disabled={!!pair.weeklyLimitPending || props.isLoadingGroupSettings}
@@ -537,6 +594,7 @@ export function PairPage(props: PairPageProps) {
                     <label className="field inline">
                       <span>Fragen / Woche</span>
                       <input
+                        data-testid="weekly-limit-input"
                         value={props.weeklyLimitInput}
                         onChange={(e) => props.setWeeklyLimitInput(e.target.value)}
                         disabled={!!pair.weeklyLimitPending || props.isLoadingGroupSettings}
@@ -545,13 +603,14 @@ export function PairPage(props: PairPageProps) {
                   )}
                   <button
                     className="secondary"
+                    data-testid="weekly-limit-propose-button"
                     onClick={props.onProposeGroupSettings}
                     disabled={!canProposeSettings}
                   >
                     Vorschlagen
                   </button>
                 </div>
-                <div className="settings-current">
+                <div className="settings-current" data-testid="weekly-limit-current">
                   Aktuell:{" "}
                   {pair.weeklyLimit === 0
                     ? "Alle Fragen erlaubt"
@@ -560,7 +619,7 @@ export function PairPage(props: PairPageProps) {
               </div>
 
               {pair.weeklyLimitPending ? (
-                <div className="settings-pending-block">
+                <div className="settings-pending-block" data-testid="weekly-limit-pending-block">
                   <div className="settings-item-title">Offene Einstellungsanfrage</div>
                   {pair.weeklyLimitPending.proposedBy === props.identityUserId ? (
                     <div className="request request-panel">
@@ -575,6 +634,7 @@ export function PairPage(props: PairPageProps) {
                         </div>
                         <button
                           className="secondary action-cancel"
+                          data-testid="weekly-limit-cancel-button"
                           onClick={() => props.onRespondGroupSettings("cancel")}
                           disabled={props.isLoadingGroupSettings}
                           title="Eigenen Vorschlag zurückziehen"
@@ -598,6 +658,7 @@ export function PairPage(props: PairPageProps) {
                       <div className="row request-actions">
                         <button
                           className="action-accept"
+                          data-testid="weekly-limit-accept-button"
                           onClick={() => props.onRespondGroupSettings("accept")}
                           disabled={props.isLoadingGroupSettings}
                         >
@@ -605,6 +666,7 @@ export function PairPage(props: PairPageProps) {
                         </button>
                         <button
                           className="action-reject"
+                          data-testid="weekly-limit-reject-button"
                           onClick={() => props.onRespondGroupSettings("reject")}
                           disabled={props.isLoadingGroupSettings}
                         >

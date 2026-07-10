@@ -4,9 +4,11 @@ type ErrorPanelProps = {
 
 export function ErrorPanel({ error }: ErrorPanelProps) {
   return (
-    <section className="card error">
+    <section className="card error" data-testid="app-error-panel">
       <h2>Fehler</h2>
-      <pre className="pre">{error}</pre>
+      <pre className="pre" data-testid="app-error-message">
+        {error}
+      </pre>
     </section>
   );
 }

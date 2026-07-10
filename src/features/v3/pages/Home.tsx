@@ -196,7 +196,7 @@ export function HomePage(props: HomePageProps) {
 
   if (props.isBootstrappingAccount) {
     return (
-      <section className="card v3-card v3-view">
+      <section className="card v3-card v3-view" data-testid="account-loading-view">
         <h2>Konto wird geladen…</h2>
         <p className="hint">
           Bitte kurz warten. Wir prüfen, ob bereits Kontodaten auf diesem Gerät vorhanden sind.
@@ -294,7 +294,7 @@ export function HomePage(props: HomePageProps) {
     }
 
     return (
-      <section className="card v3-card v3-view">
+      <section className="card v3-card v3-view" data-testid="onboarding-view">
         <h2 className="v3-welcome-title">Willkommen</h2>
         <OnboardingStepper steps={steps} activeStepId={activeStepId} />
         <div className="divider v3-welcome-divider" />
@@ -304,6 +304,7 @@ export function HomePage(props: HomePageProps) {
             <div className="v3-onboard-choice-row">
               <button
                 className="secondary v3-onboard-choice"
+                data-testid="onboarding-has-backup-button"
                 onClick={() => {
                   setOnboardError(null);
                   setBackupText("");
@@ -315,6 +316,7 @@ export function HomePage(props: HomePageProps) {
               </button>
               <button
                 className="secondary v3-onboard-choice"
+                data-testid="onboarding-new-account-button"
                 onClick={() => {
                   setOnboardError(null);
                   setOnboardingStep("new");
@@ -339,6 +341,7 @@ export function HomePage(props: HomePageProps) {
                 <input
                   ref={backupFileInputRef}
                   className="v3-import-file-input"
+                  data-testid="backup-file-input"
                   type="file"
                   accept="application/json,.json"
                   onChange={(e) => {
@@ -356,6 +359,7 @@ export function HomePage(props: HomePageProps) {
                   <button
                     type="button"
                     className="secondary"
+                    data-testid="backup-file-select-button"
                     onClick={() => backupFileInputRef.current?.click()}
                   >
                     Backup-Datei auswählen
@@ -364,6 +368,7 @@ export function HomePage(props: HomePageProps) {
                     <button
                       type="button"
                       className="secondary"
+                      data-testid="backup-file-clear-button"
                       onClick={() => {
                         setOnboardError(null);
                         clearBackupFileSelection();
@@ -384,6 +389,7 @@ export function HomePage(props: HomePageProps) {
                 <div className="v3-import-heading">Backup über Text</div>
                 <label className="field v3-field">
                   <textarea
+                    data-testid="backup-import-textarea"
                     value={backupText}
                     onChange={(e) => setBackupText(e.target.value)}
                     placeholder='{"version": ...}'
@@ -397,6 +403,7 @@ export function HomePage(props: HomePageProps) {
             <div className="row">
               <button
                 className="primary"
+                data-testid="backup-import-submit-button"
                 onClick={async () => {
                   if (backupFile) {
                     await importBackupFile(backupFile);
@@ -410,6 +417,7 @@ export function HomePage(props: HomePageProps) {
               <button
                 type="button"
                 className="secondary"
+                data-testid="backup-import-back-button"
                 onClick={() => {
                   setOnboardError(null);
                   setBackupText("");
@@ -434,6 +442,7 @@ export function HomePage(props: HomePageProps) {
               <label className="field v3-field">
                 <span>Nickname</span>
                 <input
+                  data-testid="nickname-input"
                   value={props.nickname}
                   onChange={(e) => props.onNicknameChange(e.target.value)}
                   placeholder="z.B. Alex"
@@ -449,6 +458,7 @@ export function HomePage(props: HomePageProps) {
               <div className="row">
                 <button
                   className="primary"
+                  data-testid="create-account-button"
                   onClick={async () => {
                     const trimmed = props.nickname.trim();
                     if (!trimmed) {
@@ -479,6 +489,7 @@ export function HomePage(props: HomePageProps) {
                 </button>
                 <button
                   className="secondary"
+                  data-testid="new-account-back-button"
                   onClick={() => {
                     setOnboardError(null);
                     setOnboardingStep("start");
@@ -506,6 +517,7 @@ export function HomePage(props: HomePageProps) {
             <div className="row">
               <button
                 className="secondary"
+                data-testid="onboarding-download-backup-button"
                 disabled={isDownloadingBackup}
                 onClick={async () => {
                   try {
@@ -526,6 +538,7 @@ export function HomePage(props: HomePageProps) {
               </button>
               <button
                 className="primary"
+                data-testid="onboarding-finish-button"
                 onClick={async () => {
                   setOnboardError(null);
                   try {
@@ -550,7 +563,11 @@ export function HomePage(props: HomePageProps) {
           </>
         ) : null}
 
-        {onboardError ? <div className="inline-error">{onboardError}</div> : null}
+        {onboardError ? (
+          <div className="inline-error" data-testid="onboarding-error">
+            {onboardError}
+          </div>
+        ) : null}
       </section>
     );
   }
@@ -560,7 +577,7 @@ export function HomePage(props: HomePageProps) {
   const hasRequests = groupedRequests.length > 0;
 
   return (
-    <div className="v3-home-stack">
+    <div className="v3-home-stack" data-testid="home-view">
       {hasRequests ? (
         <V3Notice
           icon={<InfoIcon />}
@@ -571,7 +588,7 @@ export function HomePage(props: HomePageProps) {
       ) : null}
 
       {hasPairs ? (
-        <section className="card v3-card v3-panel">
+        <section className="card v3-card v3-panel" data-testid="partners-panel">
           <h2>Deine Partner</h2>
           <p className="hint">
             Du hast bereits folgende verknüpfte Partner. Tippe auf einen Partner, um die Fragen zu
@@ -582,6 +599,9 @@ export function HomePage(props: HomePageProps) {
               <button
                 key={p.id}
                 className="v3-pair-card"
+                data-testid="partner-card"
+                data-pair-id={p.id}
+                data-partner-name={p.partner?.nickname ?? p.id}
                 onClick={async () => {
                   await props.onOpenPair(p.id);
                 }}
@@ -642,7 +662,7 @@ export function HomePage(props: HomePageProps) {
         </section>
       ) : null}
 
-      <section className="card v3-card v3-panel">
+      <section className="card v3-card v3-panel" data-testid="pairing-panel">
         <h2>Mit Partner verknüpfen</h2>
         <p className="hint">
           Gib den Code deines Partners ein und sende die Anfrage. Sobald dein Partner sie annimmt,
@@ -650,6 +670,7 @@ export function HomePage(props: HomePageProps) {
         </p>
         <div className="row">
           <input
+            data-testid="partner-code-input"
             value={partnerCodeInput}
             onChange={(e) => {
               props.onClearPairingInlineError();
@@ -659,6 +680,7 @@ export function HomePage(props: HomePageProps) {
           />
           <button
             className="primary"
+            data-testid="send-pair-request-button"
             disabled={!partnerCodeInput.trim()}
             onClick={async () => {
               await props.onSendPairRequest(partnerCodeInput);
@@ -669,11 +691,17 @@ export function HomePage(props: HomePageProps) {
           </button>
         </div>
         {props.pairingInlineError ? (
-          <div className="inline-error">{props.pairingInlineError}</div>
+          <div className="inline-error" data-testid="pairing-inline-error">
+            {props.pairingInlineError}
+          </div>
         ) : null}
       </section>
 
-      <section ref={requestsPanelRef} className="card v3-card v3-panel">
+      <section
+        ref={requestsPanelRef}
+        className="card v3-card v3-panel"
+        data-testid="pairing-requests-panel"
+      >
         <div className="row v3-pairing-refresh-row">
           <h2>Offene Verknüpfungsanfragen</h2>
           <div className="row v3-pairing-refresh-meta">
@@ -682,16 +710,27 @@ export function HomePage(props: HomePageProps) {
               {pairingRequestsLastCheckedLabel}
             </span>
             <RefreshButton
+              testId="pairing-requests-refresh-button"
               onClick={refreshPairingRequestsOnly}
               disabled={isRefreshingPairingRequests}
               title="Neue Pair-Anfragen prüfen"
             />
           </div>
         </div>
-        {!groupedRequests.length ? <div className="empty">Keine offenen Anfragen.</div> : null}
+        {!groupedRequests.length ? (
+          <div className="empty" data-testid="pairing-requests-empty">
+            Keine offenen Anfragen.
+          </div>
+        ) : null}
         <div className="v3-request-list">
           {groupedRequests.map((row) => (
-            <div className="v3-request" key={`${row.code}|${row.nickname}`}>
+            <div
+              className="v3-request"
+              data-testid="pairing-request-row"
+              data-request-code={row.code}
+              data-request-name={row.nickname}
+              key={`${row.code}|${row.nickname}`}
+            >
               <div className="v3-request-head">
                 <ProfileAvatar name={row.nickname} />
                 <div className="v3-request-meta">
@@ -704,6 +743,7 @@ export function HomePage(props: HomePageProps) {
                   <>
                     <button
                       className="secondary"
+                      data-testid="pairing-request-accept-button"
                       onClick={async () => {
                         const result = await props.onRespondPairing(row.incomingIds[0], "accept");
                         if (result?.pairId) await props.onOpenPair(result.pairId);
@@ -713,6 +753,7 @@ export function HomePage(props: HomePageProps) {
                     </button>
                     <button
                       className="secondary"
+                      data-testid="pairing-request-reject-button"
                       onClick={() => props.onRespondPairing(row.incomingIds[0], "reject")}
                     >
                       <span className="v3-action-bad">✕</span> Ablehnen
@@ -722,6 +763,7 @@ export function HomePage(props: HomePageProps) {
                 {row.outgoingIds.length ? (
                   <button
                     className="secondary"
+                    data-testid="pairing-request-cancel-button"
                     onClick={() => props.onRespondPairing(row.outgoingIds[0], "cancel")}
                   >
                     Zurückziehen

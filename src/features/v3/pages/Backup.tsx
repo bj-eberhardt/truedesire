@@ -55,13 +55,16 @@ export function BackupPage(props: BackupPageProps) {
       title="Backup erstellen"
       subtitle="Speichere diese Informationen sicher. Ohne Backup sind alte Daten nicht wiederherstellbar."
       onBack={onBack}
+      testId="backup-view"
+      backTestId="backup-back-button"
     >
       {error ? (
-        <InlineError>{error}</InlineError>
+        <InlineError testId="backup-error">{error}</InlineError>
       ) : (
-        <div className="v3-backup-grid">
+        <div className="v3-backup-grid" data-testid="backup-grid">
           <label className="field v3-field v3-backup-text">
             <textarea
+              data-testid="backup-export-textarea"
               value={backupText}
               onChange={(e) => setBackupText(e.target.value)}
               rows={14}
@@ -73,6 +76,7 @@ export function BackupPage(props: BackupPageProps) {
           <div className="v3-backup-actions">
             <button
               className="secondary"
+              data-testid="backup-copy-button"
               onClick={async () => {
                 await navigator.clipboard.writeText(backupText);
                 setCopied(true);
@@ -85,6 +89,7 @@ export function BackupPage(props: BackupPageProps) {
             </button>
             <button
               className="secondary"
+              data-testid="backup-download-button"
               onClick={() => downloadTextFile({ filename, content: backupText })}
               disabled={!backupText.trim()}
               title={`Lädt ${filename} herunter`}
@@ -92,7 +97,12 @@ export function BackupPage(props: BackupPageProps) {
               Download
             </button>
             {copied ? (
-              <div className="hint v3-copied" role="status" aria-live="polite">
+              <div
+                className="hint v3-copied"
+                data-testid="backup-copied-status"
+                role="status"
+                aria-live="polite"
+              >
                 Kopiert.
               </div>
             ) : null}

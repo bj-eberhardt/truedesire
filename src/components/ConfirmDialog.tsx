@@ -47,6 +47,7 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
     <div className="confirm-overlay" role="presentation" onMouseDown={props.onCancel}>
       <div
         className="confirm-dialog"
+        data-testid="confirm-dialog"
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -55,13 +56,20 @@ export function ConfirmDialog(props: ConfirmDialogProps) {
         <div className="confirm-title">{title}</div>
         <div className="confirm-desc">{description}</div>
         <div className="confirm-actions">
-          <button type="button" className="secondary" onClick={props.onCancel} disabled={busy}>
+          <button
+            type="button"
+            className="secondary"
+            data-testid="confirm-cancel-button"
+            onClick={props.onCancel}
+            disabled={busy}
+          >
             {cancelLabel}
           </button>
           <button
             ref={confirmBtnRef}
             type="button"
             className={danger ? "danger" : "primary"}
+            data-testid="confirm-confirm-button"
             onClick={() => props.onConfirm()}
             disabled={busy}
           >

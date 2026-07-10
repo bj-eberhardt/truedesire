@@ -43,6 +43,7 @@ export function InfoModal(props: InfoModalProps) {
     <div className="modal-overlay" role="presentation" onMouseDown={props.onClose}>
       <div
         className="modal-dialog"
+        data-testid="info-modal"
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -51,7 +52,13 @@ export function InfoModal(props: InfoModalProps) {
         <div className="modal-title">{title}</div>
         <div className="modal-desc">{message}</div>
         <div className="modal-actions">
-          <button ref={okBtnRef} type="button" className="primary" onClick={props.onClose}>
+          <button
+            ref={okBtnRef}
+            type="button"
+            className="primary"
+            data-testid="info-modal-ok-button"
+            onClick={props.onClose}
+          >
             {okLabel}
           </button>
         </div>

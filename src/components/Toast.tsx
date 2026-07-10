@@ -5,7 +5,7 @@ type ToastProps = {
 
 export function Toast({ message, kind = "default" }: ToastProps) {
   return (
-    <div className="toast" data-kind={kind}>
+    <div className="toast" data-kind={kind} data-testid="toast">
       {message}
     </div>
   );

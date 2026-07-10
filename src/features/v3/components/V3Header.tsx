@@ -55,8 +55,14 @@ export function V3Header(props: V3HeaderProps) {
   }, [menuOpen]);
 
   return (
-    <header className="v3-header" data-hidden={hidden ? "true" : "false"}>
-      <button type="button" className="v3-brand" aria-label="TrueDesire" onClick={() => goV3()}>
+    <header className="v3-header" data-hidden={hidden ? "true" : "false"} data-testid="app-header">
+      <button
+        type="button"
+        className="v3-brand"
+        data-testid="header-brand"
+        aria-label="TrueDesire"
+        onClick={() => goV3()}
+      >
         <HeartChecklistLogo />
         <span className="v3-brand-text">
           <span className="v3-brand-title">TrueDesire</span>
@@ -69,6 +75,7 @@ export function V3Header(props: V3HeaderProps) {
           <button
             type="button"
             className="v3-profile-btn"
+            data-testid="profile-menu-button"
             aria-haspopup="menu"
             aria-expanded={menuOpen}
             aria-label={profileLabel}
@@ -79,7 +86,9 @@ export function V3Header(props: V3HeaderProps) {
             </div>
             <div className="v3-code">
               <div className="v3-code-label">{profileName}</div>
-              <div className="v3-code-value mono">{pairingCode ?? "—"}</div>
+              <div className="v3-code-value mono" data-testid="profile-pairing-code">
+                {pairingCode ?? "-"}
+              </div>
             </div>
             <div className="v3-burger" aria-hidden="true">
               <span className="v3-burger-line" />

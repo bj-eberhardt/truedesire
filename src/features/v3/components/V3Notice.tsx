@@ -6,6 +6,7 @@ export function V3Notice(props: {
   icon: ReactNode;
   onClick?: () => void;
   className?: string;
+  testId?: string;
 }) {
   const body = (
     <>
@@ -21,14 +22,24 @@ export function V3Notice(props: {
 
   if (props.onClick) {
     return (
-      <button type="button" className={className} onClick={props.onClick}>
+      <button
+        type="button"
+        className={className}
+        data-testid={props.testId ?? "v3-notice"}
+        onClick={props.onClick}
+      >
         {body}
       </button>
     );
   }
 
   return (
-    <div className={className} role="status" aria-live="polite">
+    <div
+      className={className}
+      data-testid={props.testId ?? "v3-notice"}
+      role="status"
+      aria-live="polite"
+    >
       {body}
     </div>
   );

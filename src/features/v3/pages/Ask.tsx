@@ -24,10 +24,13 @@ export function AskPage(props: AskPageProps) {
       title="Eigene Frage stellen"
       subtitle="Neue Frage erstellen und deine eigene Antwort direkt speichern."
       onBack={props.onBack}
+      testId="ask-view"
+      backTestId="ask-back-button"
     >
       <label className="field v3-field">
         <span>Frage</span>
         <input
+          data-testid="ask-question-input"
           value={questionText}
           onChange={(e) => setQuestionText(e.target.value)}
           placeholder="z.B. Möchtest du …"
@@ -38,6 +41,7 @@ export function AskPage(props: AskPageProps) {
         <button
           type="button"
           className={`choice yes ${questionSelfAnswer === "yes" ? "active" : ""}`}
+          data-testid="ask-answer-yes-button"
           onClick={() => setQuestionSelfAnswer("yes")}
         >
           Ja
@@ -45,6 +49,7 @@ export function AskPage(props: AskPageProps) {
         <button
           type="button"
           className={`choice maybe ${questionSelfAnswer === "maybe" ? "active" : ""}`}
+          data-testid="ask-answer-maybe-button"
           onClick={() => setQuestionSelfAnswer("maybe")}
         >
           Vielleicht
@@ -52,6 +57,7 @@ export function AskPage(props: AskPageProps) {
         <button
           type="button"
           className={`choice no ${questionSelfAnswer === "no" ? "active" : ""}`}
+          data-testid="ask-answer-no-button"
           onClick={() => setQuestionSelfAnswer("no")}
         >
           Nein
@@ -61,6 +67,7 @@ export function AskPage(props: AskPageProps) {
       <div className="v3-actions">
         <button
           className="primary"
+          data-testid="ask-save-button"
           onClick={async () => {
             setAskError(null);
             const text = questionText.trim();
@@ -84,7 +91,7 @@ export function AskPage(props: AskPageProps) {
         </button>
       </div>
 
-      {askError ? <InlineError>{askError}</InlineError> : null}
+      {askError ? <InlineError testId="ask-error">{askError}</InlineError> : null}
     </V3View>
   );
 }

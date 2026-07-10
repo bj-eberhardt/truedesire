@@ -19,6 +19,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
     <>
       <div
         className="v3-menu"
+        data-testid="profile-menu"
         role="menu"
         aria-label="Profil-Menü"
         aria-hidden={!props.open}
@@ -27,6 +28,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
         <button
           type="button"
           className="v3-menu-item"
+          data-testid="profile-copy-code-button"
           role="menuitem"
           tabIndex={itemTabIndex}
           disabled={!props.pairingCode}
@@ -42,6 +44,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
         <button
           type="button"
           className="v3-menu-item"
+          data-testid="profile-open-backup-button"
           role="menuitem"
           tabIndex={itemTabIndex}
           onClick={async () => {
@@ -55,6 +58,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
         <button
           type="button"
           className="v3-menu-item v3-menu-danger"
+          data-testid="profile-delete-account-button"
           role="menuitem"
           tabIndex={itemTabIndex}
           onClick={() => {
