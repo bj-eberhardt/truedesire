@@ -90,7 +90,7 @@ function formatFailures(failures) {
       const retryText = failure.retryCount > 0 ? `, retries: ${failure.retryCount}` : "";
       const header = `- ${iconFor(failure.status)} ${failure.title} (${failure.status}${retryText}${formatDuration(failure.duration)})`;
       if (!failure.error) return header;
-      return `${header}\n\n  \`\`\`text\n${failure.error}\n  \`\`\``;
+      return `${header}\n\n`;
     })
     .join("\n\n");
 }
