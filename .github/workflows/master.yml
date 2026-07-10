@@ -69,4 +69,6 @@ jobs:
           tag_name: ${{ steps.package.outputs.version }}
           generate_release_notes: true
           name: "Release ${{ steps.package.outputs.version }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
