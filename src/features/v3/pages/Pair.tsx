@@ -577,7 +577,7 @@ export function PairPage(props: PairPageProps) {
                   in der darauf folgenden Woche gibt es weitere Fragen. So ist die Spannung jede
                   Woche groß, ob es ein weiteres Match gibt.
                 </p>
-                <div className="row">
+                <div className="row settings-limit-controls">
                   <label className="toggle">
                     <input
                       type="checkbox"
@@ -611,10 +611,12 @@ export function PairPage(props: PairPageProps) {
                   </button>
                 </div>
                 <div className="settings-current" data-testid="weekly-limit-current">
-                  Aktuell:{" "}
-                  {pair.weeklyLimit === 0
-                    ? "Alle Fragen erlaubt"
-                    : `${pair.weeklyLimit} Fragen pro Woche`}
+                  <span className="settings-current-label">Aktuell</span>
+                  <span className="settings-current-value">
+                    {pair.weeklyLimit === 0
+                      ? "Alle Fragen erlaubt"
+                      : `${pair.weeklyLimit} Fragen pro Woche`}
+                  </span>
                 </div>
               </div>
 

@@ -668,8 +668,9 @@ export function HomePage(props: HomePageProps) {
           Gib den Code deines Partners ein und sende die Anfrage. Sobald dein Partner sie annimmt,
           ist die Verknüpfung aktiv.
         </p>
-        <div className="row">
+        <div className="row v3-pairing-form">
           <input
+            className="v3-partner-code-input"
             data-testid="partner-code-input"
             value={partnerCodeInput}
             onChange={(e) => {
@@ -704,7 +705,7 @@ export function HomePage(props: HomePageProps) {
       >
         <div className="row v3-pairing-refresh-row">
           <h2>Offene Verknüpfungsanfragen</h2>
-          <div className="row v3-pairing-refresh-meta">
+          <div className="v3-pairing-refresh-meta">
             <span className="hint">
               Nächste Prüfung in {pairingRequestsSecondsUntilRefresh}s · zuletzt:{" "}
               {pairingRequestsLastCheckedLabel}

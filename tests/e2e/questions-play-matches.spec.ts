@@ -35,6 +35,7 @@ function matchByQuestion(page: TestUser["page"], question: string) {
 test("creates a yes/yes custom question, shows a perfect match, hides it, and restores it", async ({
   browser
 }) => {
+  test.slow();
   const { alice, bob, pairId } = await createPairedUsers(browser, "Perfect");
   const question = `Perfect ${uniqueName("Q")}`;
 

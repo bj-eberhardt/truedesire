@@ -92,6 +92,52 @@ npm run format
 npm run lint:fix
 ```
 
+### E2E UI Tests
+
+Die E2E-Tests laufen gegen einen separaten, production-nahen Docker-Stack. Dadurch kollidieren sie nicht mit den Dev-Ports (`5173`/`3001`).
+
+Headless im Docker-Runner:
+
+```bash
+npm run test:e2e:docker
+```
+
+Playwright UI im Docker-Runner starten:
+
+```bash
+npm run test:e2e:docker:ui
+```
+
+Danach die Playwright-Test-UI öffnen:
+
+```text
+http://localhost:9323
+```
+
+Die getestete E2E-App ist parallel erreichbar unter:
+
+```text
+http://localhost:3101
+```
+
+Wenn sich Playwright lokal selbst mit UI-Fenster öffnen soll, zuerst nur die E2E-App starten:
+
+```bash
+docker compose -f docker-compose.e2e.yml up --build app-e2e
+```
+
+Dann in einem zweiten Terminal die lokale Playwright UI starten:
+
+```bash
+npm run test:e2e -- --ui
+```
+
+Aufräumen/Stoppen:
+
+```bash
+docker compose -f docker-compose.e2e.yml down
+```
+
 GitHub Actions:
 
 - Pull Requests gegen `master`: Prettier, ESLint, Typecheck, Build und Playwright-E2E.
