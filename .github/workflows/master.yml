@@ -5,18 +5,26 @@ on:
     branches: [master]
   workflow_dispatch:
 
+concurrency:
+  group: master-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
 
 jobs:
-  build-test-publish:
+  build-publish-release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, 'chore(release)')
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT }}
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 24
           cache: npm
@@ -55,7 +63,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: ${{ steps.package.outputs.version }}
+          tag_name: v${{ steps.package.outputs.version }}
           generate_release_notes: true
           name: "Release ${{ steps.package.outputs.version }}"
-
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
