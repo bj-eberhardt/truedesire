@@ -69,6 +69,7 @@ jobs:
           BACKEND_BUILD_OUTCOME: ${{ steps.build-backend.outcome }}
           LINT_OUTCOME: ${{ steps.lint.outcome }}
           E2E_OUTCOME: ${{ steps.e2e.outcome }}
+          PRETTIER_OUTCOME: ${{ steps.prettier.outcome }}
           PLAYWRIGHT_REPORT_URL: ${{ steps.playwright-report-artifact.outputs.artifact-url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/pr-ci-comment.mjs > pr-ci-comment.md
