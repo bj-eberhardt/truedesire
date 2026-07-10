@@ -5,6 +5,9 @@ on:
     branches: [master]
   workflow_dispatch:
 
+concurrency:
+  group: master-release
+  cancel-in-progress: false
 
 jobs:
   build-test-publish:
