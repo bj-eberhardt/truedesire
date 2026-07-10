@@ -45,9 +45,6 @@ jobs:
         id: build-backend
         run: npm run server:build
 
-      - name: Install Playwright
-        run: npx playwright install --with-deps chromium
-
       - name: E2E tests
         id: e2e
         run: npm run test:e2e:docker
