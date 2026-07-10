@@ -1342,8 +1342,8 @@
 }
 
 .v3-shell .v3-partner-code-input {
-  width: 17rem;
-  min-width: 17rem;
+  width: 300px;
+  min-width: 300px;
   max-width: 100%;
   flex: 0 0 12ch;
   text-transform: uppercase;
