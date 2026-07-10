@@ -1,6 +1,6 @@
 type ProfileAvatarProps = {
-  name: string
-}
+  name: string;
+};
 
 export function ProfileAvatar({ name }: ProfileAvatarProps) {
   return (
@@ -17,6 +17,5 @@ export function ProfileAvatar({ name }: ProfileAvatarProps) {
         />
       </svg>
     </div>
-  )
+  );
 }
-

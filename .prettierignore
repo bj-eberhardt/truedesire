@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log*
+dist
+server/dist
+playwright-report
+test-results
+.env
+.env.*
+*.tsbuildinfo
+*.zip
+*.iml
+server/data/db.json
+server/data/db.json.tmp*

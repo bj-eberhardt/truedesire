@@ -1,15 +1,15 @@
-import type { ReactNode } from 'react'
+import type { ReactNode } from "react";
 
 export function V3View(props: {
-  title: string
-  subtitle?: string | null
-  onBack?: () => void
-  headerRight?: ReactNode
-  className?: string
-  children: ReactNode
+  title: string;
+  subtitle?: string | null;
+  onBack?: () => void;
+  headerRight?: ReactNode;
+  className?: string;
+  children: ReactNode;
 }) {
   return (
-    <section className={`card v3-card v3-view${props.className ? ` ${props.className}` : ''}`}>
+    <section className={`card v3-card v3-view${props.className ? ` ${props.className}` : ""}`}>
       {props.onBack ? (
         <div className="v3-view-head">
           <button className="secondary" onClick={props.onBack}>
@@ -27,6 +27,5 @@ export function V3View(props: {
       {props.onBack ? <div className="divider" /> : null}
       {props.children}
     </section>
-  )
+  );
 }
-

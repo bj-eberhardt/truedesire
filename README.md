@@ -14,7 +14,7 @@ Privacy-first „Fragen-Spiel“ für Paare:
 
 Voraussetzungen: Node.js `>= 24`.
 
-1) Server (Node.js + TypeScript, Datei-Persistenz, keine externen Runtime-Dependencies)
+1. Server (Node.js + TypeScript, Datei-Persistenz, keine externen Runtime-Dependencies)
 
 ```bash
 npm run server:build
@@ -24,14 +24,14 @@ npm run server:start
 - Server läuft standardmäßig auf `http://localhost:3001`
 - Persistenz: `server/data/db.json`
 
-2) Client (Vite)
+2. Client (Vite)
 
 ```bash
 npm install
 npm run dev
 ```
 
-Optional `VITE_API_BASE` setzen (z.B. `.env.local`):
+Für lokale Entwicklung ohne Same-Origin-Backend `VITE_API_BASE` setzen (z.B. `.env.local`):
 
 ```bash
 VITE_API_BASE=http://localhost:3001
@@ -72,35 +72,77 @@ Hinweise:
 - Der Backend-Service baut `server/src` initial nach `server/dist` und startet zusätzlich TypeScript-Watch plus `node --watch`.
 - `server/data/db.json` bleibt im Projektverzeichnis und wird über den Source-Mount lokal persistiert.
 
+## Qualität und CI
+
+Lokale Checks, analog zur GitHub-PR-Pipeline:
+
+```bash
+npm run format:check
+npm run lint
+npm run typecheck
+npm run build
+npm run test:e2e
+```
+
+Formatierung und Lint-Fixes:
+
+```bash
+npm run format
+npm run lint:fix
+```
+
+GitHub Actions:
+
+- Pull Requests gegen `master`: Prettier, ESLint, Typecheck, Build und Playwright-E2E.
+- Push auf `master`: gleiche Checks, Production-Docker-Image bauen, `/health` Smoke-Test, Push nach DockerHub.
+- DockerHub Secrets: `DOCKERHUB_USERNAME` und `DOCKERHUB_TOKEN`.
+- Image: `beberhardt/truedesire:latest` und `beberhardt/truedesire:<package.json version>`.
+
+## Production mit Docker Compose
+
+Production läuft als Single-App-Container: Das Node-Backend liefert API und gebaute Vite-Dateien unter derselben Origin aus.
+
+```bash
+cp release/.env.example release/.env
+# release/.env prüfen/anpassen
+docker compose -f release/docker-compose.prod.yml up -d --build
+```
+
+Der Stack veröffentlicht standardmäßig Port `3001`. Persistente Daten liegen im Docker Volume `truedesire_data` unter `/app/server/data`.
+
+Ein bestimmtes DockerHub-Image starten:
+
+```bash
+TRUEDESIRE_TAG=0.1.0 docker compose -f release/docker-compose.prod.yml up -d
+```
+
 ## UI/Flow (MVP)
 
-Oben im Header kannst du zwischen **Version 1** und **Version 2** umschalten.
-
-1) **Account**
+1. **Account**
    - Nickname setzen → Account erstellen/laden
    - Backup exportieren / importieren (Copy/Paste JSON)
    - Account löschen (lokal + serverseitig als gelöscht markieren)
 
-2) **Pairing (Multi-Pairing)**
+2. **Pairing (Multi-Pairing)**
    - Du hast einen **Pairing-Code** (öffentlich für alle, die ihn kennen)
    - Eine Person gibt den Code des Partners ein, der Partner nimmt die Anfrage an
    - Offene Pairing-Anfragen werden angezeigt und können angenommen/abgelehnt/abgebrochen werden
 
-3) **Fragen (nur eigene)**
+3. **Fragen (nur eigene)**
    - Eigene Fragen hinzufügen
    - Beim Speichern wählst du deine eigene Antwort (Ja/Vielleicht/Nein), damit du nicht extra später antworten musst
    - Eigene Fragen kannst du löschen, solange dein Partner noch nicht geantwortet hat
 
-4) **Spielen**
+4. **Spielen**
    - Karten-Ansicht (Vorige/Nächste)
    - Es werden nur Fragen angezeigt, die noch nicht von beiden beantwortet wurden
    - Wenn das Wochenlimit erreicht ist, werden keine neuen Partner-/Computer-Fragen mehr angezeigt
    - Button **„Bereits gespielte Fragen“**: zeigt Fragen, die du schon beantwortet hast, solange dein Partner noch nicht geantwortet hat (Antwort anpassen möglich)
 
-5) **Auswertung (Matches)**
+5. **Auswertung (Matches)**
    - Nur Matches werden angezeigt: sobald beide geantwortet haben und keiner „Nein“ gesagt hat
 
-6) **Wochenlimit**
+6. **Wochenlimit**
    - Ein Partner schlägt ein Limit vor, der andere kann **annehmen** oder **ablehnen**
 
 ## System-Fragen (Computer)

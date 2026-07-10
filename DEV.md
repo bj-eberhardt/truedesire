@@ -52,3 +52,29 @@ If exceeded, API returns:
 
 - HTTP `429`
 - error code: `rate_limited`
+
+## Runtime ENV
+
+Die vollständige Production-Vorlage liegt in `release/.env.example`.
+
+Backend-ENV:
+
+- `PORT` (default: `3001`)
+- `LOG_LEVEL` (`debug`, `info`, `warn`, `error`, `silent`; default: `info`)
+- `REQUEST_LOGS` (default: `true`)
+- `DATA_DIR` (default: `server/data`)
+- `STATIC_DIR` (wenn gesetzt, liefert das Backend die gebaute Vite-App aus)
+- `WEEKLY_LIMIT_DEFAULT` (default: `15`)
+- `SYSTEM_QUESTIONS_FILE` (default: `server/data/system-questions.json`)
+- `PAIRING_LIMIT_USER_PER_MIN` (default: `10`)
+- `PAIRING_LIMIT_USER_PER_HOUR` (default: `50`)
+- `PAIRING_LIMIT_IP_PER_MIN` (default: `30`)
+- `PAIRING_LIMIT_IP_PER_HOUR` (default: `200`)
+
+Frontend-Build-ENV:
+
+- `VITE_API_BASE`: optional. Wenn leer, nutzt der Browser `window.location.origin`.
+
+Production-Docker-ENV:
+
+- `TRUEDESIRE_TAG`: DockerHub-Tag für `beberhardt/truedesire`.

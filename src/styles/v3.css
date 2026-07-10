@@ -7,8 +7,16 @@
   --accent-border: color-mix(in oklab, var(--accent) 55%, transparent);
 
   background:
-    radial-gradient(900px 520px at 12% -12%, color-mix(in oklab, var(--accent) 18%, transparent), transparent 55%),
-    radial-gradient(720px 460px at 96% 0%, color-mix(in oklab, var(--accent2) 14%, transparent), transparent 55%),
+    radial-gradient(
+      900px 520px at 12% -12%,
+      color-mix(in oklab, var(--accent) 18%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      720px 460px at 96% 0%,
+      color-mix(in oklab, var(--accent2) 14%, transparent),
+      transparent 55%
+    ),
     var(--bg);
 }
 
@@ -27,7 +35,9 @@
   border: 1px solid color-mix(in oklab, var(--accent) 14%, var(--border));
   background: color-mix(in oklab, var(--bg) 88%, transparent);
   border-radius: 18px;
-  box-shadow: rgba(0, 0, 0, 0.12) 0 14px 28px -18px, rgba(0, 0, 0, 0.08) 0 10px 12px -10px;
+  box-shadow:
+    rgba(0, 0, 0, 0.12) 0 14px 28px -18px,
+    rgba(0, 0, 0, 0.08) 0 10px 12px -10px;
 }
 
 .v3-shell .hint.v3-subtitle {
@@ -41,13 +51,21 @@
 
 .v3-shell button.primary {
   border-color: color-mix(in oklab, var(--accent) 55%, var(--border));
-  background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 30%, var(--bg)), color-mix(in oklab, var(--accent2) 18%, var(--bg)));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--accent) 30%, var(--bg)),
+    color-mix(in oklab, var(--accent2) 18%, var(--bg))
+  );
 }
 
 .v3-shell button.danger,
 .v3-shell .v3-menu-danger {
   border-color: color-mix(in oklab, var(--accent) 60%, var(--border));
-  background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 36%, var(--bg)), color-mix(in oklab, var(--accent) 20%, var(--bg)));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--accent) 36%, var(--bg)),
+    color-mix(in oklab, var(--accent) 20%, var(--bg))
+  );
   color: var(--text-h);
 }
 
@@ -69,10 +87,12 @@
   background: color-mix(in oklab, var(--bg) 82%, transparent);
   backdrop-filter: blur(12px) saturate(1.25);
   transform: translateY(0);
-  transition: transform 220ms ease, box-shadow 220ms ease;
+  transition:
+    transform 220ms ease,
+    box-shadow 220ms ease;
 }
 
-.v3-shell .v3-header[data-hidden='true'] {
+.v3-shell .v3-header[data-hidden="true"] {
   transform: translateY(-110%);
 }
 
@@ -211,7 +231,9 @@
   border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
   background: var(--bg);
   border-radius: 18px;
-  box-shadow: rgba(0, 0, 0, 0.2) 0 18px 40px -26px, rgba(0, 0, 0, 0.12) 0 16px 24px -18px;
+  box-shadow:
+    rgba(0, 0, 0, 0.2) 0 18px 40px -26px,
+    rgba(0, 0, 0, 0.12) 0 16px 24px -18px;
   padding: 10px;
   display: grid;
   gap: 8px;
@@ -226,7 +248,7 @@
     visibility 0s linear 180ms;
 }
 
-.v3-shell .v3-menu[data-open='true'] {
+.v3-shell .v3-menu[data-open="true"] {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -277,7 +299,11 @@
   width: 100%;
   max-width: 100%;
   border: 1px solid color-mix(in oklab, var(--accent) 28%, var(--border));
-  background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 14%, var(--bg)), color-mix(in oklab, var(--accent2) 10%, var(--bg)));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--accent) 14%, var(--bg)),
+    color-mix(in oklab, var(--accent2) 10%, var(--bg))
+  );
   color: var(--text-h);
   padding: 12px 14px;
   border-radius: 18px;
@@ -290,7 +316,11 @@
 
 .v3-shell .v3-notice-success {
   border-color: color-mix(in oklab, #16a34a 60%, var(--border));
-  background: linear-gradient(135deg, color-mix(in oklab, #16a34a 14%, var(--bg)), color-mix(in oklab, #22c55e 10%, var(--bg)));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, #16a34a 14%, var(--bg)),
+    color-mix(in oklab, #22c55e 10%, var(--bg))
+  );
 }
 
 .v3-shell .v3-notice-success .v3-notice-icon {
@@ -331,7 +361,11 @@
 
 .v3-shell .v3-guide {
   border-color: color-mix(in oklab, var(--accent) 22%, var(--border));
-  background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 10%, var(--bg)), color-mix(in oklab, var(--accent2) 8%, var(--bg)));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--accent) 10%, var(--bg)),
+    color-mix(in oklab, var(--accent2) 8%, var(--bg))
+  );
 }
 
 .v3-shell .v3-guide-head {
@@ -424,19 +458,19 @@
   opacity: 0.88;
 }
 
-.v3-shell .v3-step[data-state='active'] .v3-step-dot {
+.v3-shell .v3-step[data-state="active"] .v3-step-dot {
   border-color: color-mix(in oklab, var(--accent) 60%, var(--border));
   background: color-mix(in oklab, var(--accent) 14%, var(--bg));
   color: color-mix(in oklab, var(--accent) 84%, var(--text-h));
 }
 
-.v3-shell .v3-step[data-state='done'] .v3-step-dot {
+.v3-shell .v3-step[data-state="done"] .v3-step-dot {
   border-color: color-mix(in oklab, var(--accent) 60%, var(--border));
   background: color-mix(in oklab, var(--accent) 42%, var(--bg));
   color: var(--text-h);
 }
 
-.v3-shell .v3-step[data-state='done'] .v3-step-line {
+.v3-shell .v3-step[data-state="done"] .v3-step-line {
   background: color-mix(in oklab, var(--accent) 40%, var(--border));
 }
 
@@ -609,12 +643,11 @@
   background: color-mix(in oklab, var(--bg) 70%, transparent);
 }
 
-.v3-shell .v3-pair-tab[data-active='true'] {
+.v3-shell .v3-pair-tab[data-active="true"] {
   border-color: color-mix(in oklab, var(--accent) 24%, var(--border));
   background: color-mix(in oklab, var(--accent) 10%, var(--bg));
   color: var(--text-h);
 }
-
 
 .v3-shell .v3-pairing-refresh-row {
   align-items: center;
@@ -687,7 +720,11 @@
 
 .v3-shell .v3-success {
   border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--border));
-  background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 12%, var(--bg)), color-mix(in oklab, var(--accent2) 10%, var(--bg)));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--accent) 12%, var(--bg)),
+    color-mix(in oklab, var(--accent2) 10%, var(--bg))
+  );
   border-radius: 16px;
   padding: 14px;
 }
@@ -708,11 +745,13 @@
   border-radius: 18px;
   padding: 14px;
   margin-top: 12px;
-  transition: background 240ms ease, border-color 240ms ease;
+  transition:
+    background 240ms ease,
+    border-color 240ms ease;
   touch-action: pan-y;
 }
 
-.v3-shell .v3-play-card[data-saved='true'] {
+.v3-shell .v3-play-card[data-saved="true"] {
   border-color: color-mix(in oklab, #16a34a 55%, var(--border));
   background: color-mix(in oklab, #16a34a 12%, var(--bg));
 }
@@ -739,7 +778,11 @@
 
 .v3-shell .v3-play-panel {
   border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
-  background: linear-gradient(135deg, color-mix(in oklab, var(--accent) 10%, var(--bg)), color-mix(in oklab, var(--accent2) 8%, var(--bg)));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--accent) 10%, var(--bg)),
+    color-mix(in oklab, var(--accent2) 8%, var(--bg))
+  );
   border-radius: 18px;
   padding: 10px 12px 12px;
   margin-top: 12px;
@@ -856,19 +899,21 @@
   overflow: hidden;
   text-overflow: ellipsis;
   z-index: 60;
-  box-shadow: rgba(0, 0, 0, 0.18) 0 14px 30px -22px, rgba(0, 0, 0, 0.12) 0 12px 18px -18px;
+  box-shadow:
+    rgba(0, 0, 0, 0.18) 0 14px 30px -22px,
+    rgba(0, 0, 0, 0.12) 0 12px 18px -18px;
   border-color: var(--accent-border);
   background: color-mix(in oklab, var(--bg) 82%, transparent);
   backdrop-filter: blur(10px) saturate(1.2);
 }
 
-.v3-shell .toast[data-kind='success'] {
+.v3-shell .toast[data-kind="success"] {
   border-color: color-mix(in oklab, #16a34a 60%, var(--border));
   background: color-mix(in oklab, #16a34a 12%, var(--bg));
   color: var(--text-h);
 }
 
-.v3-shell .toast[data-kind='error'] {
+.v3-shell .toast[data-kind="error"] {
   border-color: color-mix(in oklab, #ef4444 55%, var(--border));
   background: color-mix(in oklab, #ef4444 10%, var(--bg));
   color: var(--text-h);
@@ -891,7 +936,9 @@
   border-radius: 18px;
   border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
   background: var(--bg);
-  box-shadow: rgba(0, 0, 0, 0.3) 0 24px 60px -30px, rgba(0, 0, 0, 0.18) 0 20px 32px -24px;
+  box-shadow:
+    rgba(0, 0, 0, 0.3) 0 24px 60px -30px,
+    rgba(0, 0, 0, 0.18) 0 20px 32px -24px;
   padding: 14px;
   display: grid;
   gap: 10px;
@@ -935,7 +982,9 @@
   border-radius: 18px;
   border: 1px solid color-mix(in oklab, #16a34a 22%, var(--border));
   background: var(--bg);
-  box-shadow: rgba(0, 0, 0, 0.3) 0 24px 60px -30px, rgba(0, 0, 0, 0.18) 0 20px 32px -24px;
+  box-shadow:
+    rgba(0, 0, 0, 0.3) 0 24px 60px -30px,
+    rgba(0, 0, 0, 0.18) 0 20px 32px -24px;
   padding: 14px;
   display: grid;
   gap: 10px;

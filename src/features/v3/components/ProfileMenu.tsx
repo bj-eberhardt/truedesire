@@ -1,23 +1,29 @@
-import { useState } from 'react'
-import { ConfirmDialog } from '../../../components/ConfirmDialog'
+import { useState } from "react";
+import { ConfirmDialog } from "../../../components/ConfirmDialog";
 
 type ProfileMenuProps = {
-  open: boolean
-  pairingCode: string | null
-  onCopyPairingCode: () => Promise<void> | void
-  onOpenBackup: () => void
-  onDeleteAccount: () => Promise<void> | void
-  onClose: () => void
-}
+  open: boolean;
+  pairingCode: string | null;
+  onCopyPairingCode: () => Promise<void> | void;
+  onOpenBackup: () => void;
+  onDeleteAccount: () => Promise<void> | void;
+  onClose: () => void;
+};
 
 export function ProfileMenu(props: ProfileMenuProps) {
-  const itemTabIndex = props.open ? 0 : -1
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const itemTabIndex = props.open ? 0 : -1;
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   return (
     <>
-      <div className="v3-menu" role="menu" aria-label="Profil-Menü" aria-hidden={!props.open} data-open={props.open ? 'true' : 'false'}>
+      <div
+        className="v3-menu"
+        role="menu"
+        aria-label="Profil-Menü"
+        aria-hidden={!props.open}
+        data-open={props.open ? "true" : "false"}
+      >
         <button
           type="button"
           className="v3-menu-item"
@@ -25,9 +31,9 @@ export function ProfileMenu(props: ProfileMenuProps) {
           tabIndex={itemTabIndex}
           disabled={!props.pairingCode}
           onClick={async () => {
-            if (!props.pairingCode) return
-            await props.onCopyPairingCode()
-            props.onClose()
+            if (!props.pairingCode) return;
+            await props.onCopyPairingCode();
+            props.onClose();
           }}
         >
           Pairing Code kopieren
@@ -39,8 +45,8 @@ export function ProfileMenu(props: ProfileMenuProps) {
           role="menuitem"
           tabIndex={itemTabIndex}
           onClick={async () => {
-            props.onOpenBackup()
-            props.onClose()
+            props.onOpenBackup();
+            props.onClose();
           }}
         >
           Backup erstellen
@@ -52,7 +58,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
           role="menuitem"
           tabIndex={itemTabIndex}
           onClick={() => {
-            setConfirmOpen(true)
+            setConfirmOpen(true);
           }}
         >
           Account löschen
@@ -72,15 +78,15 @@ export function ProfileMenu(props: ProfileMenuProps) {
         onCancel={() => setConfirmOpen(false)}
         onConfirm={async () => {
           try {
-            setIsDeleting(true)
-            await props.onDeleteAccount()
-            setConfirmOpen(false)
-            props.onClose()
+            setIsDeleting(true);
+            await props.onDeleteAccount();
+            setConfirmOpen(false);
+            props.onClose();
           } finally {
-            setIsDeleting(false)
+            setIsDeleting(false);
           }
         }}
       />
     </>
-  )
+  );
 }

@@ -1,6 +1,6 @@
 export function SettingsIcon(props: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" className={props.className ?? 'v3-notice-icon'} aria-hidden="true">
+    <svg viewBox="0 0 24 24" className={props.className ?? "v3-notice-icon"} aria-hidden="true">
       <path
         d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8Z"
         fill="none"
@@ -15,6 +15,5 @@ export function SettingsIcon(props: { className?: string }) {
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }
-

@@ -1,8 +1,8 @@
 type HeartChecklistLogoProps = {
-  title?: string
-}
+  title?: string;
+};
 
-export function HeartChecklistLogo({ title = 'TrueDesire' }: HeartChecklistLogoProps) {
+export function HeartChecklistLogo({ title = "TrueDesire" }: HeartChecklistLogoProps) {
   return (
     <svg viewBox="0 0 48 48" className="v3-logo-svg" role="img" aria-label={title}>
       <path
@@ -36,6 +36,5 @@ export function HeartChecklistLogo({ title = 'TrueDesire' }: HeartChecklistLogoP
         strokeLinejoin="round"
       />
     </svg>
-  )
+  );
 }
-

@@ -1,6 +1,6 @@
 type ErrorPanelProps = {
-  error: string
-}
+  error: string;
+};
 
 export function ErrorPanel({ error }: ErrorPanelProps) {
   return (
@@ -8,6 +8,5 @@ export function ErrorPanel({ error }: ErrorPanelProps) {
       <h2>Fehler</h2>
       <pre className="pre">{error}</pre>
     </section>
-  )
+  );
 }
-

@@ -1,38 +1,59 @@
-import { useState } from 'react'
-import type { AnswerChoice, PairView } from '../../../types'
-import { InlineError } from '../components/InlineError'
-import { V3View } from '../components/V3View'
-import { toUserMessage } from '../lib/errors'
+import { useState } from "react";
+import type { AnswerChoice, PairView } from "../../../types";
+import { InlineError } from "../components/InlineError";
+import { V3View } from "../components/V3View";
+import { toUserMessage } from "../lib/errors";
 
 type AskPageProps = {
-  pairId: string
-  pair: PairView | null
-  onBack: () => void
-  onSave: (text: string, selfAnswer: AnswerChoice) => Promise<void>
-}
+  pairId: string;
+  pair: PairView | null;
+  onBack: () => void;
+  onSave: (text: string, selfAnswer: AnswerChoice) => Promise<void>;
+};
 
 export function AskPage(props: AskPageProps) {
-  const [questionText, setQuestionText] = useState('')
-  const [questionSelfAnswer, setQuestionSelfAnswer] = useState<AnswerChoice | null>(null)
-  const [askError, setAskError] = useState<string | null>(null)
+  const [questionText, setQuestionText] = useState("");
+  const [questionSelfAnswer, setQuestionSelfAnswer] = useState<AnswerChoice | null>(null);
+  const [askError, setAskError] = useState<string | null>(null);
 
-  const canSave = !!props.pair && props.pair.status === 'active' && !!questionText.trim() && !!questionSelfAnswer
+  const canSave =
+    !!props.pair && props.pair.status === "active" && !!questionText.trim() && !!questionSelfAnswer;
 
   return (
-    <V3View title="Eigene Frage stellen" subtitle="Neue Frage erstellen und deine eigene Antwort direkt speichern." onBack={props.onBack}>
+    <V3View
+      title="Eigene Frage stellen"
+      subtitle="Neue Frage erstellen und deine eigene Antwort direkt speichern."
+      onBack={props.onBack}
+    >
       <label className="field v3-field">
         <span>Frage</span>
-        <input value={questionText} onChange={(e) => setQuestionText(e.target.value)} placeholder="z.B. Möchtest du …" />
+        <input
+          value={questionText}
+          onChange={(e) => setQuestionText(e.target.value)}
+          placeholder="z.B. Möchtest du …"
+        />
       </label>
 
       <div className="v3-choice-row" role="group" aria-label="Deine Antwort">
-        <button type="button" className={`choice yes ${questionSelfAnswer === 'yes' ? 'active' : ''}`} onClick={() => setQuestionSelfAnswer('yes')}>
+        <button
+          type="button"
+          className={`choice yes ${questionSelfAnswer === "yes" ? "active" : ""}`}
+          onClick={() => setQuestionSelfAnswer("yes")}
+        >
           Ja
         </button>
-        <button type="button" className={`choice maybe ${questionSelfAnswer === 'maybe' ? 'active' : ''}`} onClick={() => setQuestionSelfAnswer('maybe')}>
+        <button
+          type="button"
+          className={`choice maybe ${questionSelfAnswer === "maybe" ? "active" : ""}`}
+          onClick={() => setQuestionSelfAnswer("maybe")}
+        >
           Vielleicht
         </button>
-        <button type="button" className={`choice no ${questionSelfAnswer === 'no' ? 'active' : ''}`} onClick={() => setQuestionSelfAnswer('no')}>
+        <button
+          type="button"
+          className={`choice no ${questionSelfAnswer === "no" ? "active" : ""}`}
+          onClick={() => setQuestionSelfAnswer("no")}
+        >
           Nein
         </button>
       </div>
@@ -41,20 +62,20 @@ export function AskPage(props: AskPageProps) {
         <button
           className="primary"
           onClick={async () => {
-            setAskError(null)
-            const text = questionText.trim()
+            setAskError(null);
+            const text = questionText.trim();
             if (!text) {
-              setAskError('Bitte gib eine Frage ein.')
-              return
+              setAskError("Bitte gib eine Frage ein.");
+              return;
             }
             if (!questionSelfAnswer) {
-              setAskError('Bitte wähle Ja/Vielleicht/Nein.')
-              return
+              setAskError("Bitte wähle Ja/Vielleicht/Nein.");
+              return;
             }
             try {
-              await props.onSave(text, questionSelfAnswer)
+              await props.onSave(text, questionSelfAnswer);
             } catch (e: unknown) {
-              setAskError(toUserMessage(e))
+              setAskError(toUserMessage(e));
             }
           }}
           disabled={!canSave}
@@ -65,5 +86,5 @@ export function AskPage(props: AskPageProps) {
 
       {askError ? <InlineError>{askError}</InlineError> : null}
     </V3View>
-  )
+  );
 }

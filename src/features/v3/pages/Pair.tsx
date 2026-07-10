@@ -1,122 +1,135 @@
-import { useMemo } from 'react'
-import { MatchVisibilityIcon } from '../../../components/MatchVisibilityIcon'
-import { ProfileAvatar } from '../../../components/ProfileAvatar'
-import { RefreshButton } from '../../../components/RefreshButton'
-import type { MatchView } from '../../../hooks/useMatches'
-import type { AnswerChoice, DecryptedQuestion, PairView } from '../../../types'
-import { goV3Pair, goV3PairMatches, goV3PairSettings } from '../../../app/routes'
-import { V3Notice } from '../components/V3Notice'
-import { ChevronLeftIcon } from '../components/icons/ChevronLeftIcon'
-import { ChevronRightIcon } from '../components/icons/ChevronRightIcon'
-import { ClockIcon } from '../components/icons/ClockIcon'
-import { SettingsIcon } from '../components/icons/SettingsIcon'
-import { useSavedFlash } from '../hooks/useSavedFlash'
-import { useSwipeNav } from '../hooks/useSwipeNav'
-import { getOpenQuestions, sortByCreatedAtDesc } from '../lib/questions'
+import { useMemo } from "react";
+import { MatchVisibilityIcon } from "../../../components/MatchVisibilityIcon";
+import { ProfileAvatar } from "../../../components/ProfileAvatar";
+import { RefreshButton } from "../../../components/RefreshButton";
+import type { MatchView } from "../../../hooks/useMatches";
+import type { AnswerChoice, DecryptedQuestion, PairView } from "../../../types";
+import { goV3Pair, goV3PairMatches, goV3PairSettings } from "../../../app/routes";
+import { V3Notice } from "../components/V3Notice";
+import { ChevronLeftIcon } from "../components/icons/ChevronLeftIcon";
+import { ChevronRightIcon } from "../components/icons/ChevronRightIcon";
+import { ClockIcon } from "../components/icons/ClockIcon";
+import { SettingsIcon } from "../components/icons/SettingsIcon";
+import { useSavedFlash } from "../hooks/useSavedFlash";
+import { useSwipeNav } from "../hooks/useSwipeNav";
+import { getOpenQuestions, sortByCreatedAtDesc } from "../lib/questions";
 
 function nextWeeklyResetDateText(now = new Date()): string {
-  const d = new Date(now)
-  d.setHours(0, 0, 0, 0)
-  const day = d.getDay() // 0=Sun..6=Sat
-  const daysUntilMonday = (8 - (day === 0 ? 7 : day)) % 7 || 7
-  d.setDate(d.getDate() + daysUntilMonday)
-  return d.toLocaleDateString()
+  const d = new Date(now);
+  d.setHours(0, 0, 0, 0);
+  const day = d.getDay(); // 0=Sun..6=Sat
+  const daysUntilMonday = (8 - (day === 0 ? 7 : day)) % 7 || 7;
+  d.setDate(d.getDate() + daysUntilMonday);
+  return d.toLocaleDateString();
 }
 
 type PairPageProps = {
-  pairId: string
-  activeTab: 'play' | 'matches' | 'settings'
-  identityUserId: string
-  pair: PairView | null
-  questions: DecryptedQuestion[]
-  answerSummary: Record<string, { total: number; mine?: AnswerChoice }>
-  isLoadingPairData: boolean
-  onAnswer: (questionId: string, choice: AnswerChoice) => Promise<void>
-  onAnswerBegin: () => void
-  onAnswerAbort: () => void
-  onAnswerSaved: () => void
+  pairId: string;
+  activeTab: "play" | "matches" | "settings";
+  identityUserId: string;
+  pair: PairView | null;
+  questions: DecryptedQuestion[];
+  answerSummary: Record<string, { total: number; mine?: AnswerChoice }>;
+  isLoadingPairData: boolean;
+  onAnswer: (questionId: string, choice: AnswerChoice) => Promise<void>;
+  onAnswerBegin: () => void;
+  onAnswerAbort: () => void;
+  onAnswerSaved: () => void;
 
-  cardIndex: number
-  onSetCardIndex: (idx: number) => void
+  cardIndex: number;
+  onSetCardIndex: (idx: number) => void;
 
-  onBack: () => void
-  onRefreshView: () => Promise<void>
-  onGoAsk: () => void
-  onGoPlayed: () => void
+  onBack: () => void;
+  onRefreshView: () => Promise<void>;
+  onGoAsk: () => void;
+  onGoPlayed: () => void;
 
-  matches: MatchView[]
-  isLoadingMatches: boolean
-  onComputeMatches: () => Promise<void>
-  hiddenMatchIds: string[]
-  setHiddenMatchIds: (fn: (prev: string[]) => string[]) => void
-  showHiddenMatches: boolean
-  setShowHiddenMatches: (fn: (prev: boolean) => boolean) => void
+  matches: MatchView[];
+  isLoadingMatches: boolean;
+  onComputeMatches: () => Promise<void>;
+  hiddenMatchIds: string[];
+  setHiddenMatchIds: (fn: (prev: string[]) => string[]) => void;
+  showHiddenMatches: boolean;
+  setShowHiddenMatches: (fn: (prev: boolean) => boolean) => void;
 
-  visibleMatchesCount: number
+  visibleMatchesCount: number;
 
-  weeklyLimitInput: string
-  setWeeklyLimitInput: (v: string) => void
-  allowAllQuestions: boolean
-  setAllowAllQuestions: (v: boolean) => void
-  isLoadingGroupSettings: boolean
-  onRefreshGroupSettings: () => Promise<void>
-  onProposeGroupSettings: () => Promise<void>
-  onRespondGroupSettings: (action: 'accept' | 'reject' | 'cancel') => Promise<void>
-}
+  weeklyLimitInput: string;
+  setWeeklyLimitInput: (v: string) => void;
+  allowAllQuestions: boolean;
+  setAllowAllQuestions: (v: boolean) => void;
+  isLoadingGroupSettings: boolean;
+  onRefreshGroupSettings: () => Promise<void>;
+  onProposeGroupSettings: () => Promise<void>;
+  onRespondGroupSettings: (action: "accept" | "reject" | "cancel") => Promise<void>;
+};
 
 export function PairPage(props: PairPageProps) {
-  const flash = useSavedFlash({ timeoutMs: 650 })
+  const flash = useSavedFlash({ timeoutMs: 650 });
 
-  const hiddenCount = useMemo(() => props.matches.filter((m) => props.hiddenMatchIds.includes(m.id)).length, [props.hiddenMatchIds, props.matches])
+  const hiddenCount = useMemo(
+    () => props.matches.filter((m) => props.hiddenMatchIds.includes(m.id)).length,
+    [props.hiddenMatchIds, props.matches]
+  );
 
-  const showHiddenMatchesDisabled = hiddenCount === 0
+  const showHiddenMatchesDisabled = hiddenCount === 0;
 
   const canProposeSettings = useMemo(() => {
-    if (!props.pair) return false
-    if (props.pair.weeklyLimitPending) return false
-    if (props.isLoadingGroupSettings) return false
-    const nextLimit = props.allowAllQuestions ? 0 : Number(props.weeklyLimitInput)
-    if (!Number.isFinite(nextLimit) || nextLimit < 0 || nextLimit > 50) return false
-    const currentLimit = props.pair.usage?.weeklyLimit ?? props.pair.weeklyLimit
-    if (nextLimit === currentLimit) return false
-    return true
-  }, [props.allowAllQuestions, props.isLoadingGroupSettings, props.pair, props.weeklyLimitInput])
+    if (!props.pair) return false;
+    if (props.pair.weeklyLimitPending) return false;
+    if (props.isLoadingGroupSettings) return false;
+    const nextLimit = props.allowAllQuestions ? 0 : Number(props.weeklyLimitInput);
+    if (!Number.isFinite(nextLimit) || nextLimit < 0 || nextLimit > 50) return false;
+    const currentLimit = props.pair.usage?.weeklyLimit ?? props.pair.weeklyLimit;
+    if (nextLimit === currentLimit) return false;
+    return true;
+  }, [props.allowAllQuestions, props.isLoadingGroupSettings, props.pair, props.weeklyLimitInput]);
 
-  const pair = props.pair
-  const pairReady = !!pair && pair.id === props.pairId
+  const pair = props.pair;
+  const pairReady = !!pair && pair.id === props.pairId;
 
-  const weeklyLimit = pairReady ? (pair.usage?.weeklyLimit ?? pair.weeklyLimit) : 0
-  const isUnlimited = weeklyLimit === 0
-  const answeredThisWeek = pairReady ? (pair.usage?.answeredThisWeek ?? 0) : 0
-  const remainingNew = isUnlimited ? Number.POSITIVE_INFINITY : Math.max(0, weeklyLimit - answeredThisWeek)
-  const remainingNewCount = isUnlimited ? null : Math.max(0, weeklyLimit - answeredThisWeek)
+  const weeklyLimit = pairReady ? (pair.usage?.weeklyLimit ?? pair.weeklyLimit) : 0;
+  const isUnlimited = weeklyLimit === 0;
+  const answeredThisWeek = pairReady ? (pair.usage?.answeredThisWeek ?? 0) : 0;
+  const remainingNew = isUnlimited
+    ? Number.POSITIVE_INFINITY
+    : Math.max(0, weeklyLimit - answeredThisWeek);
+  const remainingNewCount = isUnlimited ? null : Math.max(0, weeklyLimit - answeredThisWeek);
   const pendingSettingsCount =
-    pairReady && pair.weeklyLimitPending && pair.weeklyLimitPending.proposedBy !== props.identityUserId ? 1 : 0
+    pairReady &&
+    pair.weeklyLimitPending &&
+    pair.weeklyLimitPending.proposedBy !== props.identityUserId
+      ? 1
+      : 0;
 
-  const baseOpen = pairReady ? getOpenQuestions(props.questions, props.answerSummary) : []
-  const unansweredAll = baseOpen.filter((q) => !props.answerSummary[q.id]?.mine)
-  const openNonOwn = unansweredAll.filter((q) => q.createdBy !== props.identityUserId).length
-  const playedPending = baseOpen.filter((q) => !!props.answerSummary[q.id]?.mine)
+  const baseOpen = pairReady ? getOpenQuestions(props.questions, props.answerSummary) : [];
+  const unansweredAll = baseOpen.filter((q) => !props.answerSummary[q.id]?.mine);
+  const openNonOwn = unansweredAll.filter((q) => q.createdBy !== props.identityUserId).length;
+  const playedPending = baseOpen.filter((q) => !!props.answerSummary[q.id]?.mine);
 
-  const unanswered = remainingNew > 0 ? unansweredAll : unansweredAll.filter((q) => q.createdBy === props.identityUserId)
-  const ordered = sortByCreatedAtDesc(unanswered)
+  const unanswered =
+    remainingNew > 0
+      ? unansweredAll
+      : unansweredAll.filter((q) => q.createdBy === props.identityUserId);
+  const ordered = sortByCreatedAtDesc(unanswered);
 
-  const safeIndex = Math.min(props.cardIndex, Math.max(0, ordered.length - 1))
-  const q = ordered[safeIndex]
-  const canAnswerNew = q ? q.createdBy === props.identityUserId || remainingNew > 0 : false
-  const canPrev = safeIndex > 0
-  const canNext = safeIndex < ordered.length - 1
+  const safeIndex = Math.min(props.cardIndex, Math.max(0, ordered.length - 1));
+  const q = ordered[safeIndex];
+  const canAnswerNew = q ? q.createdBy === props.identityUserId || remainingNew > 0 : false;
+  const canPrev = safeIndex > 0;
+  const canNext = safeIndex < ordered.length - 1;
 
-  const showLimitNotice = !isUnlimited && remainingNew === 0 && openNonOwn > 0
-  const allCurrentAnswered = props.questions.length > 0 && unansweredAll.length === 0 && openNonOwn === 0
+  const showLimitNotice = !isUnlimited && remainingNew === 0 && openNonOwn > 0;
+  const allCurrentAnswered =
+    props.questions.length > 0 && unansweredAll.length === 0 && openNonOwn === 0;
   const limitNoticeText =
     openNonOwn > 0
       ? `Wochenlimit erreicht. Ab ${nextWeeklyResetDateText()} kannst du wieder neue Fragen beantworten. Es warten dann noch ${openNonOwn} offene Fragen auf dich.`
-      : `Wochenlimit erreicht. Ab ${nextWeeklyResetDateText()} kannst du wieder neue Fragen beantworten.`
+      : `Wochenlimit erreicht. Ab ${nextWeeklyResetDateText()} kannst du wieder neue Fragen beantworten.`;
 
-  const showPlay = props.activeTab === 'play'
-  const showMatches = props.activeTab === 'matches'
-  const showSettings = props.activeTab === 'settings'
+  const showPlay = props.activeTab === "play";
+  const showMatches = props.activeTab === "matches";
+  const showSettings = props.activeTab === "settings";
 
   const swipe = useSwipeNav({
     enabled: pairReady && showPlay,
@@ -124,8 +137,8 @@ export function PairPage(props: PairPageProps) {
     canPrev,
     canNext,
     onPrev: () => props.onSetCardIndex(Math.max(0, safeIndex - 1)),
-    onNext: () => props.onSetCardIndex(Math.min(ordered.length - 1, safeIndex + 1)),
-  })
+    onNext: () => props.onSetCardIndex(Math.min(ordered.length - 1, safeIndex + 1))
+  });
 
   if (!pairReady) {
     return (
@@ -139,25 +152,25 @@ export function PairPage(props: PairPageProps) {
             Eine Frage stellen
           </button>
         </div>
-        <div className="empty" style={{ width: '100%' }}>
+        <div className="empty" style={{ width: "100%" }}>
           Verknüpfung wird geladen…
         </div>
       </section>
-    )
+    );
   }
 
   async function handleAnswer(questionId: string, choice: AnswerChoice, questionText: string) {
-    if (flash.isSaving) return
+    if (flash.isSaving) return;
     try {
-      props.onAnswerBegin()
-      flash.begin(questionId, questionText)
-      await props.onAnswer(questionId, choice)
-      flash.success(() => props.onAnswerSaved())
-    } catch (e: unknown) {
-      flash.fail()
-      props.onAnswerAbort()
+      props.onAnswerBegin();
+      flash.begin(questionId, questionText);
+      await props.onAnswer(questionId, choice);
+      flash.success(() => props.onAnswerSaved());
+    } catch (_e: unknown) {
+      flash.fail();
+      props.onAnswerAbort();
       // App-level handler already surfaces errors; avoid unhandled rejections from click handlers.
-      return
+      return;
     }
   }
 
@@ -179,18 +192,28 @@ export function PairPage(props: PairPageProps) {
         />
       ) : null}
 
-      {pair.partnerDeleted ? <div className="notice">Partner ist gelöscht. Keine weitere Interaktion möglich.</div> : null}
+      {pair.partnerDeleted ? (
+        <div className="notice">Partner ist gelöscht. Keine weitere Interaktion möglich.</div>
+      ) : null}
 
       <div className="divider" />
       <div className="v3-pair-head">
         <div className="v3-pair-head-main">
-          <ProfileAvatar name={pair.partner?.nickname ?? '??'} />
+          <ProfileAvatar name={pair.partner?.nickname ?? "??"} />
           <div>
-            <h2 style={{ margin: 0 }}>{pair.partner ? `${pair.partner.nickname} (${pair.partner.code ?? '—'})` : pair.id}</h2>
+            <h2 style={{ margin: 0 }}>
+              {pair.partner ? `${pair.partner.nickname} (${pair.partner.code ?? "—"})` : pair.id}
+            </h2>
             <div className="v3-pair-sub">
-              {pair.partnerDeleted || pair.status !== 'active' ? (
-                <span className={`pill status ${pair.status === 'active' ? 'ok' : pair.status === 'ended' ? 'ended' : 'pending'}`}>
-                  {pair.partnerDeleted ? 'gelöscht' : pair.status === 'ended' ? 'beendet' : 'ausstehend'}
+              {pair.partnerDeleted || pair.status !== "active" ? (
+                <span
+                  className={`pill status ${pair.status === "active" ? "ok" : pair.status === "ended" ? "ended" : "pending"}`}
+                >
+                  {pair.partnerDeleted
+                    ? "gelöscht"
+                    : pair.status === "ended"
+                      ? "beendet"
+                      : "ausstehend"}
                 </span>
               ) : null}
             </div>
@@ -202,12 +225,12 @@ export function PairPage(props: PairPageProps) {
         <button
           type="button"
           className="v3-pair-tab"
-          data-active={showPlay ? 'true' : 'false'}
+          data-active={showPlay ? "true" : "false"}
           role="tab"
           aria-selected={showPlay}
           onClick={() => {
-            goV3Pair(props.pairId)
-            void props.onRefreshView()
+            goV3Pair(props.pairId);
+            void props.onRefreshView();
           }}
         >
           Fragen
@@ -215,12 +238,12 @@ export function PairPage(props: PairPageProps) {
         <button
           type="button"
           className="v3-pair-tab"
-          data-active={showMatches ? 'true' : 'false'}
+          data-active={showMatches ? "true" : "false"}
           role="tab"
           aria-selected={showMatches}
           onClick={() => {
-            goV3PairMatches(props.pairId)
-            void props.onComputeMatches()
+            goV3PairMatches(props.pairId);
+            void props.onComputeMatches();
           }}
         >
           Matches
@@ -228,15 +251,15 @@ export function PairPage(props: PairPageProps) {
         <button
           type="button"
           className="v3-pair-tab"
-          data-active={showSettings ? 'true' : 'false'}
+          data-active={showSettings ? "true" : "false"}
           role="tab"
           aria-selected={showSettings}
           onClick={() => {
-            goV3PairSettings(props.pairId)
-            void props.onRefreshGroupSettings()
+            goV3PairSettings(props.pairId);
+            void props.onRefreshGroupSettings();
           }}
         >
-          Einstellungen{pendingSettingsCount ? ` (${pendingSettingsCount})` : ''}
+          Einstellungen{pendingSettingsCount ? ` (${pendingSettingsCount})` : ""}
         </button>
       </div>
 
@@ -245,27 +268,43 @@ export function PairPage(props: PairPageProps) {
           <div className="divider" />
           <h2>Fragen spielen</h2>
           <p className="hint">
-            Du und dein Partner habt jetzt Fragen zum Spielen. Beantworte offene Fragen, um neue Matches zu entdecken.
-            {!isUnlimited ? ` Du kannst diese Woche noch ${Math.max(0, weeklyLimit - answeredThisWeek)} neue Antworten geben (Reset am ${nextWeeklyResetDateText()}).` : null}
+            Du und dein Partner habt jetzt Fragen zum Spielen. Beantworte offene Fragen, um neue
+            Matches zu entdecken.
+            {!isUnlimited
+              ? ` Du kannst diese Woche noch ${Math.max(0, weeklyLimit - answeredThisWeek)} neue Antworten geben (Reset am ${nextWeeklyResetDateText()}).`
+              : null}
           </p>
 
           <div className="v3-play-summary">
             <div className="pill mono">Offene Fragen: {ordered.length}</div>
             {!isUnlimited ? (
               remainingNewCount !== null && remainingNewCount <= ordered.length ? (
-                <div className={`pill mono v3-remaining-pill ${remainingNewCount <= 3 ? 'v3-remaining-low' : ''}`}>
-                  {remainingNewCount <= 3 ? `Nur noch ${remainingNewCount} übrig` : `Neue Antworten übrig: ${remainingNewCount}`}
+                <div
+                  className={`pill mono v3-remaining-pill ${remainingNewCount <= 3 ? "v3-remaining-low" : ""}`}
+                >
+                  {remainingNewCount <= 3
+                    ? `Nur noch ${remainingNewCount} übrig`
+                    : `Neue Antworten übrig: ${remainingNewCount}`}
                 </div>
               ) : null
             ) : (
               <div className="pill mono">Alle Fragen erlaubt</div>
             )}
             <div className="v3-play-summary-spacer" />
-            <button className="primary" onClick={props.onGoAsk} disabled={pair.status !== 'active' || !!pair.partnerDeleted}>
+            <button
+              className="primary"
+              onClick={props.onGoAsk}
+              disabled={pair.status !== "active" || !!pair.partnerDeleted}
+            >
               Neue Frage stellen
             </button>
             {playedPending.length ? (
-              <button className="secondary" onClick={props.onGoPlayed} disabled={pair.status !== 'active' || !!pair.partnerDeleted} title="Deine bereits abgegebenen Antworten anpassen (solange dein Partner noch nicht geantwortet hat).">
+              <button
+                className="secondary"
+                onClick={props.onGoPlayed}
+                disabled={pair.status !== "active" || !!pair.partnerDeleted}
+                title="Deine bereits abgegebenen Antworten anpassen (solange dein Partner noch nicht geantwortet hat)."
+              >
                 Antworten anpassen ({playedPending.length})
               </button>
             ) : null}
@@ -286,7 +325,9 @@ export function PairPage(props: PairPageProps) {
                 <div className="v3-success">
                   <strong>Alles beantwortet</strong>
                   <div className="hint">
-                    Für den Moment gibt es hier nichts zu tun. Du kannst eine neue Frage stellen und direkt selbst beantworten. Danach erscheint sie bei deinem Partner und kann auch von ihm beantwortet werden.
+                    Für den Moment gibt es hier nichts zu tun. Du kannst eine neue Frage stellen und
+                    direkt selbst beantworten. Danach erscheint sie bei deinem Partner und kann auch
+                    von ihm beantwortet werden.
                   </div>
                 </div>
               ) : (
@@ -296,53 +337,79 @@ export function PairPage(props: PairPageProps) {
           ) : (
             <>
               <div className="v3-play-panel">
-              <div
-                className="v3-play-card"
-                data-saved={flash.showSaved ? 'true' : 'false'}
-                onPointerDown={swipe.onPointerDown}
-                onPointerMove={swipe.onPointerMove}
-                onPointerUp={swipe.onPointerUp}
-                onPointerCancel={swipe.onPointerCancel}
-              >
-                <div className="v3-play-card-top">
-                  <div className="pill mono">
-                    Frage {safeIndex + 1}/{ordered.length}
+                <div
+                  className="v3-play-card"
+                  data-saved={flash.showSaved ? "true" : "false"}
+                  onPointerDown={swipe.onPointerDown}
+                  onPointerMove={swipe.onPointerMove}
+                  onPointerUp={swipe.onPointerUp}
+                  onPointerCancel={swipe.onPointerCancel}
+                >
+                  <div className="v3-play-card-top">
+                    <div className="pill mono">
+                      Frage {safeIndex + 1}/{ordered.length}
+                    </div>
+                    {(props.answerSummary[q.id]?.total ?? 0) === 1 ? (
+                      <div className="pill v3-badge-partner-answered">Vom Partner beantwortet</div>
+                    ) : null}
                   </div>
-                  {(props.answerSummary[q.id]?.total ?? 0) === 1 ? (
-                    <div className="pill v3-badge-partner-answered">Vom Partner beantwortet</div>
+                  <div className="v3-play-question">
+                    {flash.showSaved ? (flash.savedText ?? q.text) : q.text}
+                  </div>
+                  {flash.showSaved ? (
+                    <div className="v3-answer-saved">Antwort wurde gespeichert.</div>
                   ) : null}
-                </div>
-                <div className="v3-play-question">{flash.showSaved ? flash.savedText ?? q.text : q.text}</div>
-                {flash.showSaved ? <div className="v3-answer-saved">Antwort wurde gespeichert.</div> : null}
-                <div className="v3-choice-row">
-                  <button className="choice yes" onClick={() => handleAnswer(q.id, 'yes', q.text)} disabled={!canAnswerNew || flash.isSaving}>
-                    Ja
-                  </button>
-                  <button className="choice maybe" onClick={() => handleAnswer(q.id, 'maybe', q.text)} disabled={!canAnswerNew || flash.isSaving}>
-                    Vielleicht
-                  </button>
-                  <button className="choice no" onClick={() => handleAnswer(q.id, 'no', q.text)} disabled={!canAnswerNew || flash.isSaving}>
-                    Nein
-                  </button>
-                </div>
-                <div className="v3-play-nav">
-                  {canPrev ? (
-                    <button className="secondary v3-play-prev" onClick={() => props.onSetCardIndex(Math.max(0, safeIndex - 1))} title="Vorige Frage" aria-label="Vorige Frage">
-                      <ChevronLeftIcon />
+                  <div className="v3-choice-row">
+                    <button
+                      className="choice yes"
+                      onClick={() => handleAnswer(q.id, "yes", q.text)}
+                      disabled={!canAnswerNew || flash.isSaving}
+                    >
+                      Ja
                     </button>
-                  ) : null}
-                  {canNext ? (
-                    <button className="secondary v3-play-next" onClick={() => props.onSetCardIndex(Math.min(ordered.length - 1, safeIndex + 1))} title="Nächste Frage" aria-label="Nächste Frage">
-                      <ChevronRightIcon />
+                    <button
+                      className="choice maybe"
+                      onClick={() => handleAnswer(q.id, "maybe", q.text)}
+                      disabled={!canAnswerNew || flash.isSaving}
+                    >
+                      Vielleicht
                     </button>
-                  ) : null}
+                    <button
+                      className="choice no"
+                      onClick={() => handleAnswer(q.id, "no", q.text)}
+                      disabled={!canAnswerNew || flash.isSaving}
+                    >
+                      Nein
+                    </button>
+                  </div>
+                  <div className="v3-play-nav">
+                    {canPrev ? (
+                      <button
+                        className="secondary v3-play-prev"
+                        onClick={() => props.onSetCardIndex(Math.max(0, safeIndex - 1))}
+                        title="Vorige Frage"
+                        aria-label="Vorige Frage"
+                      >
+                        <ChevronLeftIcon />
+                      </button>
+                    ) : null}
+                    {canNext ? (
+                      <button
+                        className="secondary v3-play-next"
+                        onClick={() =>
+                          props.onSetCardIndex(Math.min(ordered.length - 1, safeIndex + 1))
+                        }
+                        title="Nächste Frage"
+                        aria-label="Nächste Frage"
+                      >
+                        <ChevronRightIcon />
+                      </button>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-
               </div>
             </>
           )}
-
         </>
       ) : null}
 
@@ -350,7 +417,11 @@ export function PairPage(props: PairPageProps) {
         <>
           <div className="divider" />
           <div className="row">
-            <h2 style={{ margin: 0 }}>{props.showHiddenMatches ? `Ausgeblendete Matches (${props.visibleMatchesCount})` : `Matches (${props.visibleMatchesCount})`}</h2>
+            <h2 style={{ margin: 0 }}>
+              {props.showHiddenMatches
+                ? `Ausgeblendete Matches (${props.visibleMatchesCount})`
+                : `Matches (${props.visibleMatchesCount})`}
+            </h2>
             <RefreshButton onClick={props.onComputeMatches} title="Matches neu berechnen" />
           </div>
           {props.isLoadingMatches ? (
@@ -358,27 +429,43 @@ export function PairPage(props: PairPageProps) {
           ) : props.matches.length ? (
             <div className="match-grid">
               {props.matches
-                .filter((m) => (props.showHiddenMatches ? props.hiddenMatchIds.includes(m.id) : !props.hiddenMatchIds.includes(m.id)))
+                .filter((m) =>
+                  props.showHiddenMatches
+                    ? props.hiddenMatchIds.includes(m.id)
+                    : !props.hiddenMatchIds.includes(m.id)
+                )
                 .map((m) => (
                   <div className={`match-card ${m.grade}`} key={m.id}>
                     <div className="match-head">
                       <div className="match-title">{m.question}</div>
-                      <div className={`badge ${m.grade}`}>{m.grade === 'perfect' ? '💜 Perfekt' : m.grade === 'maybe' ? '🟣 Vielleicht' : '⚪ Okay'}</div>
+                      <div className={`badge ${m.grade}`}>
+                        {m.grade === "perfect"
+                          ? "💜 Perfekt"
+                          : m.grade === "maybe"
+                            ? "🟣 Vielleicht"
+                            : "⚪ Okay"}
+                      </div>
                     </div>
                     <div className="match-answers">
                       {m.answers.map((a, i) => (
                         <span className={`answer-pill ${a}`} key={i}>
-                          {a === 'yes' ? 'Ja' : a === 'maybe' ? 'Vielleicht' : 'Nein'}
+                          {a === "yes" ? "Ja" : a === "maybe" ? "Vielleicht" : "Nein"}
                         </span>
                       ))}
                     </div>
                     <div className="match-card-actions">
                       <button
                         className="secondary icon-btn mini"
-                        title={props.showHiddenMatches ? 'Match wieder anzeigen' : 'Match ausblenden'}
+                        title={
+                          props.showHiddenMatches ? "Match wieder anzeigen" : "Match ausblenden"
+                        }
                         onClick={() =>
                           props.setHiddenMatchIds((prev) =>
-                            props.showHiddenMatches ? prev.filter((id) => id !== m.id) : prev.includes(m.id) ? prev : [...prev, m.id],
+                            props.showHiddenMatches
+                              ? prev.filter((id) => id !== m.id)
+                              : prev.includes(m.id)
+                                ? prev
+                                : [...prev, m.id]
                           )
                         }
                       >
@@ -398,9 +485,15 @@ export function PairPage(props: PairPageProps) {
                 className="secondary small-btn"
                 onClick={() => props.setShowHiddenMatches((prev) => !prev)}
                 disabled={!props.showHiddenMatches && showHiddenMatchesDisabled}
-                title={props.showHiddenMatches ? 'Zur normalen Match-Ansicht wechseln' : 'Ausgeblendete Matches anzeigen'}
+                title={
+                  props.showHiddenMatches
+                    ? "Zur normalen Match-Ansicht wechseln"
+                    : "Ausgeblendete Matches anzeigen"
+                }
               >
-                {props.showHiddenMatches ? '✣ Matches anzeigen' : '✣ Ausgeblendete Matches anzeigen'}
+                {props.showHiddenMatches
+                  ? "✣ Matches anzeigen"
+                  : "✣ Ausgeblendete Matches anzeigen"}
               </button>
             </div>
           ) : null}
@@ -412,7 +505,10 @@ export function PairPage(props: PairPageProps) {
           <div className="divider" />
           <div className="row">
             <h2 style={{ margin: 0 }}>Gruppen-Einstellungen</h2>
-            <RefreshButton onClick={props.onRefreshGroupSettings} title="Gruppen-Einstellungen neu laden" />
+            <RefreshButton
+              onClick={props.onRefreshGroupSettings}
+              title="Gruppen-Einstellungen neu laden"
+            />
           </div>
           {props.isLoadingGroupSettings ? (
             <div className="hint">⏳ Gruppen-Einstellungen werden geladen…</div>
@@ -421,7 +517,9 @@ export function PairPage(props: PairPageProps) {
               <div className="settings-item">
                 <div className="settings-item-title">Fragenlimit pro Woche</div>
                 <p className="settings-text">
-                  Wenn aktiviert können pro Spieler nur x Fragen pro Woche beantwortet werden, erst in der darauf folgenden Woche gibt es weitere Fragen. So ist die Spannung jede Woche groß, ob es ein weiteres Match gibt.
+                  Wenn aktiviert können pro Spieler nur x Fragen pro Woche beantwortet werden, erst
+                  in der darauf folgenden Woche gibt es weitere Fragen. So ist die Spannung jede
+                  Woche groß, ob es ein weiteres Match gibt.
                 </p>
                 <div className="row">
                   <label className="toggle">
@@ -438,14 +536,27 @@ export function PairPage(props: PairPageProps) {
                   ) : (
                     <label className="field inline">
                       <span>Fragen / Woche</span>
-                      <input value={props.weeklyLimitInput} onChange={(e) => props.setWeeklyLimitInput(e.target.value)} disabled={!!pair.weeklyLimitPending || props.isLoadingGroupSettings} />
+                      <input
+                        value={props.weeklyLimitInput}
+                        onChange={(e) => props.setWeeklyLimitInput(e.target.value)}
+                        disabled={!!pair.weeklyLimitPending || props.isLoadingGroupSettings}
+                      />
                     </label>
                   )}
-                  <button className="secondary" onClick={props.onProposeGroupSettings} disabled={!canProposeSettings}>
+                  <button
+                    className="secondary"
+                    onClick={props.onProposeGroupSettings}
+                    disabled={!canProposeSettings}
+                  >
                     Vorschlagen
                   </button>
                 </div>
-                <div className="settings-current">Aktuell: {pair.weeklyLimit === 0 ? 'Alle Fragen erlaubt' : `${pair.weeklyLimit} Fragen pro Woche`}</div>
+                <div className="settings-current">
+                  Aktuell:{" "}
+                  {pair.weeklyLimit === 0
+                    ? "Alle Fragen erlaubt"
+                    : `${pair.weeklyLimit} Fragen pro Woche`}
+                </div>
               </div>
 
               {pair.weeklyLimitPending ? (
@@ -456,9 +567,18 @@ export function PairPage(props: PairPageProps) {
                       <div className="row request-panel-head settings-request-head">
                         <div>
                           <div className="pair-card-name">Fragenlimit pro Woche</div>
-                          <div className="pair-card-code mono">{pair.weeklyLimitPending.limit === 0 ? 'Alle Fragen erlauben' : `${pair.weeklyLimitPending.limit} Fragen/Woche`}</div>
+                          <div className="pair-card-code mono">
+                            {pair.weeklyLimitPending.limit === 0
+                              ? "Alle Fragen erlauben"
+                              : `${pair.weeklyLimitPending.limit} Fragen/Woche`}
+                          </div>
                         </div>
-                        <button className="secondary action-cancel" onClick={() => props.onRespondGroupSettings('cancel')} disabled={props.isLoadingGroupSettings} title="Eigenen Vorschlag zurückziehen">
+                        <button
+                          className="secondary action-cancel"
+                          onClick={() => props.onRespondGroupSettings("cancel")}
+                          disabled={props.isLoadingGroupSettings}
+                          title="Eigenen Vorschlag zurückziehen"
+                        >
                           Zurückziehen
                         </button>
                       </div>
@@ -468,14 +588,26 @@ export function PairPage(props: PairPageProps) {
                       <div className="row request-panel-head settings-request-head">
                         <div>
                           <div className="pair-card-name">Fragenlimit pro Woche</div>
-                          <div className="pair-card-code mono">{pair.weeklyLimitPending.limit === 0 ? 'Alle Fragen erlauben' : `${pair.weeklyLimitPending.limit} Fragen/Woche`}</div>
+                          <div className="pair-card-code mono">
+                            {pair.weeklyLimitPending.limit === 0
+                              ? "Alle Fragen erlauben"
+                              : `${pair.weeklyLimitPending.limit} Fragen/Woche`}
+                          </div>
                         </div>
                       </div>
                       <div className="row request-actions">
-                        <button className="action-accept" onClick={() => props.onRespondGroupSettings('accept')} disabled={props.isLoadingGroupSettings}>
+                        <button
+                          className="action-accept"
+                          onClick={() => props.onRespondGroupSettings("accept")}
+                          disabled={props.isLoadingGroupSettings}
+                        >
                           ✓ Annehmen
                         </button>
-                        <button className="action-reject" onClick={() => props.onRespondGroupSettings('reject')} disabled={props.isLoadingGroupSettings}>
+                        <button
+                          className="action-reject"
+                          onClick={() => props.onRespondGroupSettings("reject")}
+                          disabled={props.isLoadingGroupSettings}
+                        >
                           ✕ Ablehnen
                         </button>
                       </div>
@@ -488,5 +620,5 @@ export function PairPage(props: PairPageProps) {
         </>
       ) : null}
     </section>
-  )
+  );
 }

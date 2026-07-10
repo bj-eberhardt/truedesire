@@ -1,22 +1,25 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef } from "react";
 
-export function useAutoRefresh(enabled: boolean, refresh: () => Promise<void> | void, intervalMs = 5000) {
-  const pollInFlightRef = useRef(false)
+export function useAutoRefresh(
+  enabled: boolean,
+  refresh: () => Promise<void> | void,
+  intervalMs = 5000
+) {
+  const pollInFlightRef = useRef(false);
 
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled) return;
     const interval = window.setInterval(async () => {
-      if (pollInFlightRef.current) return
-      pollInFlightRef.current = true
+      if (pollInFlightRef.current) return;
+      pollInFlightRef.current = true;
       try {
-        await refresh()
+        await refresh();
       } catch {
         // ignore polling errors
       } finally {
-        pollInFlightRef.current = false
+        pollInFlightRef.current = false;
       }
-    }, intervalMs)
-    return () => window.clearInterval(interval)
-  }, [enabled, intervalMs, refresh])
+    }, intervalMs);
+    return () => window.clearInterval(interval);
+  }, [enabled, intervalMs, refresh]);
 }
-
