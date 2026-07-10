@@ -28,16 +28,6 @@ ${body.trim() || "_No content._"}
 
 </details>`;
 }
-
-async function readText(path, fallback = "_File was not generated._") {
-  try {
-    const content = await readFile(path, "utf8");
-    return content.trim() || "_File is empty._";
-  } catch {
-    return fallback;
-  }
-}
-
 function testTitle(parts, spec, test) {
   return [...parts, spec.title, test.projectName].filter(Boolean).join(" > ");
 }
