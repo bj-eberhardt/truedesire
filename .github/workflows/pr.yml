@@ -1,8 +1,14 @@
-name: PR
+name: PR pipeline
 
 on:
   pull_request:
     branches: [master]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  actions: read
 
 jobs:
   checks:
@@ -39,12 +45,9 @@ jobs:
         id: build-backend
         run: npm run server:build
 
-      - name: Install Playwright
-        run: npx playwright install --with-deps chromium
-
       - name: E2E tests
         id: e2e
-        run: npm run test:e2e
+        run: npm run test:e2e:docker
 
       - name: Upload Playwright report
         id: playwright-report-artifact
@@ -63,9 +66,10 @@ jobs:
           BACKEND_BUILD_OUTCOME: ${{ steps.build-backend.outcome }}
           LINT_OUTCOME: ${{ steps.lint.outcome }}
           E2E_OUTCOME: ${{ steps.e2e.outcome }}
+          PRETTIER_OUTCOME: ${{ steps.prettier.outcome }}
           PLAYWRIGHT_REPORT_URL: ${{ steps.playwright-report-artifact.outputs.artifact-url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        run: node ./github/workflows/pr-ci-comment.mjs > pr-ci-comment.md
+        run: node scripts/pr-ci-comment.mjs > pr-ci-comment.md
 
       - name: Replace PR comment
         if: always() && github.event_name == 'pull_request'
@@ -101,8 +105,8 @@ jobs:
 
       - name: Fail on unsuccessful checks
         if: >-
-          steps.frontend-build.outcome != 'success' ||
-          steps.backend-build.outcome != 'success' ||
+          steps.build-frontend.outcome != 'success' ||
+          steps.build-backend.outcome != 'success' ||
           steps.lint.outcome != 'success' ||
           steps.prettier.outcome != 'success' ||
           steps.e2e.outcome != 'success'
