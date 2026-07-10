@@ -326,9 +326,8 @@ export function PairPage(props: PairPageProps) {
                     >
                       {remainingNew}
                     </span>
-                    neue Antworten geben.
-
-                    Wochenreset am {nextWeeklyResetDateText()}. <CalendarIcon className="v3-weekly-calendar-icon" />
+                    neue Antworten geben. Wochenreset am {nextWeeklyResetDateText()}.{" "}
+                    <CalendarIcon className="v3-weekly-calendar-icon" />
                   </span>
                 ) : null}
               </p>

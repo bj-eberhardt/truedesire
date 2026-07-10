@@ -165,12 +165,12 @@ TRUEDESIRE_TAG=0.1.0 docker compose -f release/docker-compose.prod.yml up -d
 ```
 
 Image lokal bauen und pushen
+
 ```
 npm run docker:prod:build
 docker tag beberhardt/truedesire:local beberhardt/truedesire:latest
 docker push beberhardt/truedesire:latest
 ```
-
 
 ## UI/Flow (MVP)
 
