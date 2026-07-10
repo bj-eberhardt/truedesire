@@ -108,8 +108,8 @@ jobs:
 
       - name: Fail on unsuccessful checks
         if: >-
-          steps.frontend-build.outcome != 'success' ||
-          steps.backend-build.outcome != 'success' ||
+          steps.build-frontend.outcome != 'success' ||
+          steps.build-backend.outcome != 'success' ||
           steps.lint.outcome != 'success' ||
           steps.prettier.outcome != 'success' ||
           steps.e2e.outcome != 'success'
