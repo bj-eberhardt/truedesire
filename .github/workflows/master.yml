@@ -9,8 +9,11 @@ concurrency:
   group: master-release
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
-  build-test-publish:
+  build-publish-release:
     runs-on: ubuntu-latest
     permissions:
       contents: read
