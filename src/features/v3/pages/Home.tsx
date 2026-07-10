@@ -84,6 +84,63 @@ function CodeExchangeIcon() {
   );
 }
 
+function WelcomeTeaser() {
+  return (
+    <section className="v3-welcome-teaser" data-testid="welcome-teaser">
+      <div className="v3-welcome-copy">
+        <div className="v3-welcome-kicker">Privates Paarspiel</div>
+        <h1>TrueDesire zeigt euch nur, wo ihr wirklich zusammenpasst.</h1>
+        <p>
+          Ihr beantwortet intime Fragen getrennt voneinander. Sichtbar werden am Ende nur Matches,
+          also Wünsche, bei denen ihr beide offen seid. Keine Bloßstellung, keine Enttäuschung.
+        </p>
+        <div className="v3-privacy-grid" aria-label="Datenschutz bei TrueDesire">
+          <div>
+            <strong>Total anonym</strong>
+            <span>Kein Klarname, keine E-Mail, kein öffentlicher Account.</span>
+          </div>
+          <div>
+            <strong>Ende-zu-Ende privat</strong>
+            <span>Der Server kennt weder Fragen noch Antworten im Klartext.</span>
+          </div>
+          <div>
+            <strong>Nur in eurem Browser</strong>
+            <span>Schlüssel und Account-Daten bleiben lokal bei euch.</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="v3-chat-demo" aria-label="Beispiel für das Spielprinzip">
+        <div className="v3-chat-thread">
+          <div className="v3-chat-bubble v3-chat-bubble-left v3-chat-delay-1">
+            Magst du Rollenspiele ausprobieren?
+          </div>
+          <div className="v3-chat-choices v3-chat-delay-2">
+            <span>Ja</span>
+            <span>Nein</span>
+            <span>Vielleicht</span>
+          </div>
+          <div className="v3-chat-bubble v3-chat-bubble-right v3-chat-delay-3">Ja</div>
+
+          <div className="v3-chat-bubble v3-chat-bubble-left v3-chat-delay-4">
+            Wollen wir Bondage testen?
+          </div>
+          <div className="v3-chat-choices v3-chat-delay-5">
+            <span>Ja</span>
+            <span>Nein</span>
+            <span>Vielleicht</span>
+          </div>
+          <div className="v3-chat-bubble v3-chat-bubble-right v3-chat-delay-6">Nein</div>
+        </div>
+        <p className="v3-chat-explain">
+          TrueDesire funktioniert ähnlich, zeigt euch aber nicht jede einzelne Antwort.
+          Hervorgehoben werden nur eure Matches.
+        </p>
+      </div>
+    </section>
+  );
+}
+
 function scrollToSection(ref: React.RefObject<HTMLElement | null>) {
   const el = ref.current;
   if (!el) return;
@@ -294,281 +351,285 @@ export function HomePage(props: HomePageProps) {
     }
 
     return (
-      <section className="card v3-card v3-view" data-testid="onboarding-view">
-        <h2 className="v3-welcome-title">Willkommen</h2>
-        <OnboardingStepper steps={steps} activeStepId={activeStepId} />
-        <div className="divider v3-welcome-divider" />
-        {onboardPath === "start" ? (
-          <>
-            <p className="v3-onboard-question">Hast du bereits ein Backup von deinem Konto?</p>
-            <div className="v3-onboard-choice-row">
-              <button
-                className="secondary v3-onboard-choice"
-                data-testid="onboarding-has-backup-button"
-                onClick={() => {
-                  setOnboardError(null);
-                  setBackupText("");
-                  clearBackupFileSelection();
-                  setOnboardingStep("backup");
-                }}
-              >
-                Ja, ich habe ein Backup
-              </button>
-              <button
-                className="secondary v3-onboard-choice"
-                data-testid="onboarding-new-account-button"
-                onClick={() => {
-                  setOnboardError(null);
-                  setOnboardingStep("new");
-                }}
-              >
-                Nein, neues Konto
-              </button>
-            </div>
-          </>
-        ) : null}
-
-        {onboardPath === "backup" ? (
-          <>
-            <p className="v3-onboard-question">
-              Lade ein bestehendes Backup als Datei hoch, oder füge deinen Backup-Text in die
-              Textbox ein.
-            </p>
-
-            <div className="v3-import-panel">
-              <div className="v3-import-col">
-                <div className="v3-import-heading">Backup via Datei</div>
-                <input
-                  ref={backupFileInputRef}
-                  className="v3-import-file-input"
-                  data-testid="backup-file-input"
-                  type="file"
-                  accept="application/json,.json"
-                  onChange={(e) => {
-                    const file = e.currentTarget.files?.[0] ?? null;
-                    if (!file) {
-                      clearBackupFileSelection();
-                      return;
-                    }
+      <>
+        {!hasIdentity ? <WelcomeTeaser /> : null}
+        <section className="card v3-card v3-view" data-testid="onboarding-view">
+          <h2 className="v3-welcome-title">Willkommen</h2>
+          <OnboardingStepper steps={steps} activeStepId={activeStepId} />
+          <div className="divider v3-welcome-divider" />
+          {onboardPath === "start" ? (
+            <>
+              <p className="v3-onboard-question">Hast du bereits ein Backup von deinem Konto?</p>
+              <div className="v3-onboard-choice-row">
+                <button
+                  className="secondary v3-onboard-choice"
+                  data-testid="onboarding-has-backup-button"
+                  onClick={() => {
                     setOnboardError(null);
-                    setBackupFile(file);
-                    setBackupFileName(file.name);
+                    setBackupText("");
+                    clearBackupFileSelection();
+                    setOnboardingStep("backup");
                   }}
-                />
-                <div className="v3-import-file-row">
-                  <button
-                    type="button"
-                    className="secondary"
-                    data-testid="backup-file-select-button"
-                    onClick={() => backupFileInputRef.current?.click()}
-                  >
-                    Backup-Datei auswählen
-                  </button>
-                  {backupFileName ? (
+                >
+                  Ja, ich habe ein Backup
+                </button>
+                <button
+                  className="secondary v3-onboard-choice"
+                  data-testid="onboarding-new-account-button"
+                  onClick={() => {
+                    setOnboardError(null);
+                    setOnboardingStep("new");
+                  }}
+                >
+                  Nein, neues Konto
+                </button>
+              </div>
+            </>
+          ) : null}
+
+          {onboardPath === "backup" ? (
+            <>
+              <p className="v3-onboard-question">
+                Lade ein bestehendes Backup als Datei hoch, oder füge deinen Backup-Text in die
+                Textbox ein.
+              </p>
+
+              <div className="v3-import-panel">
+                <div className="v3-import-col">
+                  <div className="v3-import-heading">Backup via Datei</div>
+                  <input
+                    ref={backupFileInputRef}
+                    className="v3-import-file-input"
+                    data-testid="backup-file-input"
+                    type="file"
+                    accept="application/json,.json"
+                    onChange={(e) => {
+                      const file = e.currentTarget.files?.[0] ?? null;
+                      if (!file) {
+                        clearBackupFileSelection();
+                        return;
+                      }
+                      setOnboardError(null);
+                      setBackupFile(file);
+                      setBackupFileName(file.name);
+                    }}
+                  />
+                  <div className="v3-import-file-row">
                     <button
                       type="button"
                       className="secondary"
-                      data-testid="backup-file-clear-button"
-                      onClick={() => {
-                        setOnboardError(null);
-                        clearBackupFileSelection();
-                      }}
+                      data-testid="backup-file-select-button"
+                      onClick={() => backupFileInputRef.current?.click()}
                     >
-                      Auswahl löschen
+                      Backup-Datei auswählen
                     </button>
-                  ) : null}
+                    {backupFileName ? (
+                      <button
+                        type="button"
+                        className="secondary"
+                        data-testid="backup-file-clear-button"
+                        onClick={() => {
+                          setOnboardError(null);
+                          clearBackupFileSelection();
+                        }}
+                      >
+                        Auswahl löschen
+                      </button>
+                    ) : null}
+                  </div>
+                  {backupFileName ? (
+                    <div className="hint">Ausgewählt: {backupFileName}</div>
+                  ) : (
+                    <div className="hint">Wähle die Backup .json Datei aus</div>
+                  )}
                 </div>
-                {backupFileName ? (
-                  <div className="hint">Ausgewählt: {backupFileName}</div>
-                ) : (
-                  <div className="hint">Wähle die Backup .json Datei aus</div>
-                )}
+
+                <div className="v3-import-col">
+                  <div className="v3-import-heading">Backup über Text</div>
+                  <label className="field v3-field">
+                    <textarea
+                      data-testid="backup-import-textarea"
+                      value={backupText}
+                      onChange={(e) => setBackupText(e.target.value)}
+                      placeholder='{"version": ...}'
+                      rows={10}
+                    />
+                  </label>
+                  <div className="hint">Kopiere dein Backup-JSON-Text in die Textbox.</div>
+                </div>
               </div>
 
-              <div className="v3-import-col">
-                <div className="v3-import-heading">Backup über Text</div>
-                <label className="field v3-field">
-                  <textarea
-                    data-testid="backup-import-textarea"
-                    value={backupText}
-                    onChange={(e) => setBackupText(e.target.value)}
-                    placeholder='{"version": ...}'
-                    rows={10}
-                  />
-                </label>
-                <div className="hint">Kopiere dein Backup-JSON-Text in die Textbox.</div>
-              </div>
-            </div>
-
-            <div className="row">
-              <button
-                className="primary"
-                data-testid="backup-import-submit-button"
-                onClick={async () => {
-                  if (backupFile) {
-                    await importBackupFile(backupFile);
-                    return;
-                  }
-                  await importBackupText(backupText);
-                }}
-              >
-                Importieren und prüfen
-              </button>
-              <button
-                type="button"
-                className="secondary"
-                data-testid="backup-import-back-button"
-                onClick={() => {
-                  setOnboardError(null);
-                  setBackupText("");
-                  clearBackupFileSelection();
-                  setOnboardingStep("start");
-                }}
-              >
-                Zurück
-              </button>
-            </div>
-          </>
-        ) : null}
-
-        {onboardPath === "new" ? (
-          <>
-            <p className="v3-onboard-question">Erstelle ein neues Konto</p>
-            <p className="hint">
-              Dein Nickname ist für Partner sichtbar, die deinen Pairing-Code kennen.
-            </p>
-
-            <div className="v3-onboard-form">
-              <label className="field v3-field">
-                <span>Nickname</span>
-                <input
-                  data-testid="nickname-input"
-                  value={props.nickname}
-                  onChange={(e) => props.onNicknameChange(e.target.value)}
-                  placeholder="z.B. Alex"
-                  maxLength={30}
-                  required
-                />
-              </label>
-              <p className="hint">
-                Deine Account-Daten (inkl. Schlüssel) werden lokal auf diesem Gerät gespeichert.
-                Fragen und Antworten werden auf deinem Gerät verschlüsselt und nur verschlüsselt auf
-                dem Server gespeichert.
-              </p>
               <div className="row">
                 <button
                   className="primary"
-                  data-testid="create-account-button"
+                  data-testid="backup-import-submit-button"
                   onClick={async () => {
-                    const trimmed = props.nickname.trim();
-                    if (!trimmed) {
-                      setOnboardError("Bitte gib einen Nickname ein.");
+                    if (backupFile) {
+                      await importBackupFile(backupFile);
                       return;
                     }
-                    try {
-                      setIsRegistering(true);
-                      await props.onRegister();
-                      setOnboardError(null);
-                      const hydrated = (await props.onBootstrap()) as any;
-                      if (!hydrated?.userId) {
-                        setOnboardError(
-                          "Konto wurde erstellt, konnte aber noch nicht geladen werden. Bitte erneut versuchen."
-                        );
-                        return;
-                      }
-                      setOnboardingStep("backup-save");
-                    } catch (e: unknown) {
-                      setOnboardError(toUserMessage(e));
-                    } finally {
-                      setIsRegistering(false);
-                    }
+                    await importBackupText(backupText);
                   }}
-                  disabled={!props.nickname.trim() || isRegistering}
                 >
-                  Konto erstellen
+                  Importieren und prüfen
                 </button>
                 <button
+                  type="button"
                   className="secondary"
-                  data-testid="new-account-back-button"
+                  data-testid="backup-import-back-button"
                   onClick={() => {
                     setOnboardError(null);
+                    setBackupText("");
+                    clearBackupFileSelection();
                     setOnboardingStep("start");
                   }}
-                  disabled={isRegistering}
                 >
                   Zurück
                 </button>
               </div>
+            </>
+          ) : null}
+
+          {onboardPath === "new" ? (
+            <>
+              <p className="v3-onboard-question">Erstelle ein neues Konto</p>
               <p className="hint">
-                Du kannst danach jederzeit ein Backup erstellen und auf anderen Geräten importieren.
+                Dein Nickname ist für Partner sichtbar, die deinen Pairing-Code kennen.
               </p>
-            </div>
-          </>
-        ) : null}
 
-        {onboardPath === "backup-save" ? (
-          <>
-            <p className="v3-onboard-question">Backup anlegen (optional)</p>
-            <p className="hint">
-              Du kannst jetzt direkt ein Backup als Datei herunterladen. So kannst du dein Konto
-              später auf einem anderen Gerät wiederherstellen.
-            </p>
+              <div className="v3-onboard-form">
+                <label className="field v3-field">
+                  <span>Nickname</span>
+                  <input
+                    data-testid="nickname-input"
+                    value={props.nickname}
+                    onChange={(e) => props.onNicknameChange(e.target.value)}
+                    placeholder="z.B. Alex"
+                    maxLength={30}
+                    required
+                  />
+                </label>
+                <p className="hint">
+                  Deine Account-Daten (inkl. Schlüssel) werden lokal auf diesem Gerät gespeichert.
+                  Fragen und Antworten werden auf deinem Gerät verschlüsselt und nur verschlüsselt
+                  auf dem Server gespeichert.
+                </p>
+                <div className="row">
+                  <button
+                    className="primary"
+                    data-testid="create-account-button"
+                    onClick={async () => {
+                      const trimmed = props.nickname.trim();
+                      if (!trimmed) {
+                        setOnboardError("Bitte gib einen Nickname ein.");
+                        return;
+                      }
+                      try {
+                        setIsRegistering(true);
+                        await props.onRegister();
+                        setOnboardError(null);
+                        const hydrated = (await props.onBootstrap()) as any;
+                        if (!hydrated?.userId) {
+                          setOnboardError(
+                            "Konto wurde erstellt, konnte aber noch nicht geladen werden. Bitte erneut versuchen."
+                          );
+                          return;
+                        }
+                        setOnboardingStep("backup-save");
+                      } catch (e: unknown) {
+                        setOnboardError(toUserMessage(e));
+                      } finally {
+                        setIsRegistering(false);
+                      }
+                    }}
+                    disabled={!props.nickname.trim() || isRegistering}
+                  >
+                    Konto erstellen
+                  </button>
+                  <button
+                    className="secondary"
+                    data-testid="new-account-back-button"
+                    onClick={() => {
+                      setOnboardError(null);
+                      setOnboardingStep("start");
+                    }}
+                    disabled={isRegistering}
+                  >
+                    Zurück
+                  </button>
+                </div>
+                <p className="hint">
+                  Du kannst danach jederzeit ein Backup erstellen und auf anderen Geräten
+                  importieren.
+                </p>
+              </div>
+            </>
+          ) : null}
 
-            <div className="row">
-              <button
-                className="secondary"
-                data-testid="onboarding-download-backup-button"
-                disabled={isDownloadingBackup}
-                onClick={async () => {
-                  try {
+          {onboardPath === "backup-save" ? (
+            <>
+              <p className="v3-onboard-question">Backup anlegen (optional)</p>
+              <p className="hint">
+                Du kannst jetzt direkt ein Backup als Datei herunterladen. So kannst du dein Konto
+                später auf einem anderen Gerät wiederherstellen.
+              </p>
+
+              <div className="row">
+                <button
+                  className="secondary"
+                  data-testid="onboarding-download-backup-button"
+                  disabled={isDownloadingBackup}
+                  onClick={async () => {
+                    try {
+                      setOnboardError(null);
+                      setIsDownloadingBackup(true);
+                      const txt = await props.onExportBackupText();
+                      const formatted = formatJsonMaybe(txt);
+                      const filename = safeBackupFilename(props.identity?.code ?? "backup");
+                      downloadTextFile({ filename, content: formatted });
+                    } catch (e: unknown) {
+                      setOnboardError(toUserMessage(e));
+                    } finally {
+                      setIsDownloadingBackup(false);
+                    }
+                  }}
+                >
+                  Backup herunterladen
+                </button>
+                <button
+                  className="primary"
+                  data-testid="onboarding-finish-button"
+                  onClick={async () => {
                     setOnboardError(null);
-                    setIsDownloadingBackup(true);
-                    const txt = await props.onExportBackupText();
-                    const formatted = formatJsonMaybe(txt);
-                    const filename = safeBackupFilename(props.identity?.code ?? "backup");
-                    downloadTextFile({ filename, content: formatted });
-                  } catch (e: unknown) {
-                    setOnboardError(toUserMessage(e));
-                  } finally {
-                    setIsDownloadingBackup(false);
-                  }
-                }}
-              >
-                Backup herunterladen
-              </button>
-              <button
-                className="primary"
-                data-testid="onboarding-finish-button"
-                onClick={async () => {
-                  setOnboardError(null);
-                  try {
-                    const hydrated = (await props.onBootstrap()) as any;
-                    if (!hydrated?.userId) {
-                      setOnboardError(
-                        "Konto konnte nicht geladen werden. Bitte kurz warten und erneut versuchen."
-                      );
+                    try {
+                      const hydrated = (await props.onBootstrap()) as any;
+                      if (!hydrated?.userId) {
+                        setOnboardError(
+                          "Konto konnte nicht geladen werden. Bitte kurz warten und erneut versuchen."
+                        );
+                        return;
+                      }
+                    } catch (e: unknown) {
+                      setOnboardError(e instanceof Error ? e.message : String(e));
                       return;
                     }
-                  } catch (e: unknown) {
-                    setOnboardError(e instanceof Error ? e.message : String(e));
-                    return;
-                  }
-                  setOnboardingStep("start");
-                }}
-              >
-                Fertigstellen
-              </button>
-            </div>
-            {isDownloadingBackup ? <div className="hint">Download wird vorbereitet…</div> : null}
-          </>
-        ) : null}
+                    setOnboardingStep("start");
+                  }}
+                >
+                  Fertigstellen
+                </button>
+              </div>
+              {isDownloadingBackup ? <div className="hint">Download wird vorbereitet…</div> : null}
+            </>
+          ) : null}
 
-        {onboardError ? (
-          <div className="inline-error" data-testid="onboarding-error">
-            {onboardError}
-          </div>
-        ) : null}
-      </section>
+          {onboardError ? (
+            <div className="inline-error" data-testid="onboarding-error">
+              {onboardError}
+            </div>
+          ) : null}
+        </section>
+      </>
     );
   }
 

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
+export const ANSWER_SAVED_FLASH_TIMEOUT_MS = 1400;
+
 export function useSavedFlash(opts?: { timeoutMs?: number }) {
-  const timeoutMs = opts?.timeoutMs ?? 650;
+  const timeoutMs = opts?.timeoutMs ?? ANSWER_SAVED_FLASH_TIMEOUT_MS;
   const [isSaving, setIsSaving] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);

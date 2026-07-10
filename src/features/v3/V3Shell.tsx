@@ -185,7 +185,6 @@ export function V3Shell(props: V3ShellProps) {
               onBack={() => goV3Pair(routePairId)}
               onSave={async (text, selfAnswer) => {
                 await props.onAddQuestion(text, selfAnswer);
-                goV3Pair(routePairId);
               }}
             />
           ) : routeMode === "played" && routePairId ? (

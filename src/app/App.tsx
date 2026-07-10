@@ -19,6 +19,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [accountDeletedModalOpen, setAccountDeletedModalOpen] = useState(false);
   const [v3InlineNotice, setV3InlineNotice] = useState<string | null>(null);
+  const [isRefreshingPairView, setIsRefreshingPairView] = useState(false);
   const v3InlineNoticeTimerRef = useRef<number | null>(null);
 
   const {
@@ -112,10 +113,12 @@ export default function App() {
   }, []);
 
   const openPair = useCallback(
-    async (pairId: string) => {
+    async (pairId: string, opts?: { preserveCurrent?: boolean }) => {
       const p = await selectPair(pairId);
-      clearMatches();
-      clearQuestions();
+      if (!opts?.preserveCurrent) {
+        clearMatches();
+        clearQuestions();
+      }
       if (!p) return;
       await refreshSystemQuestionHashes();
       await ensureSystemQuestionsSeeded(p);
@@ -156,13 +159,16 @@ export default function App() {
   }, [apiClient, openPair, refreshPairing, pairRouteMode, pairRoutePairId]);
 
   const refreshPairView = useCallback(async () => {
-    await refreshPairing();
     const targetPairId = pairRoutePairId ?? pair?.id;
     if (!targetPairId) return;
+    setIsRefreshingPairView(true);
     try {
-      await openPair(targetPairId);
+      await refreshPairing();
+      await openPair(targetPairId, { preserveCurrent: true });
     } catch {
       // ignore
+    } finally {
+      setIsRefreshingPairView(false);
     }
   }, [openPair, pair?.id, refreshPairing, pairRoutePairId]);
 
@@ -248,7 +254,7 @@ export default function App() {
           return await respondPairing(requestId, action);
         }}
         pair={pair}
-        isLoadingPairData={isLoadingPairData}
+        isLoadingPairData={isLoadingPairData || isRefreshingPairView}
         onOpenPair={openPair}
         onRefreshPairView={refreshPairView}
         questions={questions}

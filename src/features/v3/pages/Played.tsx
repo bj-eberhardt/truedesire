@@ -1,9 +1,9 @@
 import type { AnswerChoice, DecryptedQuestion, PairView } from "../../../types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { InlineError } from "../components/InlineError";
 import { V3View } from "../components/V3View";
 import { toUserMessage } from "../lib/errors";
-import { useSavedFlash } from "../hooks/useSavedFlash";
+import { ANSWER_SAVED_FLASH_TIMEOUT_MS, useSavedFlash } from "../hooks/useSavedFlash";
 import { getOpenQuestions, sortByCreatedAtDesc } from "../lib/questions";
 
 type PlayedPageProps = {
@@ -16,8 +16,12 @@ type PlayedPageProps = {
 };
 
 export function PlayedPage(props: PlayedPageProps) {
-  const flash = useSavedFlash({ timeoutMs: 650 });
+  const flash = useSavedFlash({ timeoutMs: ANSWER_SAVED_FLASH_TIMEOUT_MS });
   const [pageError, setPageError] = useState<string | null>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   async function handleAnswer(questionId: string, questionText: string, choice: AnswerChoice) {
     if (flash.isSaving) return;
@@ -76,7 +80,7 @@ export function PlayedPage(props: PlayedPageProps) {
                     </div>
                     {isSavedCard ? (
                       <div className="v3-answer-saved" data-testid="played-saved-indicator">
-                        Antwort wurde gespeichert.
+                        Frage wurde beantwortet.
                       </div>
                     ) : null}
                     <div className="v3-choice-row">
