@@ -4,6 +4,12 @@ on:
   pull_request:
     branches: [master]
 
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  actions: read
+
 jobs:
   checks:
     runs-on: ubuntu-latest
