@@ -50,7 +50,7 @@ jobs:
 
       - name: E2E tests
         id: e2e
-        run: npm run test:e2e
+        run: npm run test:e2e:docker
 
       - name: Upload Playwright report
         id: playwright-report-artifact
