@@ -1,4 +1,27 @@
 services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-truedesire}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-truedesire}"
+      POSTGRES_DB: "${POSTGRES_DB:-truedesire}"
+    volumes:
+      - truedesire_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-truedesire} -d ${POSTGRES_DB:-truedesire}"
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
   app:
     image: beberhardt/truedesire:${TRUEDESIRE_TAG:-latest}
     build:
@@ -11,15 +34,16 @@ services:
     environment:
       NODE_ENV: production
       PORT: "${PORT:-3001}"
-      DATA_DIR: /app/server/data
+      DATABASE_URL: "postgres://${POSTGRES_USER:-truedesire}:${POSTGRES_PASSWORD:-truedesire}@postgres:5432/${POSTGRES_DB:-truedesire}"
       SYSTEM_QUESTIONS_FILE: /app/server/default-data/system-questions.json
       STATIC_DIR: /app/dist
     ports:
       - target: 3001
         published: "${PUBLISHED_PORT:-3001}"
         protocol: tcp
-    volumes:
-      - truedesire_data:/app/server/data
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test:
         [
@@ -32,4 +56,4 @@ services:
       start_period: 10s
 
 volumes:
-  truedesire_data:
+  truedesire_postgres_data:

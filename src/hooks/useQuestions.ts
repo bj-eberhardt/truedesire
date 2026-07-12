@@ -9,12 +9,13 @@ import type { AnswerChoice, DecryptedQuestion, PairView, QuestionView } from "..
 type ApiClient = ReturnType<typeof api>;
 
 type AnswerSummary = Record<string, { total: number; mine?: AnswerChoice }>;
+type SystemQuestionHashes = Record<string, string[]>;
 
 type UseQuestionsResult = {
   questions: DecryptedQuestion[];
   rawQuestions: QuestionView[];
   answerSummary: AnswerSummary;
-  systemQuestionHashes: Record<string, string>;
+  systemQuestionHashes: SystemQuestionHashes;
   refreshSystemQuestionHashes: () => Promise<void>;
   ensureSystemQuestionsSeeded: (pair: PairView) => Promise<void>;
   loadQuestionsAndDecrypt: (pairOverride?: PairView) => Promise<void>;
@@ -36,7 +37,19 @@ export function useQuestions(opts: {
   const [questions, setQuestions] = useState<DecryptedQuestion[]>([]);
   const [rawQuestions, setRawQuestions] = useState<QuestionView[]>([]);
   const [answerSummary, setAnswerSummary] = useState<AnswerSummary>({});
-  const [systemQuestionHashes, setSystemQuestionHashes] = useState<Record<string, string>>({});
+  const [systemQuestionHashes, setSystemQuestionHashes] = useState<SystemQuestionHashes>({});
+
+  function toSystemQuestionHashes(
+    catalog: Array<{ id: string; version: number; sha256B64: string }>
+  ): SystemQuestionHashes {
+    const hashes: SystemQuestionHashes = {};
+    for (const item of catalog) {
+      const key = `${item.id}:${item.version}`;
+      hashes[key] = [item.sha256B64];
+      (hashes[item.id] ??= []).push(item.sha256B64);
+    }
+    return hashes;
+  }
 
   const clearQuestions = useCallback(() => {
     setQuestions([]);
@@ -48,7 +61,7 @@ export function useQuestions(opts: {
     if (!apiClient) return;
     try {
       const system = await apiClient.system.questions();
-      setSystemQuestionHashes(Object.fromEntries(system.questions.map((q) => [q.id, q.sha256B64])));
+      setSystemQuestionHashes(toSystemQuestionHashes(system.verificationCatalog));
     } catch {
       setSystemQuestionHashes({});
     }
@@ -62,16 +75,20 @@ export function useQuestions(opts: {
         if (p.seededSystemQuestionsAt) return;
         const aes = await derivePairAesKey(identity.keys.ecdhPrivateKey, p, identity.userId);
         const system = await apiClient.system.questions();
-        setSystemQuestionHashes(
-          Object.fromEntries(system.questions.map((q) => [q.id, q.sha256B64]))
-        );
+        setSystemQuestionHashes(toSystemQuestionHashes(system.verificationCatalog));
         const items = await Promise.all(
           system.questions.map(async (q) => ({
             systemId: q.id,
+            systemVersion: q.version,
             blob: await encryptJson(
               aes,
-              { text: q.text, systemId: q.id, systemHash: q.sha256B64 },
-              `love-interests|pair:${p.id}|question|system:${q.id}`
+              {
+                text: q.text,
+                systemId: q.id,
+                systemVersion: q.version,
+                systemHash: q.sha256B64
+              },
+              `love-interests|pair:${p.id}|question|system:${q.id}:v${q.version}`
             )
           }))
         );
@@ -97,14 +114,23 @@ export function useQuestions(opts: {
           const payload = await decryptJson<{
             text?: unknown;
             systemId?: unknown;
+            systemVersion?: unknown;
             systemHash?: unknown;
           }>(aes, q.blob);
           const text = typeof payload?.text === "string" ? payload.text : "[?]";
           let textSuffix = "";
           if (payload?.systemId && payload?.systemHash) {
-            const expected = systemQuestionHashes[String(payload.systemId)];
+            const systemId = String(payload.systemId);
+            const version =
+              typeof payload.systemVersion === "number" && Number.isInteger(payload.systemVersion)
+                ? payload.systemVersion
+                : null;
+            const expected = version
+              ? (systemQuestionHashes[`${systemId}:${version}`] ?? [])
+              : (systemQuestionHashes[systemId] ?? []);
             const actual = await sha256Base64(text);
-            const ok = expected && expected === String(payload.systemHash) && expected === actual;
+            const hash = String(payload.systemHash);
+            const ok = expected.includes(hash) && hash === actual;
             textSuffix = ok ? "" : " (nicht verifiziert)";
           }
           decoded.push({ ...q, text: text + textSuffix });

@@ -17,6 +17,7 @@ const tsRules = {
 export default defineConfig([
   globalIgnores([
     "dist/**",
+    "server/**",
     "server/dist/**",
     "node_modules/**",
     "playwright-report/**",

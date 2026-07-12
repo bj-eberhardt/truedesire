@@ -14,16 +14,17 @@ Privacy-first „Fragen-Spiel“ für Paare:
 
 Voraussetzungen: Node.js `>= 24`.
 
-1. Server (Node.js + TypeScript, Datei-Persistenz, keine externen Runtime-Dependencies)
+1. Server (Node.js + TypeScript, eigenes `server/package.json`)
 
 ```bash
+npm ci --prefix server
 npm run server:build
 npm run server:start
 ```
 
 - Server läuft standardmäßig auf `http://localhost:3001`
 - Die API liegt unter `/api` (z.B. `/api/auth/register`); `/health` bleibt separat für Healthchecks.
-- Persistenz: `server/data/db.json`
+- Persistenz: Postgres über `DATABASE_URL`
 
 2. Client (Vite)
 
@@ -70,8 +71,11 @@ docker compose -f docker-compose.dev.yml down
 Hinweise:
 
 - Die Container verwenden eigene Named Volumes für `node_modules`, damit Host- und Container-Abhängigkeiten getrennt bleiben.
+- Die Dev-Datenbank liegt im Named Volume `postgres_dev_data` und bleibt nach Backend-Neustarts erhalten.
+- Dev-Daten zurücksetzen: `docker compose -f docker-compose.dev.yml down -v`.
+- Der Backend-Service mountet nur `./server` und nutzt ausschließlich `server/package.json`.
 - Der Backend-Service baut `server/src` initial nach `server/dist` und startet zusätzlich TypeScript-Watch plus `node --watch`.
-- `server/data/db.json` bleibt im Projektverzeichnis und wird über den Source-Mount lokal persistiert.
+- App-Daten werden nicht mehr in `server/data/db.json` geschrieben.
 
 ## Qualität und CI
 
@@ -82,6 +86,9 @@ npm run format:check
 npm run lint
 npm run typecheck
 npm run build
+npm run server:lint
+npm run server:typecheck
+npm run server:build
 npm run test:e2e
 ```
 
@@ -94,7 +101,7 @@ npm run lint:fix
 
 ### E2E UI Tests
 
-Die E2E-Tests laufen gegen einen separaten, production-nahen Docker-Stack. Dadurch kollidieren sie nicht mit den Dev-Ports (`5173`/`3001`).
+Die E2E-Tests laufen gegen einen separaten, production-nahen Docker-Stack. Dadurch kollidieren sie nicht mit den Dev-Ports (`5173`/`3001`). Die E2E-Datenbank liegt auf `tmpfs` und startet pro Stack-Lauf leer.
 
 Headless im Docker-Runner:
 
@@ -155,7 +162,7 @@ cp release/.env.example release/.env
 docker compose -f release/docker-compose.prod.yml up -d --build
 ```
 
-Der Stack veröffentlicht standardmäßig Port `3001`. Persistente Daten liegen im Docker Volume `truedesire_data` unter `/app/server/data`.
+Der Stack veröffentlicht standardmäßig Port `3001`. Persistente Daten liegen im Docker Volume `truedesire_postgres_data`.
 
 Ein bestimmtes DockerHub-Image starten:
 

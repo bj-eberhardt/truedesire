@@ -1,6 +1,3 @@
-import path from "node:path";
-import { FileStore } from "./fileStore.js";
-
 export type UserRecord = {
   id: string;
   code: string;
@@ -59,23 +56,3 @@ export type AnswerRecord = {
   updatedAt?: number;
   blob: EncryptedBlob;
 };
-
-export type DatabaseShape = {
-  users: UserRecord[];
-  pairs: PairRecord[];
-  pairRequests: PairRequestRecord[];
-  questions: QuestionRecord[];
-  answers: AnswerRecord[];
-  nonces: { [userId: string]: { nonce: string; expiresAt: number }[] };
-};
-
-const baseDir = process.env.DATA_DIR || path.join(process.cwd(), "server", "data");
-
-export const dbStore = new FileStore<DatabaseShape>(baseDir, "db.json", {
-  users: [],
-  pairs: [],
-  pairRequests: [],
-  questions: [],
-  answers: [],
-  nonces: {}
-});

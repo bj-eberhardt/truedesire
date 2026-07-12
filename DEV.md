@@ -62,7 +62,9 @@ Backend-ENV:
 - `PORT` (default: `3001`)
 - `LOG_LEVEL` (`debug`, `info`, `warn`, `error`, `silent`; default: `info`)
 - `REQUEST_LOGS` (default: `true`)
-- `DATA_DIR` (default: `server/data`)
+- `DATABASE_URL` (default: `postgres://truedesire:truedesire@localhost:5432/truedesire`)
+- `DB_SSL` (`true`/`false`; default: `false`)
+- `DB_MIGRATIONS_LOCK_TIMEOUT_MS` (default: `10000`)
 - `STATIC_DIR` (wenn gesetzt, liefert das Backend die gebaute Vite-App aus)
 - `WEEKLY_LIMIT_DEFAULT` (default: `15`)
 - `SYSTEM_QUESTIONS_FILE` (default: `server/data/system-questions.json`)
@@ -78,6 +80,7 @@ Frontend-Build-ENV:
 Production-Docker-ENV:
 
 - `TRUEDESIRE_TAG`: DockerHub-Tag für `beberhardt/truedesire`.
+- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`: interne Postgres-Credentials.
 
 ## API namespace and static serving
 

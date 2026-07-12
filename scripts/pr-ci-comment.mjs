@@ -110,6 +110,7 @@ async function readPlaywrightStats() {
 const frontendBuild = labelFor(process.env.FRONTEND_BUILD_OUTCOME);
 const backendBuild = labelFor(process.env.BACKEND_BUILD_OUTCOME);
 const lint = labelFor(process.env.LINT_OUTCOME);
+const backendLint = labelFor(process.env.LINT_SERVER_OUTCOME);
 const prettier = labelFor(process.env.PRETTIER_OUTCOME);
 const e2e = labelFor(process.env.E2E_OUTCOME);
 const reportUrl = process.env.PLAYWRIGHT_REPORT_URL || process.env.RUN_URL || "";
@@ -127,6 +128,7 @@ const summary = [
   `| Frontend build | ${frontendBuild} | |`,
   `| Backend build | ${backendBuild} | |`,
   `| Lint | ${lint} | npm run lint:fix |`,
+  `| Backend Lint | ${backendLint} | npm run --prefix server lint:fix |`,
   `| Formatting | ${prettier} | npm run format |`,
   `| E2E tests | ${e2e} | |`,
   "",
