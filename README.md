@@ -210,9 +210,16 @@ docker push beberhardt/truedesire:latest
 
 ## System-Fragen (Computer)
 
-Die initialen „Computer“-Fragen liegen editierbar in `server/data/system-questions.json` und können über die API abgefragt werden:
+Die „Computer“-Fragen liegen versioniert in Postgres und können über die API abgefragt werden:
 
 - `GET /system/questions`
+
+Version `1` wird per Migration aus den initialen Fragen angelegt. Neue Kataloge werden als
+vollständige neue Version veröffentlicht, z.B. nach dem Server-Build:
+
+```bash
+npm --prefix server run system-questions:publish -- /path/to/system-questions-v2.json
+```
 
 Wichtig: System-Fragen werden **nachdem ein Pair aktiv ist** von einem Client **clientseitig verschlüsselt** und dann einmalig dem Pair hinzugefügt. In der Datenbank liegen sie nur als Ciphertext.
 

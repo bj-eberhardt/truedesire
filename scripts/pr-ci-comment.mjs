@@ -176,7 +176,7 @@ const summary = [
   `| Lint | ${lint} | npm run lint:fix |`,
   `| Backend Lint | ${backendLint} | npm run --prefix server lint:fix |`,
   `| Formatting | ${prettier} | npm run format |`,
-  `| Backend tests | ${backendTests} | npm run server:test:docker |`,
+  `| Backend tests | ${backendTests} | see backend test step in PR workflow |`,
   `| E2E tests | ${e2e} | |`,
   "",
   `Backend test artifact: ${backendTestResultsUrl ? `[backend-test-results](${backendTestResultsUrl})` : "_not available_"}`,

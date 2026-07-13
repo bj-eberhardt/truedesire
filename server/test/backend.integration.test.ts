@@ -8,7 +8,11 @@ import { countWeeklyAnswers } from "../src/repositories/answerRepository.js";
 import { getPairAccess } from "../src/repositories/accessRepository.js";
 import { createAnswerForQuestion, upsertAnswerForQuestion } from "../src/services/answerService.js";
 import { registerAccount } from "../src/services/authService.js";
-import { createPairRecordForUsers, getPairDetails } from "../src/services/pairService.js";
+import {
+  createPairRecordForUsers,
+  getPairDetails,
+  seedQuestionsForPair
+} from "../src/services/pairService.js";
 import {
   listPendingPairingRequests,
   requestPairingWithCode,
@@ -22,7 +26,9 @@ import {
 import { createUser, reserveUserNonce } from "../src/repositories/userRepository.js";
 import { transaction } from "../src/db/pool.js";
 import { insertPair } from "../src/repositories/pairRepository.js";
+import { publishSystemQuestionVersion } from "../src/repositories/systemQuestionRepository.js";
 import type { EncryptedBlob, PairRecord } from "../src/storage/db.js";
+import { readSystemQuestions } from "../src/services/systemQuestions.js";
 
 const jwk = { kty: "EC", crv: "P-256", x: "x", y: "y" };
 
@@ -38,6 +44,8 @@ function requestMock() {
 }
 
 async function resetDb() {
+  await query("delete from system_questions where catalog_version > 1");
+  await query("delete from system_question_versions where version > 1");
   await query("truncate auth_nonces, answers, questions, pair_requests, pairs, users cascade");
 }
 
@@ -65,7 +73,50 @@ test("migrations are idempotent", async () => {
   await initializeDatabase();
   await initializeDatabase();
   const result = await query<{ count: string }>("select count(*)::text from schema_migrations");
-  expect(Number(result.rows[0].count)).toBe(1);
+  expect(Number(result.rows[0].count)).toBe(2);
+});
+
+test("system question migration seeds version 1", async () => {
+  const version = await query<{ version: string }>(
+    "select version::text from system_question_versions where version = 1"
+  );
+  expect(version.rows[0].version).toBe("1");
+
+  const questions = await query<{ count: string }>(
+    "select count(*)::text from system_questions where catalog_version = 1"
+  );
+  expect(Number(questions.rows[0].count)).toBeGreaterThan(0);
+});
+
+test("system questions API reads latest version and keeps historical verification hashes", async () => {
+  const initial = await readSystemQuestions();
+  expect(initial.ok).toBe(true);
+  if (!initial.ok) throw new Error("initial system questions failed");
+  expect(initial.catalogVersion).toBe(1);
+  expect(initial.questions[0].version).toBe(1);
+  const initialQuestionId = initial.questions[0].id;
+
+  await publishSystemQuestionVersion({
+    version: 2,
+    description: "Integration test catalog",
+    questions: [
+      { id: "q_v2_only", text: "Neue Frage aus Version 2?" },
+      { id: "q_v2_second", text: "Noch eine Frage aus Version 2?" }
+    ]
+  });
+
+  const latest = await readSystemQuestions();
+  expect(latest.ok).toBe(true);
+  if (!latest.ok) throw new Error("latest system questions failed");
+  expect(latest.catalogVersion).toBe(2);
+  expect(latest.questions.map((q) => q.id)).toEqual(["q_v2_only", "q_v2_second"]);
+  expect(latest.questions.every((q) => q.version === 2)).toBe(true);
+  expect(latest.verificationCatalog.some((q) => q.id === initialQuestionId && q.version === 1)).toBe(
+    true
+  );
+  expect(latest.verificationCatalog.some((q) => q.id === "q_v2_only" && q.version === 2)).toBe(
+    true
+  );
 });
 
 test("config validates valid and invalid env", () => {
@@ -158,6 +209,25 @@ test("question create, list, and delete", async () => {
   expect(empty.ok).toBe(true);
   if (!empty.ok) throw new Error("question list failed");
   expect(empty.value.length).toBe(0);
+});
+
+test("system question seed stores encrypted pair questions only", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+
+  const seeded = await seedQuestionsForPair(pair.id, alice.userId, [{ blob }]);
+  expect(seeded.ok).toBe(true);
+  if (!seeded.ok) throw new Error("system seed failed");
+
+  const questions = await query<{ created_by: string; blob: EncryptedBlob; text: string | null }>(
+    "select created_by, blob, blob->>'text' as text from questions where pair_id = $1",
+    [pair.id]
+  );
+  expect(questions.rows).toHaveLength(1);
+  expect(questions.rows[0].created_by).toBe("computer");
+  expect(questions.rows[0].blob).toEqual(blob);
+  expect(questions.rows[0].text).toBeNull();
 });
 
 test("answer create and upsert", async () => {

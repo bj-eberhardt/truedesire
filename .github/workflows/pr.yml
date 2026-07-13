@@ -60,7 +60,19 @@ jobs:
 
       - name: Backend integration tests
         id: backend-tests
-        run: npm run server:test:docker
+        env:
+          DATABASE_URL: postgres://truedesire:truedesire@localhost:55432/truedesire_server_test
+          DB_SSL: "false"
+          PORT: "0"
+          LOG_LEVEL: silent
+          REQUEST_LOGS: "false"
+        run: |
+          docker compose -f docker-compose.server-test.yml up -d --wait --force-recreate
+          npm run server:test
+
+      - name: Stop backend test database
+        if: always()
+        run: docker compose -f docker-compose.server-test.yml down -v
 
       - name: Upload backend test results
         id: backend-test-results-artifact

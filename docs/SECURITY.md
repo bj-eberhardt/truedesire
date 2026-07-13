@@ -140,14 +140,14 @@ Replay-Schutz:
 
 ## Systemfragen
 
-Systemfragen liegen serverseitig im Klartext in `server/data/system-questions.json`.
+Systemfragen liegen serverseitig als versionierter Klartext-Katalog in Postgres.
 Das ist kein Bruch der Partner-Privatsphaere, weil diese Fragen globaler
 Kataloginhalt und keine Entscheidung eines Partners sind.
 
 Beim Seed eines aktiven Pairs ruft ein Client die Systemfragen ab, verschluesselt
 sie mit dem Pair-Key und speichert nur Ciphertexts im Pair. Der verschluesselte
 Payload enthaelt `systemId` und `systemHash`; der Client verifiziert diese Werte
-spaeter gegen die aktuelle Systemfragenliste.
+spaeter gegen den versionierten Systemfragenkatalog.
 
 ## Feststellungen
 

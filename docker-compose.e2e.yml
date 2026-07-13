@@ -21,7 +21,6 @@ services:
       NODE_ENV: production
       PORT: "3001"
       DATABASE_URL: postgres://truedesire:truedesire@postgres-e2e:5432/truedesire_e2e
-      SYSTEM_QUESTIONS_FILE: /app/server/default-data/system-questions.json
       STATIC_DIR: /app/dist
       LOG_LEVEL: warn
       REQUEST_LOGS: "false"
