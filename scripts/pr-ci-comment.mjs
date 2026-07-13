@@ -97,6 +97,24 @@ function formatFailures(failures, label = "test") {
     .join("\n\n");
 }
 
+function unavailableBackendReportStats(reason) {
+  return {
+    passed: 0,
+    failed: 1,
+    skipped: 0,
+    total: 1,
+    failures: [
+      {
+        title: "Backend test report unavailable",
+        status: "failed",
+        retryCount: 0,
+        duration: 0,
+        error: reason
+      }
+    ]
+  };
+}
+
 async function readPlaywrightStats() {
   try {
     const raw = await readFile(playwrightResultsPath, "utf8");
@@ -148,12 +166,13 @@ function readVitestStats(report) {
   const reportedFailedSuites = Number(report.numFailedTestSuites ?? 0);
   const failed = failedTests + Math.max(failedSuiteCount, reportedFailedSuites - failedTests, 0);
   const skipped = Number(report.numPendingTests ?? 0) + Number(report.numTodoTests ?? 0);
+  const reportedTotal = Number(report.numTotalTests ?? 0);
 
   return {
     passed,
     failed,
     skipped,
-    total: Math.max(Number(report.numTotalTests ?? 0), passed + failed + skipped),
+    total: reportedTotal > 0 ? reportedTotal : passed + failed + skipped,
     failures
   };
 }
@@ -162,7 +181,14 @@ async function readBackendTestStats() {
   try {
     const raw = await readFile(backendTestResultsPath, "utf8");
     return readVitestStats(JSON.parse(raw));
-  } catch {
+  } catch (error) {
+    if (process.env.BACKEND_TESTS_OUTCOME === "failure") {
+      const message = error instanceof Error ? error.message : String(error);
+      return unavailableBackendReportStats(
+        `Backend test step failed, but ${backendTestResultsPath} could not be read or parsed: ${message}`
+      );
+    }
+
     return { passed: 0, failed: 0, skipped: 0, total: 0, failures: [] };
   }
 }
@@ -179,7 +205,10 @@ const backendTestResultsUrl = process.env.BACKEND_TEST_RESULTS_URL || "";
 const playwright = await readPlaywrightStats();
 const backendNodeTests = await readBackendTestStats();
 const playwrightIcon = playwright.failed > 0 ? iconFor("failed") : iconFor("passed");
-const backendTestsIcon = backendNodeTests.failed > 0 ? iconFor("failed") : iconFor("passed");
+const backendTestsIcon =
+  backendNodeTests.failed > 0 || process.env.BACKEND_TESTS_OUTCOME === "failure"
+    ? iconFor("failed")
+    : iconFor("passed");
 
 const summary = [
   marker,
