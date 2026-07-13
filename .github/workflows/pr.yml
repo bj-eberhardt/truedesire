@@ -22,9 +22,15 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
 
-      - name: Install dependencies
+      - name: Install frontend dependencies
         run: npm ci
+
+      - name: Install server dependencies
+        run: npm ci --prefix server
 
       - name: Check formatting
         id: prettier
@@ -34,8 +40,15 @@ jobs:
         id: lint
         run: npm run lint
 
+      - name: Lint server
+        id: lint-server
+        run: npm run server:lint
+
       - name: Typecheck
         run: npm run typecheck
+
+      - name: Typecheck server
+        run: npm run server:typecheck
 
       - name: Build Frontend
         id: build-frontend
@@ -44,6 +57,19 @@ jobs:
       - name: Build Backend server
         id: build-backend
         run: npm run server:build
+
+      - name: Backend integration tests
+        id: backend-tests
+        run: npm run server:test:docker
+
+      - name: Upload backend test results
+        id: backend-test-results-artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: backend-test-results
+          path: test-results/server-tests.json
+          if-no-files-found: warn
 
       - name: E2E tests
         id: e2e
@@ -65,8 +91,11 @@ jobs:
           FRONTEND_BUILD_OUTCOME: ${{ steps.build-frontend.outcome }}
           BACKEND_BUILD_OUTCOME: ${{ steps.build-backend.outcome }}
           LINT_OUTCOME: ${{ steps.lint.outcome }}
+          LINT_SERVER_OUTCOME: ${{ steps.lint-server.outcome }}
+          BACKEND_TESTS_OUTCOME: ${{ steps.backend-tests.outcome }}
           E2E_OUTCOME: ${{ steps.e2e.outcome }}
           PRETTIER_OUTCOME: ${{ steps.prettier.outcome }}
+          BACKEND_TEST_RESULTS_URL: ${{ steps.backend-test-results-artifact.outputs.artifact-url }}
           PLAYWRIGHT_REPORT_URL: ${{ steps.playwright-report-artifact.outputs.artifact-url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: node scripts/pr-ci-comment.mjs > pr-ci-comment.md
@@ -108,6 +137,8 @@ jobs:
           steps.build-frontend.outcome != 'success' ||
           steps.build-backend.outcome != 'success' ||
           steps.lint.outcome != 'success' ||
+          steps.lint-server.outcome != 'success' ||
+          steps.backend-tests.outcome != 'success' ||
           steps.prettier.outcome != 'success' ||
           steps.e2e.outcome != 'success'
         run: exit 1

@@ -1,5 +1,3 @@
-export type UiVersion = 3;
-
 export type V3RouteMode =
   "home" | "pair" | "ask" | "played" | "backup" | "pairMatches" | "pairSettings";
 
@@ -42,10 +40,6 @@ export function parseAppRoute(hash: string): AppRoute {
   if (new RegExp("^#/pair/").test(h))
     return { kind: "v3", route: parseV3SubRoute(h.replace(/^#/, "")) };
   return { kind: "v3", route: { pairId: null, mode: "home" } };
-}
-
-export function goHome() {
-  window.location.hash = "#/v3";
 }
 
 export function goV3() {

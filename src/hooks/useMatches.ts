@@ -70,14 +70,17 @@ export function useMatches(opts: {
         for (const q of questionSource) {
           const answers = answersByQuestion[q.id] ?? [];
           const decoded: AnswerChoice[] = [];
+          let hasInvalidAnswer = false;
           for (const a of answers) {
             try {
               const payload = await decryptJson<{ answer: AnswerChoice }>(aes, a.blob);
               decoded.push(payload.answer);
             } catch {
-              decoded.push("maybe");
+              hasInvalidAnswer = true;
+              break;
             }
           }
+          if (hasInvalidAnswer) continue;
           if (decoded.length < 2) continue;
           if (decoded.includes("no")) continue;
 

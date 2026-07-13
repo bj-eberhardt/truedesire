@@ -1,4 +1,18 @@
 services:
+  postgres-e2e:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: truedesire
+      POSTGRES_PASSWORD: truedesire
+      POSTGRES_DB: truedesire_e2e
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U truedesire -d truedesire_e2e"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
   app-e2e:
     build:
       context: .
@@ -6,7 +20,7 @@ services:
     environment:
       NODE_ENV: production
       PORT: "3001"
-      DATA_DIR: /app/server/data
+      DATABASE_URL: postgres://truedesire:truedesire@postgres-e2e:5432/truedesire_e2e
       SYSTEM_QUESTIONS_FILE: /app/server/default-data/system-questions.json
       STATIC_DIR: /app/dist
       LOG_LEVEL: warn
@@ -19,8 +33,9 @@ services:
     ports:
       - "3101:3001"
       - "9323:9323"
-    tmpfs:
-      - /app/server/data
+    depends_on:
+      postgres-e2e:
+        condition: service_healthy
     healthcheck:
       test:
         [

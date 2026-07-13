@@ -28,6 +28,9 @@ jobs:
         with:
           node-version: 24
           cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            server/package-lock.json
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4

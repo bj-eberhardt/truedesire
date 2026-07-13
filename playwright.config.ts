@@ -12,6 +12,7 @@ export default defineConfig({
   timeout: 60_000,
   expect: { timeout: 8_000 },
   fullyParallel: true,
+  workers: 2,
   reporter: [
     ["list"],
     ["json", { outputFile: "test-results/playwright-results.json" }],

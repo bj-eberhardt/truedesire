@@ -12,13 +12,3 @@ export function getOpenQuestions(
 ): DecryptedQuestion[] {
   return questions.filter((q) => (answerSummary[q.id]?.total ?? 0) < 2);
 }
-
-export function countOpenNonOwnUnanswered(opts: {
-  questions: DecryptedQuestion[];
-  answerSummary: AnswerSummary;
-  identityUserId: string;
-}): number {
-  const open = getOpenQuestions(opts.questions, opts.answerSummary);
-  return open.filter((q) => !opts.answerSummary[q.id]?.mine && q.createdBy !== opts.identityUserId)
-    .length;
-}

@@ -20,13 +20,6 @@ export function partnerCard(page: Page, partnerName: string) {
   return page.locator(`[data-testid="partner-card"][data-partner-name="${attr(partnerName)}"]`);
 }
 
-export async function clearBrowserState(context: BrowserContext): Promise<void> {
-  await context.clearCookies();
-  for (const page of context.pages()) {
-    await page.goto("about:blank");
-  }
-}
-
 export async function gotoApp(page: Page): Promise<void> {
   await page.goto("/#/v3");
   await expect(page.getByTestId("app-header")).toBeVisible();
@@ -187,8 +180,4 @@ export async function openMatches(page: Page): Promise<void> {
 export async function openSettings(page: Page): Promise<void> {
   await page.getByTestId("pair-tab-settings").click();
   await expect(page.getByTestId("settings-panel")).toBeVisible();
-}
-
-export async function expectToastOrInlineError(page: Page, text: RegExp | string): Promise<void> {
-  await expect(page.getByTestId("toast").or(page.getByTestId("inline-error"))).toContainText(text);
 }

@@ -132,7 +132,7 @@ export function api(opts: ApiOpts) {
         signedFetch<{ ok: true }>(opts, "/pairs/unpair", { method: "POST", body: { pairId } }),
       seedSystemQuestions: (
         pairId: string,
-        items: Array<{ systemId: string; blob: EncryptedBlob }>
+        items: Array<{ systemId: string; systemVersion?: number; blob: EncryptedBlob }>
       ) =>
         signedFetch<{ ok: true; alreadySeeded: boolean }>(opts, "/pairs/seed-system-questions", {
           method: "POST",
@@ -141,10 +141,11 @@ export function api(opts: ApiOpts) {
     },
     system: {
       questions: () =>
-        signedFetch<{ questions: Array<{ id: string; text: string; sha256B64: string }> }>(
-          opts,
-          "/system/questions"
-        )
+        signedFetch<{
+          catalogVersion: number;
+          questions: Array<{ id: string; version: number; text: string; sha256B64: string }>;
+          verificationCatalog: Array<{ id: string; version: number; sha256B64: string }>;
+        }>(opts, "/system/questions")
     },
     pair: {
       create: () =>
