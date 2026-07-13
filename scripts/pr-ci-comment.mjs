@@ -111,12 +111,14 @@ async function readPlaywrightStats() {
 
 function readVitestStats(report) {
   const failures = [];
+  let failedSuiteCount = 0;
 
   for (const fileResult of report.testResults ?? []) {
+    const failedAssertions = [];
     for (const testResult of fileResult.assertionResults ?? []) {
       if (testResult.status !== "failed") continue;
 
-      failures.push({
+      failedAssertions.push({
         title: testResult.fullName || testResult.title || fileResult.name || "unknown backend test",
         status: "failed",
         retryCount: 0,
@@ -124,17 +126,34 @@ function readVitestStats(report) {
         error: (testResult.failureMessages ?? []).join("\n\n")
       });
     }
+    failures.push(...failedAssertions);
+
+    if (fileResult.status === "failed" && failedAssertions.length === 0) {
+      failedSuiteCount += 1;
+      failures.push({
+        title: fileResult.name || "unknown backend test suite",
+        status: "failed",
+        retryCount: 0,
+        duration: Math.max(Number(fileResult.endTime ?? 0) - Number(fileResult.startTime ?? 0), 0),
+        error:
+          fileResult.message ||
+          fileResult.failureMessage ||
+          "Backend test suite failed before any test case failed."
+      });
+    }
   }
 
   const passed = Number(report.numPassedTests ?? 0);
-  const failed = Number(report.numFailedTests ?? failures.length);
+  const failedTests = Number(report.numFailedTests ?? 0);
+  const reportedFailedSuites = Number(report.numFailedTestSuites ?? 0);
+  const failed = failedTests + Math.max(failedSuiteCount, reportedFailedSuites - failedTests, 0);
   const skipped = Number(report.numPendingTests ?? 0) + Number(report.numTodoTests ?? 0);
 
   return {
     passed,
     failed,
     skipped,
-    total: Number(report.numTotalTests ?? passed + failed + skipped),
+    total: Math.max(Number(report.numTotalTests ?? 0), passed + failed + skipped),
     failures
   };
 }

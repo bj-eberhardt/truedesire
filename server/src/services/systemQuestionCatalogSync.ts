@@ -10,7 +10,10 @@ import {
 } from "../repositories/systemQuestionRepository.js";
 
 const SERVICES_DIR = path.dirname(fileURLToPath(import.meta.url));
-const CATALOGS_DIR = path.join(SERVICES_DIR, "..", "data", "system-question-catalogs");
+const CATALOGS_DIR_CANDIDATES = [
+  path.join(SERVICES_DIR, "..", "data", "system-question-catalogs"),
+  path.join(SERVICES_DIR, "..", "..", "data", "system-question-catalogs")
+];
 
 type RawCatalog = {
   catalogVersion?: unknown;
@@ -61,7 +64,14 @@ function parseCatalog(raw: unknown, fileName: string): PublishSystemQuestionVers
 }
 
 async function loadCatalogs(): Promise<PublishSystemQuestionVersionInput[]> {
-  const entries = await fs.readdir(CATALOGS_DIR, { withFileTypes: true });
+  const catalogsDir = await findCatalogsDir();
+  if (!catalogsDir) {
+    throw new Error(
+      `system question catalogs directory not found. Checked: ${CATALOGS_DIR_CANDIDATES.join(", ")}`
+    );
+  }
+
+  const entries = await fs.readdir(catalogsDir, { withFileTypes: true });
   const fileNames = entries
     .filter((entry) => entry.isFile() && /^v\d+\.json$/u.test(entry.name))
     .map((entry) => entry.name)
@@ -69,11 +79,25 @@ async function loadCatalogs(): Promise<PublishSystemQuestionVersionInput[]> {
 
   const catalogs: PublishSystemQuestionVersionInput[] = [];
   for (const fileName of fileNames) {
-    const raw = JSON.parse(await fs.readFile(path.join(CATALOGS_DIR, fileName), "utf8"));
+    const raw = JSON.parse(await fs.readFile(path.join(catalogsDir, fileName), "utf8"));
     catalogs.push(parseCatalog(raw, fileName));
   }
 
   return catalogs.sort((a, b) => a.version - b.version);
+}
+
+async function findCatalogsDir(): Promise<string | null> {
+  for (const catalogsDir of CATALOGS_DIR_CANDIDATES) {
+    try {
+      const stat = await fs.stat(catalogsDir);
+      if (stat.isDirectory()) return catalogsDir;
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code !== "ENOENT" && code !== "ENOTDIR") throw error;
+    }
+  }
+
+  return null;
 }
 
 export async function syncSystemQuestionCatalogs(): Promise<void> {
