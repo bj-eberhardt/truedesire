@@ -1,54 +1,17 @@
 import { query, transaction } from "../db/pool.js";
-import type { AnswerRecord, EncryptedBlob, PairRecord, QuestionRecord } from "../storage/db.js";
-import { mapAnswer, mapPair, mapQuestion, type AnswerRow, type PairRow } from "./rowMapping.js";
+import type { ActivePairFailure } from "../domain/results.js";
+import type { AnswerRecord, EncryptedBlob } from "../storage/db.js";
+import { getQuestionAccess } from "./accessRepository.js";
+import { mapAnswer, mapPair, type AnswerRow, type PairRow } from "./rowMapping.js";
 
-async function getQuestionAndPair(
-  questionId: string,
-  userId: string,
-  clientQuery: typeof query
-): Promise<
-  | { kind: "missing" }
-  | { kind: "forbidden" }
-  | { kind: "partner_deleted" }
-  | { kind: "ok"; question: QuestionRecord; pair: PairRecord }
-> {
-  const result = await clientQuery<
-    PairRow & {
-      q_id: string;
-      pair_id: string;
-      created_by: string;
-      q_created_at: string | number;
-      q_blob: EncryptedBlob;
-      partner_deleted_at: string | number | null;
-    }
-  >(
-    `select
-       q.id as q_id, q.pair_id, q.created_by, q.created_at as q_created_at, q.blob as q_blob,
-       p.*,
-       partner.deleted_at as partner_deleted_at
-     from questions q
-     join pairs p on p.id = q.pair_id
-     left join users partner on partner.id = case when p.user_a = $2 then p.user_b else p.user_a end
-     where q.id = $1`,
-    [questionId, userId]
-  );
-  const row = result.rows[0];
-  if (!row) return { kind: "missing" };
-  const pair = mapPair(row);
-  if (![pair.userA, pair.userB].includes(userId)) return { kind: "forbidden" };
-  if (row.partner_deleted_at !== null) return { kind: "partner_deleted" };
-  return {
-    kind: "ok",
-    pair,
-    question: mapQuestion({
-      id: row.q_id,
-      pair_id: row.pair_id,
-      created_by: row.created_by,
-      created_at: row.q_created_at,
-      blob: row.q_blob
-    })
-  };
-}
+type AnswerWriteMode = "create" | "upsert";
+
+type AnswerWriteResult =
+  | { kind: "ok"; answer?: AnswerRecord; updated?: boolean }
+  | { kind: ActivePairFailure }
+  | { kind: "already_answered" }
+  | { kind: "partner_answered" }
+  | { kind: "weekly_limit" };
 
 export async function countWeeklyAnswers(
   pairId: string,
@@ -80,44 +43,25 @@ export async function createAnswerIfAllowed(
   weekEnd: number
 ): Promise<
   | { kind: "ok"; answer: AnswerRecord }
-  | { kind: "missing" }
-  | { kind: "forbidden" }
-  | { kind: "pair_not_active" }
-  | { kind: "partner_deleted" }
+  | { kind: ActivePairFailure }
   | { kind: "already_answered" }
   | { kind: "weekly_limit" }
 > {
-  return transaction(async (client) => {
-    const data = await getQuestionAndPair(questionId, userId, client.query.bind(client));
-    if (data.kind !== "ok") return data;
-    if (data.pair.status !== "active") return { kind: "pair_not_active" };
-    const existing = await client.query(
-      "select 1 from answers where question_id = $1 and user_id = $2 limit 1",
-      [questionId, userId]
-    );
-    if (existing.rows[0]) return { kind: "already_answered" };
-    const weeklyCount = await countWeeklyAnswersInClient(
-      client,
-      data.pair.id,
-      userId,
-      weekStart,
-      weekEnd
-    );
-    if (
-      data.question.createdBy !== userId &&
-      data.pair.weeklyLimit > 0 &&
-      weeklyCount >= data.pair.weeklyLimit
-    ) {
-      return { kind: "weekly_limit" };
-    }
-    const result = await client.query<AnswerRow>(
-      `insert into answers(id, question_id, pair_id, user_id, created_at, blob)
-       values ($1,$2,$3,$4,$5,$6)
-       returning *`,
-      [answerId, questionId, data.pair.id, userId, now, blob]
-    );
-    return { kind: "ok", answer: mapAnswer(result.rows[0]) };
+  const result = await writeAnswer({
+    mode: "create",
+    questionId,
+    userId,
+    blob,
+    answerId,
+    now,
+    weekStart,
+    weekEnd
   });
+  if (result.kind === "ok" && result.answer) return { kind: "ok", answer: result.answer };
+  return result as
+    | { kind: ActivePairFailure }
+    | { kind: "already_answered" }
+    | { kind: "weekly_limit" };
 }
 
 export async function upsertAnswerIfAllowed(
@@ -130,53 +74,85 @@ export async function upsertAnswerIfAllowed(
   weekEnd: number
 ): Promise<
   | { kind: "ok"; updated: boolean }
-  | { kind: "missing" }
-  | { kind: "forbidden" }
-  | { kind: "pair_not_active" }
-  | { kind: "partner_deleted" }
+  | { kind: ActivePairFailure }
   | { kind: "partner_answered" }
   | { kind: "weekly_limit" }
 > {
+  const result = await writeAnswer({
+    mode: "upsert",
+    questionId,
+    userId,
+    blob,
+    answerId,
+    now,
+    weekStart,
+    weekEnd
+  });
+  if (result.kind === "ok") return { kind: "ok", updated: !!result.updated };
+  return result as
+    | { kind: ActivePairFailure }
+    | { kind: "partner_answered" }
+    | { kind: "weekly_limit" };
+}
+
+async function writeAnswer(opts: {
+  mode: AnswerWriteMode;
+  questionId: string;
+  userId: string;
+  blob: EncryptedBlob;
+  answerId: string;
+  now: number;
+  weekStart: number;
+  weekEnd: number;
+}): Promise<AnswerWriteResult> {
   return transaction(async (client) => {
-    const data = await getQuestionAndPair(questionId, userId, client.query.bind(client));
-    if (data.kind !== "ok") return data;
+    const data = await getQuestionAccess(client.query.bind(client), opts.questionId, opts.userId);
+    if (data.kind === "missing") return { kind: "missing" };
+    if (data.kind === "forbidden") return { kind: "forbidden" };
+    if (data.partnerDeleted) return { kind: "partner_deleted" };
     if (data.pair.status !== "active") return { kind: "pair_not_active" };
+
     const existing = await client.query<AnswerRow>(
       "select * from answers where question_id = $1 and user_id = $2",
-      [questionId, userId]
+      [opts.questionId, opts.userId]
     );
     if (existing.rows[0]) {
+      if (opts.mode === "create") return { kind: "already_answered" };
       const partnerAnswer = await client.query(
         "select 1 from answers where question_id = $1 and user_id <> $2 limit 1",
-        [questionId, userId]
+        [opts.questionId, opts.userId]
       );
       if (partnerAnswer.rows[0]) return { kind: "partner_answered" };
       await client.query(
         "update answers set blob = $3, updated_at = $4 where question_id = $1 and user_id = $2",
-        [questionId, userId, blob, now]
+        [opts.questionId, opts.userId, opts.blob, opts.now]
       );
       return { kind: "ok", updated: true };
     }
+
     const weeklyCount = await countWeeklyAnswersInClient(
       client,
       data.pair.id,
-      userId,
-      weekStart,
-      weekEnd
+      opts.userId,
+      opts.weekStart,
+      opts.weekEnd
     );
     if (
-      data.question.createdBy !== userId &&
+      data.question.createdBy !== opts.userId &&
       data.pair.weeklyLimit > 0 &&
       weeklyCount >= data.pair.weeklyLimit
     ) {
       return { kind: "weekly_limit" };
     }
-    await client.query(
+    const inserted = await client.query<AnswerRow>(
       `insert into answers(id, question_id, pair_id, user_id, created_at, blob)
-       values ($1,$2,$3,$4,$5,$6)`,
-      [answerId, questionId, data.pair.id, userId, now, blob]
+       values ($1,$2,$3,$4,$5,$6)
+       returning *`,
+      [opts.answerId, opts.questionId, data.pair.id, opts.userId, opts.now, opts.blob]
     );
-    return { kind: "ok", updated: false };
+    return opts.mode === "create"
+      ? { kind: "ok", answer: mapAnswer(inserted.rows[0]) }
+      : { kind: "ok", updated: false };
   });
 }
 
@@ -205,7 +181,7 @@ export async function listAnswersForQuestionIfAllowed(
   questionId: string,
   userId: string
 ): Promise<"missing" | "forbidden" | AnswerRecord[]> {
-  const data = await getQuestionAndPair(questionId, userId, query);
+  const data = await getQuestionAccess(query, questionId, userId);
   if (data.kind === "missing") return "missing";
   if (data.kind !== "ok") return "forbidden";
   const result = await query<AnswerRow>(

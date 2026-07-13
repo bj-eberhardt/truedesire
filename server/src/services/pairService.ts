@@ -6,13 +6,15 @@ import { countWeeklyAnswers } from "../repositories/answerRepository.js";
 import {
   confirmPair,
   createPair,
-  getPairWithUsers,
   joinPair,
-  listPairsWithUsersForUser,
   removePairForUser,
   respondWeeklyLimitProposal,
   seedPairQuestions,
   setWeeklyLimitProposal
+} from "../repositories/pairMutationRepository.js";
+import {
+  getPairWithUsers,
+  listPairsWithUsersForUser
 } from "../repositories/pairRepository.js";
 import type { EncryptedBlob, PairRecord, QuestionRecord, UserRecord } from "../storage/db.js";
 import { isoWeekBounds } from "../utils/week.js";
@@ -143,9 +145,9 @@ export async function seedQuestionsForPair(
     blob: item.blob
   }));
   const result = await seedPairQuestions(pairId, userId, questions, now);
-  if (!result.pair) return fail(ApiErrorCode.NotFound, 404);
-  if (result.forbidden) return fail(ApiErrorCode.Forbidden, 403);
-  if (result.pair.status !== "active") return fail(ApiErrorCode.PairNotActive, 409);
+  if (result.kind === "missing") return fail(ApiErrorCode.NotFound, 404);
+  if (result.kind === "forbidden") return fail(ApiErrorCode.Forbidden, 403);
+  if (result.kind === "pair_not_active") return fail(ApiErrorCode.PairNotActive, 409);
   return ok({ ok: true, alreadySeeded: result.alreadySeeded });
 }
 

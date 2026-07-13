@@ -10,10 +10,6 @@ export function getUserId(res: Response): string {
   return res.locals.userId as string;
 }
 
-export function getParsedBody<T = unknown>(res: Response): T | null {
-  return res.locals.parsedBody as T | null;
-}
-
 export function getValidatedBody<T>(res: Response): T {
   return res.locals.validated.body as T;
 }

@@ -27,14 +27,6 @@ export async function getUserById(userId: string): Promise<UserRecord | undefine
   return result.rows[0] ? mapUser(result.rows[0]) : undefined;
 }
 
-export async function getActiveUserByCode(code: string): Promise<UserRecord | undefined> {
-  const result = await query<UserRow>(
-    "select * from users where code = $1 and deleted_at is null",
-    [code]
-  );
-  return result.rows[0] ? mapUser(result.rows[0]) : undefined;
-}
-
 export async function listUserCodes(): Promise<string[]> {
   const result = await query<{ code: string }>("select code from users where code <> ''");
   return result.rows.map((row) => row.code);

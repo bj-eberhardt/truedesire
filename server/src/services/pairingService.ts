@@ -8,7 +8,7 @@ import {
   listPairRequestsForUser,
   requestPairingTransaction,
   respondToPairingTransaction
-} from "../repositories/pairRepository.js";
+} from "../repositories/pairingRepository.js";
 import type { PairRequestRecord } from "../storage/db.js";
 import { createPairRecordForUsers } from "./pairService.js";
 import { consumeRateLimit } from "./rateLimit.js";

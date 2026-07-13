@@ -1,4 +1,4 @@
-import { base64ToBytes, bytesToArrayBuffer, bytesToBase64, utf8ToBytes } from "./base64";
+import { bytesToArrayBuffer, utf8ToBytes } from "./base64";
 import { importEcdhPublicKey } from "./keys";
 import type { PairView } from "../types";
 
@@ -45,10 +45,4 @@ export async function derivePairAesKey(
   const [a, b] = [myUserId, partner.id].sort();
   const info = `aes-gcm|v1|a:${a}|b:${b}`;
   return hkdfAesKey(secret, salt, info);
-}
-
-export function debugFingerprint(rawB64: string): string {
-  const bytes = base64ToBytes(rawB64);
-  const view = bytesToBase64(bytes).slice(0, 8);
-  return view;
 }

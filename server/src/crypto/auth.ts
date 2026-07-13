@@ -1,16 +1,5 @@
 import { createHash, randomUUID, webcrypto } from "node:crypto";
 
-export type AuthContext = {
-  userId: string;
-};
-
-export type AuthHeaders = {
-  userId: string;
-  timestamp: string;
-  nonce: string;
-  signatureB64: string;
-};
-
 export function sha256Base64(data: Uint8Array): string {
   return createHash("sha256").update(data).digest("base64");
 }

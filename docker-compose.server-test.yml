@@ -1,0 +1,16 @@
+services:
+  postgres-server-test:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: truedesire
+      POSTGRES_PASSWORD: truedesire
+      POSTGRES_DB: truedesire_server_test
+    ports:
+      - "55432:5432"
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U truedesire -d truedesire_server_test"]
+      interval: 2s
+      timeout: 5s
+      retries: 30

@@ -15,6 +15,8 @@
     "server:typecheck": "npm --prefix server run typecheck",
     "server:lint": "npm --prefix server run lint",
     "server:architecture": "node scripts/server-architecture-guard.mjs",
+    "server:test": "npm --prefix server run test",
+    "server:test:docker": "node scripts/server-test-docker.mjs",
     "check": "npm run lint && npm run typecheck && npm run build && npm run server:lint && npm run server:typecheck && npm run server:build && npm run server:architecture",
     "lint": "eslint src tests scripts vite.config.ts playwright.config.ts eslint.config.js",
     "preview": "node scripts/vite-wrapper.mjs preview",
