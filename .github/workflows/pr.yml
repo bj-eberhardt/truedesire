@@ -80,7 +80,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: backend-test-results
-          path: test-results/server-tests.json
+          path: ci-reports/backend/server-tests.json
           if-no-files-found: warn
 
       - name: E2E tests

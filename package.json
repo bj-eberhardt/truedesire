@@ -27,7 +27,7 @@
     "format:server:check": "prettier server --check",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "precommit": "npm run lint && npm run format:frontend:check && npm run server:lint && npm run format:server:check",
+    "precommit": "npm run lint && npm run format && npm run server:lint",
     "docker:prod:build": "docker build -f Dockerfile.prod -t beberhardt/truedesire:local .",
     "test:e2e:docker": "docker compose -f docker-compose.e2e.yml up --build --force-recreate --abort-on-container-exit --exit-code-from playwright-e2e postgres-e2e app-e2e playwright-e2e",
     "test:e2e:docker:ui": "docker compose -f docker-compose.e2e.yml --profile ui up --build playwright-e2e-ui"

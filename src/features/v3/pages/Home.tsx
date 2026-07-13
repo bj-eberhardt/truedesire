@@ -84,7 +84,32 @@ function CodeExchangeIcon() {
   );
 }
 
+function ReplayIcon() {
+  return (
+    <svg viewBox="0 0 24 24" className="v3-chat-replay-icon" aria-hidden="true">
+      <path
+        d="M20 11a8 8 0 1 1-2.3-5.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <path
+        d="M20 4v6h-6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="m10 8 6 4-6 4V8z" fill="currentColor" />
+    </svg>
+  );
+}
+
 function WelcomeTeaser() {
+  const [demoRun, setDemoRun] = useState(0);
+
   return (
     <section className="v3-welcome-teaser" data-testid="welcome-teaser">
       <div className="v3-welcome-copy">
@@ -111,30 +136,63 @@ function WelcomeTeaser() {
       </div>
 
       <div className="v3-chat-demo" aria-label="Beispiel für das Spielprinzip">
-        <div className="v3-chat-thread">
-          <div className="v3-chat-bubble v3-chat-bubble-left v3-chat-delay-1">
-            Magst du Rollenspiele ausprobieren?
+        <div className="v3-chat-shell">
+          <div className="v3-chat-demo-head">
+            <div>
+              <div className="v3-chat-demo-kicker">Anonyme Runde</div>
+              <div className="v3-chat-demo-title">Nur Matches werden sichtbar</div>
+            </div>
+            <button
+              type="button"
+              className="v3-chat-replay"
+              aria-label="Animation erneut abspielen"
+              title="Animation erneut abspielen"
+              onClick={() => setDemoRun((run) => run + 1)}
+            >
+              <ReplayIcon />
+            </button>
           </div>
-          <div className="v3-chat-choices v3-chat-delay-2">
-            <span>Ja</span>
-            <span>Nein</span>
-            <span>Vielleicht</span>
-          </div>
-          <div className="v3-chat-bubble v3-chat-bubble-right v3-chat-delay-3">Ja</div>
 
-          <div className="v3-chat-bubble v3-chat-bubble-left v3-chat-delay-4">
-            Wollen wir Bondage testen?
+          <div key={demoRun} className="v3-chat-thread">
+            <div className="v3-chat-bubble v3-chat-question v3-chat-delay-1">
+              Würdet ihr das zusammen ausprobieren?
+            </div>
+
+            <div className="v3-chat-secret v3-chat-delay-2">
+              <div className="v3-chat-secret-avatar">A</div>
+              <div className="v3-chat-secret-body">
+                <span>Person A</span>
+                <strong>Antwort gesendet</strong>
+              </div>
+              <div className="v3-chat-secret-answer" aria-label="Antwort verborgen">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+
+            <div className="v3-chat-secret v3-chat-delay-3">
+              <div className="v3-chat-secret-avatar">B</div>
+              <div className="v3-chat-secret-body">
+                <span>Person B</span>
+                <strong>Antwort gesendet</strong>
+              </div>
+              <div className="v3-chat-secret-answer" aria-label="Antwort verborgen">
+                <span />
+                <span />
+                <span />
+              </div>
+            </div>
+
+            <div className="v3-chat-match v3-chat-delay-4">
+              <div className="v3-chat-match-label">Match</div>
+              <div className="v3-chat-match-title">Ihr seid beide offen dafür.</div>
+              <p>Die Einzelantworten bleiben privat. Sichtbar wird nur euer gemeinsamer Treffer.</p>
+            </div>
           </div>
-          <div className="v3-chat-choices v3-chat-delay-5">
-            <span>Ja</span>
-            <span>Nein</span>
-            <span>Vielleicht</span>
-          </div>
-          <div className="v3-chat-bubble v3-chat-bubble-right v3-chat-delay-6">Nein</div>
         </div>
         <p className="v3-chat-explain">
-          TrueDesire funktioniert ähnlich, zeigt euch aber nicht jede einzelne Antwort.
-          Hervorgehoben werden nur eure Matches.
+          Beide antworten getrennt. Wenn es passt, bekommt ihr nur das Match-Ergebnis zurück.
         </p>
       </div>
     </section>

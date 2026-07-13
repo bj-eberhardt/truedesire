@@ -8,7 +8,7 @@ export default defineConfig({
     fileParallelism: false,
     reporters: ["default", "json"],
     outputFile: {
-      json: "../test-results/server-tests.json"
+      json: "../ci-reports/backend/server-tests.json"
     }
   }
 });

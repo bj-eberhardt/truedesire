@@ -4,7 +4,7 @@ const marker = "<!-- pr-ci-comment -->";
 const playwrightResultsPath =
   process.env.PLAYWRIGHT_RESULTS_PATH || "test-results/playwright-results.json";
 const backendTestResultsPath =
-  process.env.BACKEND_TEST_RESULTS_PATH || "test-results/server-tests.json";
+  process.env.BACKEND_TEST_RESULTS_PATH || "ci-reports/backend/server-tests.json";
 
 function iconFor(outcome) {
   if (outcome === "success" || outcome === "passed") return "\u2705";
