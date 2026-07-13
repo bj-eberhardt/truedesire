@@ -146,15 +146,26 @@ export async function publishSystemQuestionVersionIfMissing(
   const now = Date.now();
 
   return transaction(async (client: DbClient) => {
-    const existing = await client.query<{ version: string | number }>(
-      "select version from system_question_versions where version = $1 for update",
-      [input.version]
+    const inserted = await client.query<{ version: string | number }>(
+      `insert into system_question_versions(version, published_at, description)
+       values ($1, $2, $3)
+       on conflict (version) do nothing
+       returning version`,
+      [input.version, now, input.description ?? null]
     );
-    if (existing.rows.length > 0) {
+    if (inserted.rows.length === 0) {
       return false;
     }
 
-    await insertSystemQuestionVersion(client, input, now);
+    for (const [index, question] of input.questions.entries()) {
+      await client.query(
+        `insert into system_questions(
+           catalog_version, question_id, position, text, sha256_b64, created_at
+         )
+         values ($1, $2, $3, $4, $5, $6)`,
+        [input.version, question.id, index + 1, question.text, hashQuestionText(question.text), now]
+      );
+    }
     return true;
   });
 }

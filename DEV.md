@@ -18,17 +18,21 @@ WEEKLY_LIMIT_DEFAULT=20 npm run server:start
 ## System Questions
 
 - System questions are stored in Postgres.
-- SQL migration `002_system_questions.sql` seeds catalog version `1` from the former
-  `server/data/system-questions.json` contents.
+- SQL migration `002_system_questions.sql` creates only the catalog tables.
+- Versioned catalog files live in `server/data/system-question-catalogs` (`v1.json`, `v2.json`,
+  ...).
+- On startup, the server imports missing catalog versions and calculates question hashes
+  internally. Existing versions are not changed.
 - New catalogs are published as complete versions; no questions are inherited from previous
   versions.
 - Startup migrations are SQL files in `server/src/db/migrations` and are copied to
-  `server/dist/db/migrations` during `npm --prefix server run build`.
+  `server/dist/db/migrations` during `npm --prefix server run build`. Catalog files are copied to
+  `server/dist/data/system-question-catalogs`.
 
 Example after building the server:
 
 ```bash
-npm --prefix server run system-questions:publish -- /absolute/path/to/system-questions-v2.json
+npm --prefix server run system-questions:publish -- server/data/system-question-catalogs/v2.json
 ```
 
 ## Notes

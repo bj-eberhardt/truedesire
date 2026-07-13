@@ -7,6 +7,7 @@
     "node": ">=24.0.0"
   },
   "scripts": {
+    "prepare": "husky",
     "dev": "node scripts/vite-wrapper.mjs",
     "build": "tsc -b && node scripts/vite-wrapper.mjs build",
     "typecheck": "tsc -b",
@@ -22,8 +23,11 @@
     "test:e2e": "playwright test",
     "dev:docker": "docker compose -f docker-compose.dev.yml up --build",
     "lint:fix": "eslint src tests scripts vite.config.ts playwright.config.ts eslint.config.js --fix",
+    "format:frontend:check": "prettier src tests scripts public index.html eslint.config.js prettier.config.cjs vite.config.ts playwright.config.ts tsconfig*.json --check",
+    "format:server:check": "prettier server --check",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
+    "precommit": "npm run lint && npm run format:frontend:check && npm run server:lint && npm run format:server:check",
     "docker:prod:build": "docker build -f Dockerfile.prod -t beberhardt/truedesire:local .",
     "test:e2e:docker": "docker compose -f docker-compose.e2e.yml up --build --force-recreate --abort-on-container-exit --exit-code-from playwright-e2e postgres-e2e app-e2e playwright-e2e",
     "test:e2e:docker:ui": "docker compose -f docker-compose.e2e.yml --profile ui up --build playwright-e2e-ui"
@@ -44,6 +48,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.7.0",
+    "husky": "^9.1.7",
     "prettier": "^3.9.5",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.63.0",

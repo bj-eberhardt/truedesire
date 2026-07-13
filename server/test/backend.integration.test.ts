@@ -111,9 +111,9 @@ test("system questions API reads latest version and keeps historical verificatio
   expect(latest.catalogVersion).toBe(2);
   expect(latest.questions.map((q) => q.id)).toEqual(["q_v2_only", "q_v2_second"]);
   expect(latest.questions.every((q) => q.version === 2)).toBe(true);
-  expect(latest.verificationCatalog.some((q) => q.id === initialQuestionId && q.version === 1)).toBe(
-    true
-  );
+  expect(
+    latest.verificationCatalog.some((q) => q.id === initialQuestionId && q.version === 1)
+  ).toBe(true);
   expect(latest.verificationCatalog.some((q) => q.id === "q_v2_only" && q.version === 2)).toBe(
     true
   );
