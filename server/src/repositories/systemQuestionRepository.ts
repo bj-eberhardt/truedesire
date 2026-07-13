@@ -98,6 +98,28 @@ export function validateSystemQuestionVersion(input: PublishSystemQuestionVersio
   }
 }
 
+async function insertSystemQuestionVersion(
+  client: DbClient,
+  input: PublishSystemQuestionVersionInput,
+  now: number
+): Promise<void> {
+  await client.query(
+    `insert into system_question_versions(version, published_at, description)
+     values ($1, $2, $3)`,
+    [input.version, now, input.description ?? null]
+  );
+
+  for (const [index, question] of input.questions.entries()) {
+    await client.query(
+      `insert into system_questions(
+         catalog_version, question_id, position, text, sha256_b64, created_at
+       )
+       values ($1, $2, $3, $4, $5, $6)`,
+      [input.version, question.id, index + 1, question.text, hashQuestionText(question.text), now]
+    );
+  }
+}
+
 export async function publishSystemQuestionVersion(
   input: PublishSystemQuestionVersionInput
 ): Promise<void> {
@@ -113,20 +135,26 @@ export async function publishSystemQuestionVersion(
       throw new Error(`system question version ${input.version} already exists`);
     }
 
-    await client.query(
-      `insert into system_question_versions(version, published_at, description)
-       values ($1, $2, $3)`,
-      [input.version, now, input.description ?? null]
-    );
+    await insertSystemQuestionVersion(client, input, now);
+  });
+}
 
-    for (const [index, question] of input.questions.entries()) {
-      await client.query(
-        `insert into system_questions(
-           catalog_version, question_id, position, text, sha256_b64, created_at
-         )
-         values ($1, $2, $3, $4, $5, $6)`,
-        [input.version, question.id, index + 1, question.text, hashQuestionText(question.text), now]
-      );
+export async function publishSystemQuestionVersionIfMissing(
+  input: PublishSystemQuestionVersionInput
+): Promise<boolean> {
+  validateSystemQuestionVersion(input);
+  const now = Date.now();
+
+  return transaction(async (client: DbClient) => {
+    const existing = await client.query<{ version: string | number }>(
+      "select version from system_question_versions where version = $1 for update",
+      [input.version]
+    );
+    if (existing.rows.length > 0) {
+      return false;
     }
+
+    await insertSystemQuestionVersion(client, input, now);
+    return true;
   });
 }

@@ -3,10 +3,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { DB_MIGRATIONS_LOCK_TIMEOUT_MS } from "../config.js";
 import { log } from "../logger.js";
+import { syncSystemQuestionCatalogs } from "../services/systemQuestionCatalogSync.js";
 import { transaction } from "./pool.js";
 
 const MIGRATION_LOCK_ID = 7_774_337;
-const MIGRATIONS_DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), "migrations");
+const DB_DIR = path.dirname(fileURLToPath(import.meta.url));
+const MIGRATIONS_DIR = path.join(DB_DIR, "migrations");
 
 type MigrationFile = {
   version: string;
@@ -65,4 +67,6 @@ export async function initializeDatabase(): Promise<void> {
       await client.query("select pg_advisory_unlock($1)", [MIGRATION_LOCK_ID]);
     }
   });
+
+  await syncSystemQuestionCatalogs();
 }

@@ -29,6 +29,7 @@ RUN npm ci
 COPY server/tsconfig.json ./
 COPY server/src ./src
 COPY server/scripts ./scripts
+COPY server/data ./data
 
 # Build backend
 RUN npm run build
