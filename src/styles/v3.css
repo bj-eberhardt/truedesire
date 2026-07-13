@@ -144,12 +144,7 @@
       color-mix(in oklab, var(--accent2) 26%, transparent),
       transparent 62%
     ),
-    linear-gradient(
-      145deg,
-      var(--chat-surface),
-      var(--chat-surface-2)
-    ),
-    var(--chat-surface);
+    linear-gradient(145deg, var(--chat-surface), var(--chat-surface-2)), var(--chat-surface);
   box-shadow:
     rgba(36, 16, 24, 0.32) 0 24px 42px -26px,
     color-mix(in oklab, var(--accent) 22%, transparent) 0 0 0 1px inset;
@@ -305,8 +300,7 @@
   border: 1px solid color-mix(in oklab, #16a34a 32%, #ffffff);
   border-radius: 18px;
   background:
-    radial-gradient(280px 120px at 100% 0%, rgba(34, 197, 94, 0.2), transparent 62%),
-    #f4fff8;
+    radial-gradient(280px 120px at 100% 0%, rgba(34, 197, 94, 0.2), transparent 62%), #f4fff8;
   color: #102416;
   transform-origin: center;
   animation-name: v3-chat-match-in;
