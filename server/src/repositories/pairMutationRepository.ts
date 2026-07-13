@@ -62,10 +62,9 @@ export async function removePairForUser(pairId: string, userId: string): Promise
 
 export async function joinPair(pairId: string, userId: string): Promise<PairJoinResult> {
   return transaction(async (client) => {
-    const pairResult = await client.query<PairRow>(
-      "select * from pairs where id = $1 for update",
-      [pairId]
-    );
+    const pairResult = await client.query<PairRow>("select * from pairs where id = $1 for update", [
+      pairId
+    ]);
     const pair = pairResult.rows[0] ? mapPair(pairResult.rows[0]) : null;
     if (!pair) return "missing";
     if (pair.userA === userId) return "own";
@@ -91,7 +90,9 @@ export async function confirmPair(
     const confirmA = access.pair.userA === userId ? true : access.pair.confirmA;
     const confirmB = access.pair.userB === userId ? true : access.pair.confirmB;
     const status =
-      access.pair.userA && access.pair.userB && confirmA && confirmB ? "active" : access.pair.status;
+      access.pair.userA && access.pair.userB && confirmA && confirmB
+        ? "active"
+        : access.pair.status;
     await client.query(
       `update pairs set confirm_a = $2, confirm_b = $3, status = $4, updated_at = $5 where id = $1`,
       [pairId, confirmA, confirmB, status, Date.now()]

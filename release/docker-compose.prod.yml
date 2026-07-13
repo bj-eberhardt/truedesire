@@ -13,10 +13,7 @@ services:
       - truedesire_postgres_data:/var/lib/postgresql/data
     healthcheck:
       test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER:-truedesire} -d ${POSTGRES_DB:-truedesire}"
-        ]
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-truedesire} -d ${POSTGRES_DB:-truedesire}"]
       interval: 30s
       timeout: 5s
       retries: 5

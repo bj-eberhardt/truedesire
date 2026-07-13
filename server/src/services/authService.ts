@@ -27,12 +27,14 @@ export async function registerAccount(
   return { userId, code };
 }
 
-export async function getAccount(userId: string): Promise<ServiceResult<{
-  id: string;
-  code: string;
-  nickname: string;
-  ecdhPublicRawB64: string;
-}>> {
+export async function getAccount(userId: string): Promise<
+  ServiceResult<{
+    id: string;
+    code: string;
+    nickname: string;
+    ecdhPublicRawB64: string;
+  }>
+> {
   const user = await getUserById(userId);
   if (!user) return fail(ApiErrorCode.NotFound, 404);
   return ok({

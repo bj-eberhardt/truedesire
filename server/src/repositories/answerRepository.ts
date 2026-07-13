@@ -59,9 +59,7 @@ export async function createAnswerIfAllowed(
   });
   if (result.kind === "ok" && result.answer) return { kind: "ok", answer: result.answer };
   return result as
-    | { kind: ActivePairFailure }
-    | { kind: "already_answered" }
-    | { kind: "weekly_limit" };
+    { kind: ActivePairFailure } | { kind: "already_answered" } | { kind: "weekly_limit" };
 }
 
 export async function upsertAnswerIfAllowed(
@@ -90,9 +88,7 @@ export async function upsertAnswerIfAllowed(
   });
   if (result.kind === "ok") return { kind: "ok", updated: !!result.updated };
   return result as
-    | { kind: ActivePairFailure }
-    | { kind: "partner_answered" }
-    | { kind: "weekly_limit" };
+    { kind: ActivePairFailure } | { kind: "partner_answered" } | { kind: "weekly_limit" };
 }
 
 async function writeAnswer(opts: {

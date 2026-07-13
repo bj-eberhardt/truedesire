@@ -10,14 +10,7 @@ export async function createUser(input: CreateUserInput): Promise<UserRecord> {
     `insert into users(id, code, nickname, deleted_at, sign_public_jwk, ecdh_public_raw_b64, created_at)
      values ($1, $2, $3, null, $4, $5, $6)
      returning *`,
-    [
-      input.id,
-      input.code,
-      input.nickname,
-      input.signPublicJwk,
-      input.ecdhPublicRawB64,
-      createdAt
-    ]
+    [input.id, input.code, input.nickname, input.signPublicJwk, input.ecdhPublicRawB64, createdAt]
   );
   return mapUser(result.rows[0]);
 }
@@ -86,10 +79,9 @@ export async function markUserDeleted(userId: string, deletedNickname: string): 
     );
     if (userResult.rowCount === 0) return false;
 
-    await client.query(
-      "delete from pair_requests where from_user_id = $1 or to_user_id = $1",
-      [userId]
-    );
+    await client.query("delete from pair_requests where from_user_id = $1 or to_user_id = $1", [
+      userId
+    ]);
     await client.query(
       `update pairs
        set status = 'ended', updated_at = $2

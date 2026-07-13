@@ -25,7 +25,10 @@ const envSchema = z.object({
   SYSTEM_QUESTIONS_FILE: z.string().optional(),
   STATIC_DIR: z.string().optional(),
   PORT: envNumber(3001),
-  DATABASE_URL: z.string().url().default("postgres://truedesire:truedesire@localhost:5432/truedesire"),
+  DATABASE_URL: z
+    .string()
+    .url()
+    .default("postgres://truedesire:truedesire@localhost:5432/truedesire"),
   DB_SSL: envBoolean(false),
   DB_MIGRATIONS_LOCK_TIMEOUT_MS: envNumber(10000),
   PAIRING_LIMIT_USER_PER_MIN: envNumber(10),
@@ -46,7 +49,8 @@ export function parseConfig(env: NodeJS.ProcessEnv) {
   return {
     defaultWeeklyLimit: parsed.data.WEEKLY_LIMIT_DEFAULT,
     systemQuestionsFile:
-      parsed.data.SYSTEM_QUESTIONS_FILE || path.join(process.cwd(), "data", "system-questions.json"),
+      parsed.data.SYSTEM_QUESTIONS_FILE ||
+      path.join(process.cwd(), "data", "system-questions.json"),
     staticDir: parsed.data.STATIC_DIR || "",
     port: parsed.data.PORT,
     databaseUrl: parsed.data.DATABASE_URL,

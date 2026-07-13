@@ -12,10 +12,7 @@ import {
   seedPairQuestions,
   setWeeklyLimitProposal
 } from "../repositories/pairMutationRepository.js";
-import {
-  getPairWithUsers,
-  listPairsWithUsersForUser
-} from "../repositories/pairRepository.js";
+import { getPairWithUsers, listPairsWithUsersForUser } from "../repositories/pairRepository.js";
 import type { EncryptedBlob, PairRecord, QuestionRecord, UserRecord } from "../storage/db.js";
 import { isoWeekBounds } from "../utils/week.js";
 import { isPairMember, isPartnerDeletedFromUsers } from "./database.js";

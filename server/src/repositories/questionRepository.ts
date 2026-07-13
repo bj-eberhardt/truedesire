@@ -5,19 +5,17 @@ import { getPairAccess } from "./accessRepository.js";
 import { mapPair, mapQuestion, type PairRow, type QuestionRow } from "./rowMapping.js";
 
 export async function listQuestionsByPair(pairId: string): Promise<QuestionRecord[]> {
-  const result = await query<QuestionRow>("select * from questions where pair_id = $1 order by created_at", [
-    pairId
-  ]);
+  const result = await query<QuestionRow>(
+    "select * from questions where pair_id = $1 order by created_at",
+    [pairId]
+  );
   return result.rows.map(mapQuestion);
 }
 
 export async function createQuestionIfAllowed(
   question: QuestionRecord,
   userId: string
-): Promise<
-  | { kind: "ok"; question: QuestionRecord }
-  | { kind: ActivePairFailure }
-> {
+): Promise<{ kind: "ok"; question: QuestionRecord } | { kind: ActivePairFailure }> {
   return transaction(async (client) => {
     const access = await getPairAccess(client, question.pairId, userId);
     if (access.kind === "missing") return { kind: "forbidden" };

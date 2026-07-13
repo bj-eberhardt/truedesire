@@ -6,10 +6,7 @@ import { closePool, query } from "../src/db/pool.js";
 import { ApiErrorCode } from "../src/errors/apiErrorCode.js";
 import { countWeeklyAnswers } from "../src/repositories/answerRepository.js";
 import { getPairAccess } from "../src/repositories/accessRepository.js";
-import {
-  createAnswerForQuestion,
-  upsertAnswerForQuestion
-} from "../src/services/answerService.js";
+import { createAnswerForQuestion, upsertAnswerForQuestion } from "../src/services/answerService.js";
 import { registerAccount } from "../src/services/authService.js";
 import { createPairRecordForUsers, getPairDetails } from "../src/services/pairService.js";
 import {

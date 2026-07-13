@@ -79,7 +79,6 @@ function walkSuites(suites, stats, parts = []) {
   }
 }
 
-
 function formatDuration(ms) {
   if (!Number.isFinite(ms) || ms <= 0) return "";
   return `, ${Math.round(ms / 1000)}s`;
@@ -188,7 +187,10 @@ const summary = [
     formatFailures(backendNodeTests.failures, "backend test")
   ),
   "",
-  details(`Playwright failures (${playwright.failed})`, formatFailures(playwright.failures, "Playwright test")),
+  details(
+    `Playwright failures (${playwright.failed})`,
+    formatFailures(playwright.failures, "Playwright test")
+  ),
   "",
   details(
     "Artifacts",

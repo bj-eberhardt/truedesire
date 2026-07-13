@@ -18,6 +18,8 @@ async function start() {
 }
 
 start().catch((err) => {
-  log("error", "server startup failed", { error: err instanceof Error ? err.message : String(err) });
+  log("error", "server startup failed", {
+    error: err instanceof Error ? err.message : String(err)
+  });
   process.exit(1);
 });

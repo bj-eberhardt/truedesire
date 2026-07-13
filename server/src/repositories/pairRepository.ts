@@ -1,11 +1,6 @@
 import { query, type DbClient } from "../db/pool.js";
 import type { PairRecord, UserRecord } from "../storage/db.js";
-import {
-  mapPair,
-  mapUser,
-  type PairRow,
-  type UserRow
-} from "./rowMapping.js";
+import { mapPair, mapUser, type PairRow, type UserRow } from "./rowMapping.js";
 
 type PairWithUsers = {
   pair: PairRecord;
