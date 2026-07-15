@@ -8,16 +8,9 @@ import {
 import type { AnswerChoice, DecryptedQuestion, PairView } from "../../../../types";
 import { ANSWER_SAVED_FLASH_TIMEOUT_MS, useSavedFlash } from "../../hooks/useSavedFlash";
 import { useSwipeNav } from "../../hooks/useSwipeNav";
-import { getOpenQuestions, sortByCreatedAtDesc } from "../../lib/questions";
+import { buildPairPlayState } from "./pairPlayState";
 
-export function nextWeeklyResetDateText(now = new Date()): string {
-  const d = new Date(now);
-  d.setHours(0, 0, 0, 0);
-  const day = d.getDay(); // 0=Sun..6=Sat
-  const daysUntilMonday = (8 - (day === 0 ? 7 : day)) % 7 || 7;
-  d.setDate(d.getDate() + daysUntilMonday);
-  return d.toLocaleDateString();
-}
+export { nextWeeklyResetDateText } from "./pairPlayState";
 
 export function usePairPlayModel() {
   const { identity } = useSessionContext();
@@ -57,59 +50,33 @@ export function usePairPlayModel() {
   const pair = stablePlay?.pair ?? workspace.pair;
   const questions = stablePlay?.questions ?? questionsContext.questions;
   const answerSummary = stablePlay?.answerSummary ?? questionsContext.answerSummary;
-  const pairReady = !!pair && pair.id === pairId;
-
-  const weeklyLimit = pairReady ? (pair.usage?.weeklyLimit ?? pair.weeklyLimit) : 0;
-  const isUnlimited = weeklyLimit === 0;
-  const answeredThisWeek = pairReady ? (pair.usage?.answeredThisWeek ?? 0) : 0;
-  const remainingNew = isUnlimited
-    ? Number.POSITIVE_INFINITY
-    : Math.max(0, weeklyLimit - answeredThisWeek);
-
-  const baseOpen = pairReady ? getOpenQuestions(questions, answerSummary) : [];
-  const unansweredAll = baseOpen.filter((q) => !answerSummary[q.id]?.mine);
-  const openNonOwn = unansweredAll.filter((q) => q.createdBy !== identityUserId).length;
-  const playedPending = baseOpen.filter((q) => !!answerSummary[q.id]?.mine);
-
-  const unanswered =
-    remainingNew > 0 ? unansweredAll : unansweredAll.filter((q) => q.createdBy === identityUserId);
-  const ordered = sortByCreatedAtDesc(unanswered);
-
-  const safeIndex = Math.min(cardIndex, Math.max(0, ordered.length - 1));
-  const currentQuestion = ordered[safeIndex];
-  const showSavedOnlyCard = flash.showSaved && !currentQuestion && !!flash.savedId;
-  const visibleQuestionId = currentQuestion?.id ?? flash.savedId ?? "";
-  const visibleQuestionText = currentQuestion
-    ? flash.showSaved
-      ? (flash.savedText ?? currentQuestion.text)
-      : currentQuestion.text
-    : (flash.savedText ?? "");
-  const canAnswerNew = currentQuestion
-    ? currentQuestion.createdBy === identityUserId || remainingNew > 0
-    : false;
-  const canPrev = !!currentQuestion && safeIndex > 0;
-  const canNext = !!currentQuestion && safeIndex < ordered.length - 1;
-
-  const showLimitNotice = !flash.showSaved && !isUnlimited && remainingNew === 0 && openNonOwn > 0;
-  const allCurrentAnswered = questions.length > 0 && unansweredAll.length === 0 && openNonOwn === 0;
-  const limitNoticeText =
-    openNonOwn > 0
-      ? `Wochenlimit erreicht. Nach dem Wochenreset am ${nextWeeklyResetDateText()} kannst du wieder neue Fragen beantworten. Es warten dann noch ${openNonOwn} offene Fragen auf dich.`
-      : `Wochenlimit erreicht. Nach dem Wochenreset am ${nextWeeklyResetDateText()} kannst du wieder neue Fragen beantworten.`;
+  const playState = buildPairPlayState({
+    answerSummary,
+    cardIndex,
+    flash: {
+      savedId: flash.savedId,
+      savedText: flash.savedText,
+      showSaved: flash.showSaved
+    },
+    identityUserId,
+    pair,
+    pairId,
+    questions
+  });
 
   const goPrev = useCallback(() => {
-    setCardIndex(Math.max(0, safeIndex - 1));
-  }, [safeIndex]);
+    setCardIndex(Math.max(0, playState.safeIndex - 1));
+  }, [playState.safeIndex]);
 
   const goNext = useCallback(() => {
-    setCardIndex(Math.min(ordered.length - 1, safeIndex + 1));
-  }, [ordered.length, safeIndex]);
+    setCardIndex(Math.min(playState.ordered.length - 1, playState.safeIndex + 1));
+  }, [playState.ordered.length, playState.safeIndex]);
 
   const swipe = useSwipeNav({
-    enabled: pairReady,
+    enabled: playState.pairReady,
     blocked: flash.isSaving || flash.showSaved,
-    canPrev,
-    canNext,
+    canPrev: playState.canPrev,
+    canNext: playState.canNext,
     onPrev: goPrev,
     onNext: goNext
   });
@@ -129,30 +96,30 @@ export function usePairPlayModel() {
   );
 
   return {
-    allCurrentAnswered,
+    allCurrentAnswered: playState.allCurrentAnswered,
     answerQuestion,
-    canAnswerNew,
-    canNext,
-    canPrev,
-    currentQuestion,
+    canAnswerNew: playState.canAnswerNew,
+    canNext: playState.canNext,
+    canPrev: playState.canPrev,
+    currentQuestion: playState.currentQuestion,
     flash,
     goAsk: () => goV3Ask(pairId),
     goNext,
     goPlayed: () => goV3Played(pairId),
     goPrev,
     isLoadingPairData: workspace.isLoadingPairData,
-    isUnlimited,
-    limitNoticeText,
-    ordered,
+    isUnlimited: playState.isUnlimited,
+    limitNoticeText: playState.limitNoticeText,
+    ordered: playState.ordered,
     pair,
-    pairReady,
-    playedPending,
-    remainingNew,
-    safeIndex,
-    showLimitNotice,
-    showSavedOnlyCard,
+    pairReady: playState.pairReady,
+    playedPending: playState.playedPending,
+    remainingNew: playState.remainingNew,
+    safeIndex: playState.safeIndex,
+    showLimitNotice: playState.showLimitNotice,
+    showSavedOnlyCard: playState.showSavedOnlyCard,
     swipe,
-    visibleQuestionId,
-    visibleQuestionText
+    visibleQuestionId: playState.visibleQuestionId,
+    visibleQuestionText: playState.visibleQuestionText
   };
 }

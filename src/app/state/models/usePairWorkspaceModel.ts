@@ -1,14 +1,12 @@
 import { useCallback } from "react";
 import type { api } from "../../../api/api";
-import type { useHiddenMatches } from "../../../hooks/useHiddenMatches";
-import type { MatchView } from "../../../hooks/useMatches";
+import type { MatchView } from "../../../domain/matches/computeMatchViews";
 import type { PairView } from "../../../types";
 import { useAppRoute } from "../../hooks/useAppRoute";
 import { usePairWorkspace } from "../../hooks/usePairWorkspace";
 import type { PairWorkspaceContextValue } from "../AppContexts";
 
 type ApiClient = ReturnType<typeof api>;
-type HiddenMatchesModel = ReturnType<typeof useHiddenMatches>;
 
 type UsePairWorkspaceModelOptions = {
   apiClient: ApiClient | null;
@@ -27,12 +25,10 @@ type UsePairWorkspaceModelOptions = {
     clearMatches: () => void;
     computeMatches: (pairOverride?: PairView) => Promise<void>;
   };
-  hiddenMatches: HiddenMatchesModel;
 };
 
 export type PairWorkspaceModel = {
   pairWorkspace: PairWorkspaceContextValue;
-  visiblePairMatchesCount: number;
 };
 
 export function usePairWorkspaceModel(opts: UsePairWorkspaceModelOptions): PairWorkspaceModel {
@@ -43,21 +39,18 @@ export function usePairWorkspaceModel(opts: UsePairWorkspaceModelOptions): PairW
     isLoadingPairData,
     refreshPairing,
     questionActions,
-    matchActions,
-    hiddenMatches
+    matchActions
   } = opts;
   const { route, pairRouteMode, pairRoutePairId } = useAppRoute();
 
-  const { openPair, refreshPairView, isRefreshingPairView, visiblePairMatchesCount } =
-    usePairWorkspace({
-      apiClient,
-      route: { pairRouteMode, pairRoutePairId },
-      pairSelection: { pair, selectPair },
-      pairing: { refreshCurrentPairing: refreshPairing },
-      questions: questionActions,
-      matches: matchActions,
-      hiddenMatches
-    });
+  const { openPair, refreshPairView, isRefreshingPairView } = usePairWorkspace({
+    apiClient,
+    route: { pairRouteMode, pairRoutePairId },
+    pairSelection: { pair, selectPair },
+    pairing: { refreshCurrentPairing: refreshPairing },
+    questions: questionActions,
+    matches: matchActions
+  });
 
   const openPairRoute = useCallback((pairId: string) => {
     window.location.hash = `#/v3/pair/${encodeURIComponent(pairId)}`;
@@ -71,7 +64,6 @@ export function usePairWorkspaceModel(opts: UsePairWorkspaceModelOptions): PairW
       openPair,
       openPairRoute,
       refreshPairView
-    },
-    visiblePairMatchesCount
+    }
   };
 }

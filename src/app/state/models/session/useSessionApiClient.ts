@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { api } from "../api/api";
-import { getApiBaseUrl } from "../api/baseUrl";
-import type { Identity } from "../state/identity";
+import { api } from "../../../../api/api";
+import { getApiBaseUrl } from "../../../../api/baseUrl";
+import type { Identity } from "../../../../state/identity";
 
-export function useApiClient(identity: Identity | null) {
+export function useSessionApiClient(identity: Identity | null) {
   return useMemo(() => {
     if (!identity?.userId) return null;
     return api({

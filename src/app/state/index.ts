@@ -10,3 +10,15 @@ export {
   useQuestionsContext,
   useSessionContext
 } from "./AppContexts";
+
+export type {
+  AccountContextValue,
+  FeedbackContextValue,
+  GroupSettingsContextValue,
+  MatchesContextValue,
+  PairingContextValue,
+  PairWorkspaceContextValue,
+  PublicIdentity,
+  QuestionsContextValue,
+  SessionContextValue
+} from "./types";

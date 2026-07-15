@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import type { api } from "../../../api/api";
-import { usePairing } from "../../../hooks/usePairing";
 import type { Identity } from "../../../state/identity";
 import type { PairingContextValue } from "../AppContexts";
+import { usePairing } from "./pairing/usePairing";
 
 type ApiClient = ReturnType<typeof api>;
 

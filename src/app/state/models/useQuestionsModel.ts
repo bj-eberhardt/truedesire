@@ -1,9 +1,9 @@
 import { useCallback } from "react";
 import type { api } from "../../../api/api";
-import { useQuestions } from "../../../hooks/useQuestions";
 import type { Identity } from "../../../state/identity";
 import type { AnswerChoice, PairView } from "../../../types";
 import type { QuestionsContextValue } from "../AppContexts";
+import { useQuestions } from "./questions/useQuestions";
 
 type ApiClient = ReturnType<typeof api>;
 

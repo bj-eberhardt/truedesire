@@ -1,8 +1,8 @@
 import type { api } from "../../../api/api";
-import { usePairSelection } from "../../../hooks/usePairSelection";
 import type { Identity } from "../../../state/identity";
 import type { GroupSettingsContextValue } from "../AppContexts";
 import { MIN_LOADING_MS } from "./constants";
+import { usePairSelection } from "./pair-selection/usePairSelection";
 
 type ApiClient = ReturnType<typeof api>;
 

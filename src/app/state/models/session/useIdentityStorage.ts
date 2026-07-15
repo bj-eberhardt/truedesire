@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { loadIdentity, resetIdentity, type Identity } from "../state/identity";
+import { loadIdentity, resetIdentity, type Identity } from "../../../../state/identity";
 
-type UseIdentityResult = {
+type UseIdentityStorageResult = {
   identity: Identity | null;
   nickname: string;
   setNickname: (next: string) => void;
@@ -12,7 +12,7 @@ type UseIdentityResult = {
   resetLocalIdentity: () => Promise<void>;
 };
 
-export function useIdentity(): UseIdentityResult {
+export function useIdentityStorage(): UseIdentityStorageResult {
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [nickname, setNickname] = useState("");
   const [isBootstrappingAccount, setIsBootstrappingAccount] = useState(true);

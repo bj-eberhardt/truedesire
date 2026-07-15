@@ -1,14 +1,13 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import type { FeedbackContextValue, SessionContextValue } from "./AppContexts";
 import { useAccountModel } from "./models/useAccountModel";
+import { useFeedbackModel } from "./models/feedback/useFeedbackModel";
 import { useMatchesModel } from "./models/useMatchesModel";
 import { usePairingModel } from "./models/usePairingModel";
 import { usePairSelectionModel } from "./models/usePairSelectionModel";
 import { usePairWorkspaceModel } from "./models/usePairWorkspaceModel";
 import { useQuestionsModel } from "./models/useQuestionsModel";
 import { useSessionModel } from "./models/useSessionModel";
-import { useToast } from "../../hooks/useToast";
-import { useInlineNotice } from "../hooks/useInlineNotice";
 import type {
   AccountContextValue,
   GroupSettingsContextValue,
@@ -30,11 +29,8 @@ export type AppModel = {
 };
 
 export function useAppModel(): AppModel {
-  const [error, setError] = useState<string | null>(null);
-  const { notice: inlineNotice, showNotice } = useInlineNotice();
-  const { toast } = useToast(1600);
-
-  const clearGlobalError = useCallback(() => setError(null), []);
+  const feedbackModel = useFeedbackModel();
+  const { clearGlobalError, feedback, setGlobalError, showNotice } = feedbackModel;
   const sessionModel = useSessionModel();
   const pairingModel = usePairingModel({
     apiClient: sessionModel.apiClient,
@@ -51,7 +47,7 @@ export function useAppModel(): AppModel {
     identity: sessionModel.identity,
     pair: pairSelectionModel.pairSelection.pair,
     clearGlobalError,
-    setGlobalError: setError,
+    setGlobalError,
     refreshCurrentPair: pairSelectionModel.pairSelection.refreshCurrentPair
   });
   const matchesModel = useMatchesModel({
@@ -66,8 +62,7 @@ export function useAppModel(): AppModel {
     isLoadingPairData: pairSelectionModel.pairSelection.isLoadingPairData,
     refreshPairing: pairingModel.refreshPairing,
     questionActions: questionsModel.questionActions,
-    matchActions: matchesModel.matchActions,
-    hiddenMatches: matchesModel.hiddenMatches
+    matchActions: matchesModel.matchActions
   });
   const account = useAccountModel({
     apiClient: sessionModel.apiClient,
@@ -93,13 +88,7 @@ export function useAppModel(): AppModel {
 
   return {
     account,
-    feedback: {
-      toast,
-      inlineNotice,
-      error,
-      setGlobalError: setError,
-      clearGlobalError
-    },
+    feedback,
     groupSettings: pairSelectionModel.groupSettings,
     matches: matchesModel.matches,
     pairWorkspace: pairWorkspaceModel.pairWorkspace,

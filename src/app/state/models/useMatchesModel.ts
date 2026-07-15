@@ -1,11 +1,10 @@
-import { useCallback, useMemo } from "react";
 import type { api } from "../../../api/api";
-import { useHiddenMatches } from "../../../hooks/useHiddenMatches";
-import { useMatches } from "../../../hooks/useMatches";
 import type { Identity } from "../../../state/identity";
 import type { PairView } from "../../../types";
 import type { MatchesContextValue } from "../AppContexts";
-import { MIN_LOADING_MS } from "./constants";
+import { useHiddenMatchesModel } from "./matches/useHiddenMatchesModel";
+import { useMatchComputationModel } from "./matches/useMatchComputationModel";
+import { useMatchVisibilityActions } from "./matches/useMatchVisibilityActions";
 
 type ApiClient = ReturnType<typeof api>;
 
@@ -17,36 +16,14 @@ type UseMatchesModelOptions = {
 
 export function useMatchesModel(opts: UseMatchesModelOptions) {
   const { apiClient, identity, pair } = opts;
-  const matchState = useMatches({ apiClient, identity, pair, minLoadingMs: MIN_LOADING_MS });
-  const hiddenMatches = useHiddenMatches(pair?.id ?? null);
-  const visibleMatchesCount = useMemo(
-    () => hiddenMatches.visibleMatchesCount(matchState.matches.map((match) => match.id)),
-    [hiddenMatches, matchState.matches]
-  );
-
-  const computeCurrentMatches = useCallback(async () => {
-    await matchState.computeMatches(pair ?? undefined);
-  }, [matchState, pair]);
-
-  const hideMatch = useCallback(
-    (matchId: string) => {
-      hiddenMatches.setHiddenMatchIds((prev) =>
-        prev.includes(matchId) ? prev : [...prev, matchId]
-      );
-    },
-    [hiddenMatches]
-  );
-
-  const restoreMatch = useCallback(
-    (matchId: string) => {
-      hiddenMatches.setHiddenMatchIds((prev) => prev.filter((id) => id !== matchId));
-    },
-    [hiddenMatches]
-  );
-
-  const toggleHiddenMatchesView = useCallback(() => {
-    hiddenMatches.setShowHiddenMatches((prev) => !prev);
-  }, [hiddenMatches]);
+  const { matchActions, matchState } = useMatchComputationModel({ apiClient, identity, pair });
+  const { hiddenMatches, visibleMatchesCount } = useHiddenMatchesModel({
+    pairId: pair?.id ?? null,
+    matches: matchState.matches
+  });
+  const { hideMatch, restoreMatch, toggleHiddenMatchesView } = useMatchVisibilityActions({
+    hiddenMatches
+  });
 
   const matches: MatchesContextValue = {
     matches: matchState.matches,
@@ -54,19 +31,14 @@ export function useMatchesModel(opts: UseMatchesModelOptions) {
     hiddenMatchIds: hiddenMatches.hiddenMatchIds,
     showHiddenMatches: hiddenMatches.showHiddenMatches,
     visibleMatchesCount,
-    computeMatches: computeCurrentMatches,
+    computeMatches: matchState.computeCurrentMatches,
     hideMatch,
     restoreMatch,
     toggleHiddenMatchesView
   };
 
   return {
-    hiddenMatches,
-    matchActions: {
-      matches: matchState.matches,
-      clearMatches: matchState.clearMatches,
-      computeMatches: matchState.computeMatches
-    },
+    matchActions,
     matches
   };
 }

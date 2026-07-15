@@ -1,18 +1,16 @@
 import { useCallback, useState } from "react";
-import { api } from "../api/api";
-import { decryptJson } from "../crypto/aead";
-import { derivePairAesKey } from "../crypto/sharedKey";
+import type { api } from "../../../../api/api";
+import { decryptJson } from "../../../../crypto/aead";
+import { derivePairAesKey } from "../../../../crypto/sharedKey";
 import {
   computeMatchViews,
   type MatchQuestionInput,
   type MatchView
-} from "../domain/matches/computeMatchViews";
-import type { Identity } from "../state/identity";
-import type { AnswerChoice, DecryptedQuestion, PairView, QuestionView } from "../types";
+} from "../../../../domain/matches/computeMatchViews";
+import type { Identity } from "../../../../state/identity";
+import type { AnswerChoice, DecryptedQuestion, PairView, QuestionView } from "../../../../types";
 
 type ApiClient = ReturnType<typeof api>;
-
-export type { MatchView } from "../domain/matches/computeMatchViews";
 
 function isAnswerChoice(value: unknown): value is AnswerChoice {
   return value === "yes" || value === "no" || value === "maybe";
@@ -59,19 +57,21 @@ export function useMatches(opts: {
         );
         const allAnswers = await apiClient.answers.listByPair(currentPair.id);
         const answersByQuestion: Record<string, typeof allAnswers> = {};
-        for (const a of allAnswers) (answersByQuestion[a.questionId] ??= []).push(a);
+        for (const answer of allAnswers) {
+          (answersByQuestion[answer.questionId] ??= []).push(answer);
+        }
 
         const questionSource = rawQuestionsOverride?.length
           ? rawQuestionsOverride
           : await apiClient.questions.list(currentPair.id);
         const matchQuestions: MatchQuestionInput[] = [];
-        for (const q of questionSource) {
-          const answers = answersByQuestion[q.id] ?? [];
+        for (const question of questionSource) {
+          const answers = answersByQuestion[question.id] ?? [];
           const decoded: AnswerChoice[] = [];
           let hasInvalidAnswer = false;
-          for (const a of answers) {
+          for (const answer of answers) {
             try {
-              const payload = await decryptJson<{ answer?: unknown }>(aes, a.blob);
+              const payload = await decryptJson<{ answer?: unknown }>(aes, answer.blob);
               if (!isAnswerChoice(payload.answer)) {
                 hasInvalidAnswer = true;
                 break;
@@ -85,19 +85,19 @@ export function useMatches(opts: {
           if (hasInvalidAnswer) continue;
 
           let questionText: string =
-            decryptedQuestionsOverride?.find((x) => x.id === q.id)?.text ?? "";
+            decryptedQuestionsOverride?.find((item) => item.id === question.id)?.text ?? "";
           if (!questionText) {
             try {
-              const payload = await decryptJson<{ text?: unknown }>(aes, q.blob);
+              const payload = await decryptJson<{ text?: unknown }>(aes, question.blob);
               questionText = typeof payload?.text === "string" ? payload.text : "[?]";
             } catch {
               questionText = "[?]";
             }
           }
           matchQuestions.push({
-            id: q.id,
+            id: question.id,
             text: questionText,
-            createdAt: q.createdAt,
+            createdAt: question.createdAt,
             answers: decoded
           });
         }

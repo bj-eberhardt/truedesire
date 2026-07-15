@@ -1,11 +1,11 @@
 import { useMemo } from "react";
-import { useApiClient } from "../../../hooks/useApiClient";
-import { useIdentity } from "../../../hooks/useIdentity";
 import type { Identity } from "../../../state/identity";
 import type { PublicIdentity, SessionContextValue } from "../AppContexts";
+import { useIdentityStorage } from "./session/useIdentityStorage";
+import { useSessionApiClient } from "./session/useSessionApiClient";
 
 export type SessionModel = {
-  apiClient: ReturnType<typeof useApiClient>;
+  apiClient: ReturnType<typeof useSessionApiClient>;
   identity: Identity | null;
   registerIdentity: (nicknameOverride?: string) => Promise<Identity>;
   resetLocalIdentity: () => Promise<void>;
@@ -23,8 +23,8 @@ export function useSessionModel(): SessionModel {
     register,
     resetLocalIdentity,
     setIdentity
-  } = useIdentity();
-  const apiClient = useApiClient(identity);
+  } = useIdentityStorage();
+  const apiClient = useSessionApiClient(identity);
 
   const publicIdentity = useMemo<PublicIdentity | null>(() => {
     if (!identity?.userId) return null;

@@ -1,6 +1,6 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { idbGet, idbSet } from "../storage/idb";
+import { idbGet, idbSet } from "../../../../storage/idb";
 
 type UseHiddenMatchesResult = {
   hiddenMatchIds: string[];
