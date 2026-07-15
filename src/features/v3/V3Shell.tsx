@@ -13,7 +13,7 @@ import { PlayedPage } from "./pages/Played";
 import { WelcomePage } from "./pages/Welcome";
 
 export function V3Shell() {
-  const { identity, isBootstrappingAccount } = useSessionContext();
+  const { identity } = useSessionContext();
   const feedback = useFeedbackContext();
   const workspace = usePairWorkspaceContext();
   const route = workspace.route.route;
@@ -44,7 +44,7 @@ export function V3Shell() {
           ) : routeMode === "welcome" || routeOnboard !== "start" ? (
             <WelcomePage />
           ) : !identity?.userId ? (
-            <HomePage isBootstrappingAccount={isBootstrappingAccount} />
+            <HomePage />
           ) : (
             <AccountHomePage />
           )}

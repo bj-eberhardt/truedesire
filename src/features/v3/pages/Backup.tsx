@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { goV3 } from "../../../app/routes";
 import { useAccountContext, useSessionContext } from "../../../app/state";
-import { InlineError } from "../components/InlineError";
+import { V3PageError } from "../components/V3PageState";
 import { V3View } from "../components/V3View";
 import { downloadTextFile, formatJsonMaybe, safeBackupFilename } from "../lib/backup";
 import { toUserMessage } from "../lib/errors";
@@ -55,7 +55,7 @@ export function BackupPage() {
       backTestId="backup-back-button"
     >
       {error ? (
-        <InlineError testId="backup-error">{error}</InlineError>
+        <V3PageError testId="backup-error">{error}</V3PageError>
       ) : (
         <div className="v3-backup-grid" data-testid="backup-grid">
           <label className="field v3-field v3-backup-text">

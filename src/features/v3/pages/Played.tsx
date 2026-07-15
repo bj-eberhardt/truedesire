@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { goV3Pair } from "../../../app/routes";
 import { usePairWorkspaceContext, useQuestionsContext } from "../../../app/state";
 import type { AnswerChoice } from "../../../types";
-import { InlineError } from "../components/InlineError";
+import { V3LoadingState, V3PageError } from "../components/V3PageState";
 import { V3View } from "../components/V3View";
 import { toUserMessage } from "../lib/errors";
 import { ANSWER_SAVED_FLASH_TIMEOUT_MS, useSavedFlash } from "../hooks/useSavedFlash";
@@ -40,11 +40,9 @@ export function PlayedPage() {
       testId="played-view"
       backTestId="played-back-button"
     >
-      {pageError ? <InlineError testId="played-error">{pageError}</InlineError> : null}
+      {pageError ? <V3PageError testId="played-error">{pageError}</V3PageError> : null}
       {!pair || pair.id !== pairId ? (
-        <div className="empty" data-testid="played-loading-state">
-          Verknüpfung wird geladen…
-        </div>
+        <V3LoadingState testId="played-loading-state">Verknüpfung wird geladen…</V3LoadingState>
       ) : (
         (() => {
           const open = getOpenQuestions(questions, answerSummary);

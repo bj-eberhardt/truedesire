@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { goV3Pair } from "../../../app/routes";
 import { usePairWorkspaceContext, useQuestionsContext } from "../../../app/state";
 import type { AnswerChoice } from "../../../types";
-import { InlineError } from "../components/InlineError";
+import { V3PageError } from "../components/V3PageState";
 import { V3View } from "../components/V3View";
 import { ANSWER_SAVED_FLASH_TIMEOUT_MS } from "../hooks/useSavedFlash";
 import { toUserMessage } from "../lib/errors";
@@ -114,7 +114,7 @@ export function AskPage() {
           Frage wurde gespeichert.
         </div>
       ) : null}
-      {askError ? <InlineError testId="ask-error">{askError}</InlineError> : null}
+      {askError ? <V3PageError testId="ask-error">{askError}</V3PageError> : null}
     </V3View>
   );
 }

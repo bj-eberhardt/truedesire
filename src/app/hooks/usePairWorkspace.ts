@@ -17,22 +17,34 @@ type ApiClient = ReturnType<typeof api>;
 
 type UsePairWorkspaceOptions = {
   apiClient: ApiClient | null;
-  pair: PairView | null;
-  pairRouteMode: V3Route["mode"] | null;
-  pairRoutePairId: string | null;
-  matches: MatchView[];
-  hiddenMatchIds: string[];
-  showHiddenMatches: boolean;
-  setShowHiddenMatches: Dispatch<SetStateAction<boolean>>;
-  visibleMatchesCount: (matchIds: string[]) => number;
-  selectPair: (pairId: string) => Promise<PairView | null>;
-  refreshCurrentPairing: () => Promise<void>;
-  refreshSystemQuestionHashes: () => Promise<void>;
-  ensureSystemQuestionsSeeded: (pair: PairView) => Promise<void>;
-  loadQuestionsAndDecrypt: (pairOverride?: PairView) => Promise<void>;
-  clearQuestions: () => void;
-  clearMatches: () => void;
-  computeMatches: (pairOverride?: PairView) => Promise<void>;
+  route: {
+    pairRouteMode: V3Route["mode"] | null;
+    pairRoutePairId: string | null;
+  };
+  pairSelection: {
+    pair: PairView | null;
+    selectPair: (pairId: string) => Promise<PairView | null>;
+  };
+  pairing: {
+    refreshCurrentPairing: () => Promise<void>;
+  };
+  questions: {
+    refreshSystemQuestionHashes: () => Promise<void>;
+    ensureSystemQuestionsSeeded: (pair: PairView) => Promise<void>;
+    loadQuestionsAndDecrypt: (pairOverride?: PairView) => Promise<void>;
+    clearQuestions: () => void;
+  };
+  matches: {
+    matches: MatchView[];
+    clearMatches: () => void;
+    computeMatches: (pairOverride?: PairView) => Promise<void>;
+  };
+  hiddenMatches: {
+    hiddenMatchIds: string[];
+    showHiddenMatches: boolean;
+    setShowHiddenMatches: Dispatch<SetStateAction<boolean>>;
+    visibleMatchesCount: (matchIds: string[]) => number;
+  };
 };
 
 type UsePairWorkspaceResult = {
@@ -45,31 +57,33 @@ type UsePairWorkspaceResult = {
 export function usePairWorkspace(opts: UsePairWorkspaceOptions): UsePairWorkspaceResult {
   const {
     apiClient,
-    pair,
-    pairRouteMode,
-    pairRoutePairId,
+    route,
+    pairSelection,
+    pairing,
+    questions,
     matches,
-    hiddenMatchIds,
-    showHiddenMatches,
-    setShowHiddenMatches,
-    visibleMatchesCount,
-    selectPair,
-    refreshCurrentPairing,
+    hiddenMatches
+  } = opts;
+  const { pairRouteMode, pairRoutePairId } = route;
+  const { pair, selectPair } = pairSelection;
+  const { refreshCurrentPairing } = pairing;
+  const {
     refreshSystemQuestionHashes,
     ensureSystemQuestionsSeeded,
     loadQuestionsAndDecrypt,
-    clearQuestions,
-    clearMatches,
-    computeMatches
-  } = opts;
+    clearQuestions
+  } = questions;
+  const { matches: matchList, clearMatches, computeMatches } = matches;
+  const { hiddenMatchIds, showHiddenMatches, setShowHiddenMatches, visibleMatchesCount } =
+    hiddenMatches;
   const [isRefreshingPairView, setIsRefreshingPairView] = useState(false);
   const initialPreloadDoneRef = useRef(false);
 
   useEffect(() => {
     if (!showHiddenMatches) return;
-    const hiddenCount = matches.filter((m) => hiddenMatchIds.includes(m.id)).length;
+    const hiddenCount = matchList.filter((m) => hiddenMatchIds.includes(m.id)).length;
     if (hiddenCount === 0) setShowHiddenMatches(false);
-  }, [showHiddenMatches, matches, hiddenMatchIds, setShowHiddenMatches]);
+  }, [showHiddenMatches, matchList, hiddenMatchIds, setShowHiddenMatches]);
 
   const openPair = useCallback(
     async (pairId: string, options?: { preserveCurrent?: boolean }) => {
@@ -156,8 +170,8 @@ export function usePairWorkspace(opts: UsePairWorkspaceOptions): UsePairWorkspac
   }, [openPair, pair?.id, refreshCurrentPairing, pairRoutePairId]);
 
   const visiblePairMatchesCount = useMemo(
-    () => visibleMatchesCount(matches.map((m) => m.id)),
-    [matches, visibleMatchesCount]
+    () => visibleMatchesCount(matchList.map((m) => m.id)),
+    [matchList, visibleMatchesCount]
   );
 
   return { openPair, refreshPairView, isRefreshingPairView, visiblePairMatchesCount };

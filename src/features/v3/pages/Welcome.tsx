@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { goV3, goV3Onboarding, type V3Route } from "../../../app/routes";
 import { useAccountContext, usePairWorkspaceContext, useSessionContext } from "../../../app/state";
 import { OnboardingStepper } from "../components/OnboardingStepper";
+import { V3LoadingState, V3PageError } from "../components/V3PageState";
 import { V3Notice } from "../components/V3Notice";
 import { InfoIcon } from "../components/icons/InfoIcon";
 import { downloadTextFile, formatJsonMaybe, safeBackupFilename } from "../lib/backup";
@@ -35,12 +36,9 @@ export function WelcomePage() {
 
   if (isBootstrappingAccount) {
     return (
-      <section className="card v3-card v3-view" data-testid="account-loading-view">
-        <h2>Konto wird geladen…</h2>
-        <p className="hint">
-          Bitte kurz warten. Wir prüfen, ob bereits Kontodaten auf diesem Gerät vorhanden sind.
-        </p>
-      </section>
+      <V3LoadingState testId="account-loading-view" title="Konto wird geladen…" framed>
+        Bitte kurz warten. Wir prüfen, ob bereits Kontodaten auf diesem Gerät vorhanden sind.
+      </V3LoadingState>
     );
   }
 
@@ -421,9 +419,7 @@ export function WelcomePage() {
         ) : null}
 
         {onboardError ? (
-          <div className="inline-error" data-testid="onboarding-error">
-            {onboardError}
-          </div>
+          <V3PageError testId="onboarding-error">{onboardError}</V3PageError>
         ) : null}
       </section>
     </>
