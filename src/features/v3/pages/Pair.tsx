@@ -1,10 +1,22 @@
-import { useEffect, useMemo, useState } from "react";
-import { MatchVisibilityIcon } from "../../../components/MatchVisibilityIcon";
+import { useEffect, useState } from "react";
+import {
+  useGroupSettingsContext,
+  useMatchesContext,
+  usePairWorkspaceContext,
+  useQuestionsContext,
+  useSessionContext
+} from "../../../app/state";
 import { ProfileAvatar } from "../../../components/ProfileAvatar";
 import { RefreshButton } from "../../../components/RefreshButton";
-import type { MatchView } from "../../../hooks/useMatches";
 import type { AnswerChoice, DecryptedQuestion, PairView } from "../../../types";
-import { goV3Pair, goV3PairMatches, goV3PairSettings } from "../../../app/routes";
+import {
+  goV3,
+  goV3Ask,
+  goV3Pair,
+  goV3PairMatches,
+  goV3PairSettings,
+  goV3Played
+} from "../../../app/routes";
 import { V3Notice } from "../components/V3Notice";
 import { ChevronLeftIcon } from "../components/icons/ChevronLeftIcon";
 import { ChevronRightIcon } from "../components/icons/ChevronRightIcon";
@@ -14,6 +26,8 @@ import { SettingsIcon } from "../components/icons/SettingsIcon";
 import { ANSWER_SAVED_FLASH_TIMEOUT_MS, useSavedFlash } from "../hooks/useSavedFlash";
 import { useSwipeNav } from "../hooks/useSwipeNav";
 import { getOpenQuestions, sortByCreatedAtDesc } from "../lib/questions";
+import { PairMatchesTab } from "./pair/PairMatchesTab";
+import { PairSettingsTab } from "./pair/PairSettingsTab";
 
 function nextWeeklyResetDateText(now = new Date()): string {
   const d = new Date(now);
@@ -24,48 +38,15 @@ function nextWeeklyResetDateText(now = new Date()): string {
   return d.toLocaleDateString();
 }
 
-type PairPageProps = {
-  pairId: string;
-  activeTab: "play" | "matches" | "settings";
-  identityUserId: string;
-  pair: PairView | null;
-  questions: DecryptedQuestion[];
-  answerSummary: Record<string, { total: number; mine?: AnswerChoice }>;
-  isLoadingPairData: boolean;
-  onAnswer: (questionId: string, choice: AnswerChoice) => Promise<void>;
-  onAnswerBegin: () => void;
-  onAnswerAbort: () => void;
-  onAnswerSaved: () => void;
-
-  cardIndex: number;
-  onSetCardIndex: (idx: number) => void;
-
-  onBack: () => void;
-  onRefreshView: () => Promise<void>;
-  onGoAsk: () => void;
-  onGoPlayed: () => void;
-
-  matches: MatchView[];
-  isLoadingMatches: boolean;
-  onComputeMatches: () => Promise<void>;
-  hiddenMatchIds: string[];
-  setHiddenMatchIds: (fn: (prev: string[]) => string[]) => void;
-  showHiddenMatches: boolean;
-  setShowHiddenMatches: (fn: (prev: boolean) => boolean) => void;
-
-  visibleMatchesCount: number;
-
-  weeklyLimitInput: string;
-  setWeeklyLimitInput: (v: string) => void;
-  allowAllQuestions: boolean;
-  setAllowAllQuestions: (v: boolean) => void;
-  isLoadingGroupSettings: boolean;
-  onRefreshGroupSettings: () => Promise<void>;
-  onProposeGroupSettings: () => Promise<void>;
-  onRespondGroupSettings: (action: "accept" | "reject" | "cancel") => Promise<void>;
-};
-
-export function PairPage(props: PairPageProps) {
+export function PairPage() {
+  const { identity } = useSessionContext();
+  const workspace = usePairWorkspaceContext();
+  const questionsContext = useQuestionsContext();
+  const matchesContext = useMatchesContext();
+  const groupSettings = useGroupSettingsContext();
+  const routePairId = workspace.route.route.pairId ?? "";
+  const routeMode = workspace.route.route.mode;
+  const [cardIndex, setCardIndex] = useState(0);
   const flash = useSavedFlash({ timeoutMs: ANSWER_SAVED_FLASH_TIMEOUT_MS });
   const [stablePlayState, setStablePlayState] = useState<{
     pair: PairView;
@@ -73,23 +54,30 @@ export function PairPage(props: PairPageProps) {
     answerSummary: Record<string, { total: number; mine?: AnswerChoice }>;
   } | null>(null);
 
-  const hiddenCount = useMemo(
-    () => props.matches.filter((m) => props.hiddenMatchIds.includes(m.id)).length,
-    [props.hiddenMatchIds, props.matches]
-  );
+  useEffect(() => setCardIndex(0), [routePairId]);
 
-  const showHiddenMatchesDisabled = hiddenCount === 0;
-
-  const canProposeSettings = useMemo(() => {
-    if (!props.pair) return false;
-    if (props.pair.weeklyLimitPending) return false;
-    if (props.isLoadingGroupSettings) return false;
-    const nextLimit = props.allowAllQuestions ? 0 : Number(props.weeklyLimitInput);
-    if (!Number.isFinite(nextLimit) || nextLimit < 0 || nextLimit > 50) return false;
-    const currentLimit = props.pair.usage?.weeklyLimit ?? props.pair.weeklyLimit;
-    if (nextLimit === currentLimit) return false;
-    return true;
-  }, [props.allowAllQuestions, props.isLoadingGroupSettings, props.pair, props.weeklyLimitInput]);
+  const props = {
+    pairId: routePairId,
+    activeTab:
+      routeMode === "pairMatches" ? "matches" : routeMode === "pairSettings" ? "settings" : "play",
+    identityUserId: identity?.userId ?? "",
+    pair: workspace.pair,
+    questions: questionsContext.questions,
+    answerSummary: questionsContext.answerSummary,
+    isLoadingPairData: workspace.isLoadingPairData,
+    onAnswer: questionsContext.answerQuestion,
+    onAnswerBegin: () => {},
+    onAnswerAbort: () => {},
+    onAnswerSaved: () => {},
+    cardIndex,
+    onSetCardIndex: setCardIndex,
+    onBack: goV3,
+    onRefreshView: workspace.refreshPairView,
+    onGoAsk: () => goV3Ask(routePairId),
+    onGoPlayed: () => goV3Played(routePairId),
+    onComputeMatches: matchesContext.computeMatches,
+    onRefreshGroupSettings: groupSettings.refreshGroupSettings
+  };
 
   const routePairReady = !!props.pair && props.pair.id === props.pairId;
 
@@ -494,275 +482,9 @@ export function PairPage(props: PairPageProps) {
         </>
       ) : null}
 
-      {showMatches ? (
-        <>
-          <div className="divider" />
-          <div className="v3-matches-head">
-            <div>
-              <h2>
-                {props.showHiddenMatches
-                  ? `Ausgeblendete Matches (${props.visibleMatchesCount})`
-                  : `Matches (${props.visibleMatchesCount})`}
-              </h2>
-              <p className="hint v3-matches-subtitle">
-                {props.showHiddenMatches
-                  ? "Hier findest du Matches, die du ausgeblendet hast."
-                  : "Hier findest du Matches, bei denen Ihr beide grundsätzlich dafür seid. Nutzt die Gelegenheit und sprecht drüber."}
-              </p>
-            </div>
-            <RefreshButton
-              testId="matches-refresh-button"
-              onClick={props.onComputeMatches}
-              title="Matches neu berechnen"
-            />
-          </div>
-          {props.isLoadingMatches ? (
-            <div className="hint">⏳ Matches werden geladen…</div>
-          ) : props.matches.length ? (
-            <div className="match-grid" data-testid="matches-grid">
-              {props.matches
-                .filter((m) =>
-                  props.showHiddenMatches
-                    ? props.hiddenMatchIds.includes(m.id)
-                    : !props.hiddenMatchIds.includes(m.id)
-                )
-                .map((m) => (
-                  <div
-                    className={`match-card ${m.grade}`}
-                    data-testid="match-card"
-                    data-match-id={m.id}
-                    data-match-grade={m.grade}
-                    key={m.id}
-                  >
-                    <div className="match-head">
-                      <div className={`badge ${m.grade}`}>
-                        <svg className="match-grade-icon" viewBox="0 0 24 24" aria-hidden="true">
-                          {m.grade === "perfect" ? (
-                            <path
-                              d="M12 21s-7-4.4-9.2-9A5.7 5.7 0 0 1 12 5.7 5.7 5.7 0 0 1 21.2 12C19 16.6 12 21 12 21Z"
-                              fill="currentColor"
-                            />
-                          ) : m.grade === "maybe" ? (
-                            <path
-                              d="M12 3.5 14.7 9l6 .9-4.3 4.2 1 6-5.4-2.9-5.4 2.9 1-6L3.3 9l6-.9L12 3.5Z"
-                              fill="currentColor"
-                            />
-                          ) : (
-                            <circle cx="12" cy="12" r="7" fill="currentColor" />
-                          )}
-                        </svg>
-                        <span className="match-grade-copy">
-                          <span className="match-grade-kicker">
-                            {m.grade === "perfect"
-                              ? "Starkes Match"
-                              : m.grade === "maybe"
-                                ? "Interessante Nähe"
-                                : "Guter Start"}
-                          </span>
-                          <span className="match-grade-label">
-                            {m.grade === "perfect"
-                              ? "Perfekt"
-                              : m.grade === "maybe"
-                                ? "Vielleicht"
-                                : "Okay"}
-                          </span>
-                        </span>
-                      </div>
-                      <div className="match-title" data-testid="match-question-text">
-                        {m.question}
-                      </div>
-                    </div>
-                    <div className="match-card-actions">
-                      <button
-                        className="secondary icon-btn mini"
-                        data-testid="match-visibility-button"
-                        title={
-                          props.showHiddenMatches ? "Match wieder anzeigen" : "Match ausblenden"
-                        }
-                        onClick={() =>
-                          props.setHiddenMatchIds((prev) =>
-                            props.showHiddenMatches
-                              ? prev.filter((id) => id !== m.id)
-                              : prev.includes(m.id)
-                                ? prev
-                                : [...prev, m.id]
-                          )
-                        }
-                      >
-                        <MatchVisibilityIcon hidden={!props.showHiddenMatches} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          ) : (
-            <div className="empty" data-testid="no-matches-state">
-              Noch keine Matches.
-            </div>
-          )}
+      {showMatches ? <PairMatchesTab /> : null}
 
-          {props.hiddenMatchIds.length ? (
-            <div className="row" style={{ marginTop: 8 }}>
-              <button
-                className="secondary small-btn"
-                data-testid="toggle-hidden-matches-button"
-                onClick={() => props.setShowHiddenMatches((prev) => !prev)}
-                disabled={!props.showHiddenMatches && showHiddenMatchesDisabled}
-                title={
-                  props.showHiddenMatches
-                    ? "Zur normalen Match-Ansicht wechseln"
-                    : "Ausgeblendete Matches anzeigen"
-                }
-              >
-                {props.showHiddenMatches
-                  ? "✣ Matches anzeigen"
-                  : "✣ Ausgeblendete Matches anzeigen"}
-              </button>
-            </div>
-          ) : null}
-        </>
-      ) : null}
-
-      {showSettings ? (
-        <>
-          <div className="divider" />
-          <div className="row">
-            <h2 style={{ margin: 0 }}>Gruppen-Einstellungen</h2>
-            <RefreshButton
-              testId="settings-refresh-button"
-              onClick={props.onRefreshGroupSettings}
-              title="Gruppen-Einstellungen neu laden"
-            />
-          </div>
-          {props.isLoadingGroupSettings ? (
-            <div className="hint">⏳ Gruppen-Einstellungen werden geladen…</div>
-          ) : (
-            <div className="settings-panel" data-testid="settings-panel">
-              <div className="settings-item">
-                <div className="settings-item-title">Fragenlimit pro Woche</div>
-                <p className="settings-text">
-                  Wenn aktiviert können pro Spieler nur {props.weeklyLimitInput || "0"} Fragen pro
-                  Woche beantwortet werden, erst in der darauf folgenden Woche gibt es weitere
-                  Fragen. So ist die Spannung jede Woche groß, ob es ein weiteres Match gibt.
-                </p>
-                <div className="row settings-limit-controls">
-                  <div className="settings-limit-group">
-                    <label className="toggle settings-toggle">
-                      <span>Limit aktivieren</span>
-                      <input
-                        type="checkbox"
-                        data-testid="weekly-limit-toggle"
-                        checked={!props.allowAllQuestions}
-                        onChange={(e) => props.setAllowAllQuestions(!e.target.checked)}
-                        disabled={!!pair.weeklyLimitPending || props.isLoadingGroupSettings}
-                      />
-                    </label>
-                    {props.allowAllQuestions ? (
-                      <div className="settings-unlimited-state">Alle Fragen erlaubt</div>
-                    ) : (
-                      <div className="settings-number-field">
-                        <input
-                          data-testid="weekly-limit-input"
-                          type="number"
-                          inputMode="numeric"
-                          min="0"
-                          max="50"
-                          step="1"
-                          aria-label="Fragen pro Woche"
-                          value={props.weeklyLimitInput}
-                          onChange={(e) =>
-                            props.setWeeklyLimitInput(e.target.value.replace(/\D/g, ""))
-                          }
-                          disabled={!!pair.weeklyLimitPending || props.isLoadingGroupSettings}
-                        />
-                        <span className="settings-number-suffix">Fragen/Woche</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <div className="settings-current-row">
-                  <div className="settings-current" data-testid="weekly-limit-current">
-                    <span className="settings-current-label">Aktuell</span>
-                    <span className="settings-current-value">
-                      {pair.weeklyLimit === 0
-                        ? "Alle Fragen erlaubt"
-                        : `${pair.weeklyLimit} Fragen pro Woche`}
-                    </span>
-                  </div>
-                  <button
-                    className="primary settings-propose-button"
-                    data-testid="weekly-limit-propose-button"
-                    onClick={props.onProposeGroupSettings}
-                    disabled={!canProposeSettings}
-                  >
-                    Änderung vorschlagen
-                  </button>
-                </div>
-              </div>
-
-              {pair.weeklyLimitPending ? (
-                <div className="settings-pending-block" data-testid="weekly-limit-pending-block">
-                  <div className="settings-item-title">Offene Einstellungsanfrage</div>
-                  {pair.weeklyLimitPending.proposedBy === props.identityUserId ? (
-                    <div className="request request-panel">
-                      <div className="row request-panel-head settings-request-head">
-                        <div>
-                          <div className="pair-card-name">Fragenlimit pro Woche</div>
-                          <div className="pair-card-code mono">
-                            {pair.weeklyLimitPending.limit === 0
-                              ? "Alle Fragen erlauben"
-                              : `${pair.weeklyLimitPending.limit} Fragen/Woche`}
-                          </div>
-                        </div>
-                        <button
-                          className="secondary action-cancel"
-                          data-testid="weekly-limit-cancel-button"
-                          onClick={() => props.onRespondGroupSettings("cancel")}
-                          disabled={props.isLoadingGroupSettings}
-                          title="Eigenen Vorschlag zurückziehen"
-                        >
-                          Zurückziehen
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="request request-panel">
-                      <div className="row request-panel-head settings-request-head">
-                        <div>
-                          <div className="pair-card-name">Fragenlimit pro Woche</div>
-                          <div className="pair-card-code mono">
-                            {pair.weeklyLimitPending.limit === 0
-                              ? "Alle Fragen erlauben"
-                              : `${pair.weeklyLimitPending.limit} Fragen/Woche`}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="row request-actions">
-                        <button
-                          className="action-accept"
-                          data-testid="weekly-limit-accept-button"
-                          onClick={() => props.onRespondGroupSettings("accept")}
-                          disabled={props.isLoadingGroupSettings}
-                        >
-                          ✓ Annehmen
-                        </button>
-                        <button
-                          className="action-reject"
-                          data-testid="weekly-limit-reject-button"
-                          onClick={() => props.onRespondGroupSettings("reject")}
-                          disabled={props.isLoadingGroupSettings}
-                        >
-                          ✕ Ablehnen
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : null}
-            </div>
-          )}
-        </>
-      ) : null}
+      {showSettings ? <PairSettingsTab /> : null}
     </section>
   );
 }

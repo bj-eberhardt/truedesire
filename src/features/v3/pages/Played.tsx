@@ -1,21 +1,17 @@
-import type { AnswerChoice, DecryptedQuestion, PairView } from "../../../types";
 import { useEffect, useState } from "react";
+import { goV3Pair } from "../../../app/routes";
+import { usePairWorkspaceContext, useQuestionsContext } from "../../../app/state";
+import type { AnswerChoice } from "../../../types";
 import { InlineError } from "../components/InlineError";
 import { V3View } from "../components/V3View";
 import { toUserMessage } from "../lib/errors";
 import { ANSWER_SAVED_FLASH_TIMEOUT_MS, useSavedFlash } from "../hooks/useSavedFlash";
 import { getOpenQuestions, sortByCreatedAtDesc } from "../lib/questions";
 
-type PlayedPageProps = {
-  pairId: string;
-  pair: PairView | null;
-  questions: DecryptedQuestion[];
-  answerSummary: Record<string, { total: number; mine?: AnswerChoice }>;
-  onBack: () => void;
-  onAnswer: (questionId: string, choice: AnswerChoice) => Promise<void>;
-};
-
-export function PlayedPage(props: PlayedPageProps) {
+export function PlayedPage() {
+  const { route, pair } = usePairWorkspaceContext();
+  const { questions, answerSummary, answerQuestion } = useQuestionsContext();
+  const pairId = route.route.pairId ?? "";
   const flash = useSavedFlash({ timeoutMs: ANSWER_SAVED_FLASH_TIMEOUT_MS });
   const [pageError, setPageError] = useState<string | null>(null);
 
@@ -28,7 +24,7 @@ export function PlayedPage(props: PlayedPageProps) {
     try {
       setPageError(null);
       flash.begin(questionId, questionText);
-      await props.onAnswer(questionId, choice);
+      await answerQuestion(questionId, choice);
       flash.success();
     } catch (e: unknown) {
       flash.fail();
@@ -40,19 +36,19 @@ export function PlayedPage(props: PlayedPageProps) {
     <V3View
       title="Deine änderbaren Antworten"
       subtitle="Du kannst Antworten hier noch anpassen, solange dein Partner die gleiche Frage noch nicht beantwortet hat."
-      onBack={props.onBack}
+      onBack={() => goV3Pair(pairId)}
       testId="played-view"
       backTestId="played-back-button"
     >
       {pageError ? <InlineError testId="played-error">{pageError}</InlineError> : null}
-      {!props.pair || props.pair.id !== props.pairId ? (
+      {!pair || pair.id !== pairId ? (
         <div className="empty" data-testid="played-loading-state">
           Verknüpfung wird geladen…
         </div>
       ) : (
         (() => {
-          const open = getOpenQuestions(props.questions, props.answerSummary);
-          const pending = open.filter((q) => !!props.answerSummary[q.id]?.mine);
+          const open = getOpenQuestions(questions, answerSummary);
+          const pending = open.filter((q) => !!answerSummary[q.id]?.mine);
           const orderedPending = sortByCreatedAtDesc(pending);
           if (!orderedPending.length)
             return (
@@ -63,8 +59,8 @@ export function PlayedPage(props: PlayedPageProps) {
           return (
             <div className="v3-played-list" data-testid="played-list">
               {orderedPending.map((pq) => {
-                const mine = props.answerSummary[pq.id]?.mine;
-                const total = props.answerSummary[pq.id]?.total ?? 0;
+                const mine = answerSummary[pq.id]?.mine;
+                const total = answerSummary[pq.id]?.total ?? 0;
                 const locked = total >= 2;
                 const isSavedCard = flash.showSaved && flash.savedId === pq.id;
                 return (

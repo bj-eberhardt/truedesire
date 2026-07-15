@@ -1,28 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useAccountContext,
+  usePairingContext,
+  usePairWorkspaceContext,
+  useSessionContext
+} from "../../../app/state";
 import { ProfileAvatar } from "../../../components/ProfileAvatar";
 import { RefreshButton } from "../../../components/RefreshButton";
-import type { PairingIncoming, PairingOutgoing, MyPairs } from "../../../hooks/usePairing";
 import { V3Notice } from "../components/V3Notice";
 import { ClipboardIcon } from "../components/icons/ClipboardIcon";
 import { CodeExchangeIcon } from "../components/icons/CodeExchangeIcon";
 import { InfoIcon } from "../components/icons/InfoIcon";
-
-type AccountHomePageProps = {
-  identity: { userId: string; nickname: string; code?: string | null } | null;
-  myPairs: MyPairs;
-  pairingIncoming: PairingIncoming;
-  pairingOutgoing: PairingOutgoing;
-  pairingInlineError: string | null;
-  onClearPairingInlineError: () => void;
-  onCopyPairingCode: () => Promise<void> | void;
-  onRefreshPairingRequests: () => Promise<void>;
-  onSendPairRequest: (partnerCodeInput: string) => Promise<void>;
-  onRespondPairing: (
-    requestId: string,
-    action: "accept" | "reject" | "cancel"
-  ) => Promise<{ pairId?: string | null } | void>;
-  onOpenPair: (pairId: string) => Promise<void>;
-};
 
 function scrollToSection(ref: React.RefObject<HTMLElement | null>) {
   const el = ref.current;
@@ -38,8 +26,11 @@ function scrollToSection(ref: React.RefObject<HTMLElement | null>) {
   window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
 }
 
-export function AccountHomePage(props: AccountHomePageProps) {
-  const { onRefreshPairingRequests } = props;
+export function AccountHomePage() {
+  const { identity } = useSessionContext();
+  const account = useAccountContext();
+  const pairing = usePairingContext();
+  const workspace = usePairWorkspaceContext();
   const [partnerCodeInput, setPartnerCodeInput] = useState("");
   const [pairingRequestsLastCheckedAt, setPairingRequestsLastCheckedAt] = useState<number | null>(
     null
@@ -51,7 +42,7 @@ export function AccountHomePage(props: AccountHomePageProps) {
   const [isRefreshingPairingRequests, setIsRefreshingPairingRequests] = useState(false);
   const pairingRequestsRefreshInFlightRef = useRef(false);
 
-  const hasIdentity = !!props.identity?.userId;
+  const hasIdentity = !!identity?.userId;
   const pairingRequestsSecondsUntilRefresh = Math.max(
     0,
     Math.ceil((pairingRequestsNextCheckAt - pairingRequestsNow) / 1000)
@@ -70,14 +61,14 @@ export function AccountHomePage(props: AccountHomePageProps) {
     pairingRequestsRefreshInFlightRef.current = true;
     setIsRefreshingPairingRequests(true);
     try {
-      await onRefreshPairingRequests();
+      await pairing.refreshRequests();
       setPairingRequestsLastCheckedAt(Date.now());
     } finally {
       pairingRequestsRefreshInFlightRef.current = false;
       setIsRefreshingPairingRequests(false);
       setPairingRequestsNextCheckAt(Date.now() + 30_000);
     }
-  }, [hasIdentity, onRefreshPairingRequests]);
+  }, [hasIdentity, pairing]);
 
   useEffect(() => {
     if (!hasIdentity) return;
@@ -93,7 +84,7 @@ export function AccountHomePage(props: AccountHomePageProps) {
       string,
       { nickname: string; code: string; incomingIds: string[]; outgoingIds: string[] }
     >();
-    for (const r of props.pairingIncoming) {
+    for (const r of pairing.incoming) {
       const key = `${r.from.code}|${r.from.nickname}`;
       const existing = grouped.get(key) ?? {
         nickname: r.from.nickname,
@@ -104,7 +95,7 @@ export function AccountHomePage(props: AccountHomePageProps) {
       existing.incomingIds.push(r.id);
       grouped.set(key, existing);
     }
-    for (const r of props.pairingOutgoing) {
+    for (const r of pairing.outgoing) {
       const key = `${r.to.code}|${r.to.nickname}`;
       const existing = grouped.get(key) ?? {
         nickname: r.to.nickname,
@@ -118,11 +109,11 @@ export function AccountHomePage(props: AccountHomePageProps) {
     return Array.from(grouped.entries())
       .sort((a, b) => a[1].nickname.localeCompare(b[1].nickname, "de"))
       .map(([, row]) => row);
-  }, [props.pairingIncoming, props.pairingOutgoing]);
+  }, [pairing.incoming, pairing.outgoing]);
 
   const requestsPanelRef = useRef<HTMLElement | null>(null);
 
-  const visiblePairs = props.myPairs.filter((p) => !p.partnerDeleted);
+  const visiblePairs = pairing.myPairs.filter((p) => !p.partnerDeleted);
   const hasPairs = visiblePairs.length > 0;
   const hasRequests = groupedRequests.length > 0;
 
@@ -153,7 +144,7 @@ export function AccountHomePage(props: AccountHomePageProps) {
                 data-pair-id={p.id}
                 data-partner-name={p.partner?.nickname ?? p.id}
                 onClick={async () => {
-                  await props.onOpenPair(p.id);
+                  workspace.openPairRoute(p.id);
                 }}
               >
                 <div className="v3-pair-card-main">
@@ -198,14 +189,14 @@ export function AccountHomePage(props: AccountHomePageProps) {
             </li>
             <li>
               Teile deinem Partner deinen <strong>Pairing-Code</strong> (
-              <span className="v3-guide-code mono">{props.identity?.code ?? "—"}</span>) mit.
+              <span className="v3-guide-code mono">{identity?.code ?? "—"}</span>) mit.
               <button
                 type="button"
                 className="v3-copy-code-button"
                 data-testid="guide-copy-pairing-code-button"
                 aria-label="Pairing-Code kopieren"
-                disabled={!props.identity?.code}
-                onClick={() => props.onCopyPairingCode()}
+                disabled={!identity?.code}
+                onClick={() => account.copyPairingCode()}
               >
                 <ClipboardIcon />
               </button>
@@ -234,7 +225,7 @@ export function AccountHomePage(props: AccountHomePageProps) {
             data-testid="partner-code-input"
             value={partnerCodeInput}
             onChange={(e) => {
-              props.onClearPairingInlineError();
+              pairing.clearInlineError();
               setPartnerCodeInput(e.target.value);
             }}
             placeholder="Partner-Code"
@@ -244,16 +235,16 @@ export function AccountHomePage(props: AccountHomePageProps) {
             data-testid="send-pair-request-button"
             disabled={!partnerCodeInput.trim()}
             onClick={async () => {
-              await props.onSendPairRequest(partnerCodeInput);
+              await pairing.sendPairRequest(partnerCodeInput);
               setPartnerCodeInput("");
             }}
           >
             Anfrage senden
           </button>
         </div>
-        {props.pairingInlineError ? (
+        {pairing.inlineError ? (
           <div className="inline-error" data-testid="pairing-inline-error">
-            {props.pairingInlineError}
+            {pairing.inlineError}
           </div>
         ) : null}
       </section>
@@ -306,8 +297,11 @@ export function AccountHomePage(props: AccountHomePageProps) {
                       className="secondary"
                       data-testid="pairing-request-accept-button"
                       onClick={async () => {
-                        const result = await props.onRespondPairing(row.incomingIds[0], "accept");
-                        if (result?.pairId) await props.onOpenPair(result.pairId);
+                        const result = await pairing.respondPairing(
+                          row.incomingIds[0],
+                          "accept"
+                        );
+                        if (result?.pairId) workspace.openPairRoute(result.pairId);
                       }}
                     >
                       <span className="v3-action-ok">✓</span> Annehmen
@@ -315,7 +309,7 @@ export function AccountHomePage(props: AccountHomePageProps) {
                     <button
                       className="secondary"
                       data-testid="pairing-request-reject-button"
-                      onClick={() => props.onRespondPairing(row.incomingIds[0], "reject")}
+                      onClick={() => pairing.respondPairing(row.incomingIds[0], "reject")}
                     >
                       <span className="v3-action-bad">✕</span> Ablehnen
                     </button>
@@ -325,7 +319,7 @@ export function AccountHomePage(props: AccountHomePageProps) {
                   <button
                     className="secondary"
                     data-testid="pairing-request-cancel-button"
-                    onClick={() => props.onRespondPairing(row.outgoingIds[0], "cancel")}
+                    onClick={() => pairing.respondPairing(row.outgoingIds[0], "cancel")}
                   >
                     Zurückziehen
                   </button>

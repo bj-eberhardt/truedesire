@@ -1,32 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { goV3 } from "../../../app/routes";
+import { useSessionContext } from "../../../app/state";
 import { ProfileAvatar } from "../../../components/ProfileAvatar";
 import { useAutoHideHeader } from "../hooks/useAutoHideHeader";
 import { HeartChecklistLogo } from "./HeartChecklistLogo";
 import { ProfileMenu } from "./ProfileMenu";
 
-type V3HeaderProps = {
-  identity: { userId: string; nickname: string; code?: string | null } | null;
-  onCopyPairingCode: () => Promise<void> | void;
-  onOpenBackup: () => void;
-  onDeleteAccount: () => Promise<void> | void;
-};
-
-export function V3Header(props: V3HeaderProps) {
+export function V3Header() {
+  const { identity } = useSessionContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
 
-  const hasAccount = !!props.identity?.userId;
+  const hasAccount = !!identity?.userId;
 
-  const pairingCode = props.identity?.code ? String(props.identity.code) : null;
-  const profileName = props.identity?.nickname ? String(props.identity.nickname) : "Profil";
+  const pairingCode = identity?.code ? String(identity.code) : null;
+  const profileName = identity?.nickname ? String(identity.nickname) : "Profil";
 
   const hidden = useAutoHideHeader({ enabled: true, menuOpen });
 
   const profileLabel = useMemo(() => {
-    if (!props.identity?.userId) return "Profil-Menü";
-    return `Profil-Menü von ${props.identity.nickname}`;
-  }, [props.identity?.nickname, props.identity?.userId]);
+    if (!identity?.userId) return "Profil-Menü";
+    return `Profil-Menü von ${identity.nickname}`;
+  }, [identity?.nickname, identity?.userId]);
 
   useEffect(() => {
     if (!hasAccount && menuOpen) setMenuOpen(false);
@@ -100,9 +95,6 @@ export function V3Header(props: V3HeaderProps) {
           <ProfileMenu
             open={menuOpen}
             pairingCode={pairingCode}
-            onCopyPairingCode={props.onCopyPairingCode}
-            onOpenBackup={props.onOpenBackup}
-            onDeleteAccount={props.onDeleteAccount}
             onClose={() => setMenuOpen(false)}
           />
         </div>

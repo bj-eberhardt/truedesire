@@ -1,16 +1,16 @@
 import { useState } from "react";
+import { goV3Backup } from "../../../app/routes";
+import { useAccountContext } from "../../../app/state";
 import { ConfirmDialog } from "../../../components/ConfirmDialog";
 
 type ProfileMenuProps = {
   open: boolean;
   pairingCode: string | null;
-  onCopyPairingCode: () => Promise<void> | void;
-  onOpenBackup: () => void;
-  onDeleteAccount: () => Promise<void> | void;
   onClose: () => void;
 };
 
 export function ProfileMenu(props: ProfileMenuProps) {
+  const account = useAccountContext();
   const itemTabIndex = props.open ? 0 : -1;
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -34,7 +34,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
           disabled={!props.pairingCode}
           onClick={async () => {
             if (!props.pairingCode) return;
-            await props.onCopyPairingCode();
+            await account.copyPairingCode();
             props.onClose();
           }}
         >
@@ -48,7 +48,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
           role="menuitem"
           tabIndex={itemTabIndex}
           onClick={async () => {
-            props.onOpenBackup();
+            goV3Backup();
             props.onClose();
           }}
         >
@@ -83,7 +83,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
         onConfirm={async () => {
           try {
             setIsDeleting(true);
-            await props.onDeleteAccount();
+            await account.deleteAccount();
             setConfirmOpen(false);
             props.onClose();
           } finally {

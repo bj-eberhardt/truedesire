@@ -1,22 +1,15 @@
 import { useRef, useState } from "react";
 import { goV3, goV3Onboarding, type V3Route } from "../../../app/routes";
+import {
+  useAccountContext,
+  usePairWorkspaceContext,
+  useSessionContext
+} from "../../../app/state";
 import { OnboardingStepper } from "../components/OnboardingStepper";
 import { V3Notice } from "../components/V3Notice";
 import { InfoIcon } from "../components/icons/InfoIcon";
 import { downloadTextFile, formatJsonMaybe, safeBackupFilename } from "../lib/backup";
 import { toUserMessage } from "../lib/errors";
-
-type WelcomePageProps = {
-  isBootstrappingAccount: boolean;
-  identity: { userId: string; nickname: string; code?: string | null } | null;
-  nickname: string;
-  onNicknameChange: (next: string) => void;
-  onRegister: (nickname?: string) => Promise<void>;
-  onBootstrap: () => Promise<unknown>;
-  onImportBackupText: (txt: string) => Promise<void>;
-  onExportBackupText: () => Promise<string>;
-  onboardingStep: NonNullable<V3Route["onboard"]>;
-};
 
 const MIN_BACKUP_DOWNLOAD_FEEDBACK_MS = 2_000;
 
@@ -24,8 +17,18 @@ function wait(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
 }
 
-export function WelcomePage(props: WelcomePageProps) {
-  const onboardPath = props.onboardingStep;
+export function WelcomePage() {
+  const {
+    identity,
+    nicknameDraft,
+    isBootstrappingAccount,
+    updateNicknameDraft,
+    registerAccount,
+    bootstrapAccount
+  } = useSessionContext();
+  const { importBackupText, exportBackupText } = useAccountContext();
+  const { route } = usePairWorkspaceContext();
+  const onboardPath = route.route.onboard ?? "start";
   const [backupText, setBackupText] = useState("");
   const [backupFile, setBackupFile] = useState<File | null>(null);
   const [backupFileName, setBackupFileName] = useState<string | null>(null);
@@ -34,7 +37,7 @@ export function WelcomePage(props: WelcomePageProps) {
   const [isDownloadingBackup, setIsDownloadingBackup] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
 
-  if (props.isBootstrappingAccount) {
+  if (isBootstrappingAccount) {
     return (
       <section className="card v3-card v3-view" data-testid="account-loading-view">
         <h2>Konto wird geladen…</h2>
@@ -80,7 +83,7 @@ export function WelcomePage(props: WelcomePageProps) {
             ? "backup"
             : "setup";
 
-  async function importBackupText(txt: string) {
+  async function importBackupDraft(txt: string) {
     const trimmed = txt.trim();
     if (!trimmed) {
       setOnboardError("Bitte lade eine Backup-Datei hoch oder füge dein Backup-JSON ein.");
@@ -94,7 +97,7 @@ export function WelcomePage(props: WelcomePageProps) {
     }
     try {
       setOnboardError(null);
-      await props.onImportBackupText(trimmed);
+      await importBackupText(trimmed);
       setBackupText("");
       setBackupFile(null);
       setBackupFileName(null);
@@ -120,7 +123,7 @@ export function WelcomePage(props: WelcomePageProps) {
         );
         return;
       }
-      await importBackupText(txt);
+      await importBackupDraft(txt);
     } catch (e: unknown) {
       setOnboardError(toUserMessage(e));
     }
@@ -249,7 +252,7 @@ export function WelcomePage(props: WelcomePageProps) {
                     await importBackupFile(backupFile);
                     return;
                   }
-                  await importBackupText(backupText);
+                  await importBackupDraft(backupText);
                 }}
               >
                 Importieren und prüfen
@@ -283,8 +286,8 @@ export function WelcomePage(props: WelcomePageProps) {
                 <span>Nickname</span>
                 <input
                   data-testid="nickname-input"
-                  value={props.nickname}
-                  onChange={(e) => props.onNicknameChange(e.target.value)}
+                  value={nicknameDraft}
+                  onChange={(e) => updateNicknameDraft(e.target.value)}
                   placeholder="z.B. Alex"
                   maxLength={30}
                   required
@@ -300,16 +303,16 @@ export function WelcomePage(props: WelcomePageProps) {
                   className="primary"
                   data-testid="create-account-button"
                   onClick={async () => {
-                    const trimmed = props.nickname.trim();
+                    const trimmed = nicknameDraft.trim();
                     if (!trimmed) {
                       setOnboardError("Bitte gib einen Nickname ein.");
                       return;
                     }
                     try {
                       setIsRegistering(true);
-                      await props.onRegister(trimmed);
+                      await registerAccount(trimmed);
                       setOnboardError(null);
-                      const hydrated = (await props.onBootstrap()) as any;
+                      const hydrated = await bootstrapAccount();
                       if (!hydrated?.userId) {
                         setOnboardError(
                           "Konto wurde erstellt, konnte aber noch nicht geladen werden. Bitte erneut versuchen."
@@ -323,7 +326,7 @@ export function WelcomePage(props: WelcomePageProps) {
                       setIsRegistering(false);
                     }
                   }}
-                  disabled={!props.nickname.trim() || isRegistering}
+                  disabled={!nicknameDraft.trim() || isRegistering}
                 >
                   Konto erstellen
                 </button>
@@ -371,9 +374,9 @@ export function WelcomePage(props: WelcomePageProps) {
                   try {
                     setOnboardError(null);
                     setIsDownloadingBackup(true);
-                    const txt = await props.onExportBackupText();
+                    const txt = await exportBackupText();
                     const formatted = formatJsonMaybe(txt);
-                    const filename = safeBackupFilename(props.identity?.code ?? "backup");
+                    const filename = safeBackupFilename(identity?.code ?? "backup");
                     downloadTextFile({ filename, content: formatted });
                   } catch (e: unknown) {
                     setOnboardError(toUserMessage(e));
@@ -394,7 +397,7 @@ export function WelcomePage(props: WelcomePageProps) {
                 onClick={async () => {
                   setOnboardError(null);
                   try {
-                    const hydrated = (await props.onBootstrap()) as any;
+                    const hydrated = await bootstrapAccount();
                     if (!hydrated?.userId) {
                       setOnboardError(
                         "Konto konnte nicht geladen werden. Bitte kurz warten und erneut versuchen."

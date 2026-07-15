@@ -158,7 +158,8 @@ export async function answerCurrentQuestion(
 
 export async function findQuestionByText(page: Page, questionText: string): Promise<void> {
   await expect(page.getByTestId("play-card")).toBeVisible();
-  for (let i = 0; i < 50; i += 1) {
+  const maxNavigationSteps = 250;
+  for (let i = 0; i < maxNavigationSteps; i += 1) {
     const visibleText = await page.getByTestId("play-question-text").innerText();
     if (visibleText.includes(questionText)) return;
     const next = page.getByTestId("play-next-button");

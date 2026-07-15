@@ -1,31 +1,27 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { goV3 } from "../../../app/routes";
+import { useAccountContext, useSessionContext } from "../../../app/state";
 import { InlineError } from "../components/InlineError";
 import { V3View } from "../components/V3View";
 import { downloadTextFile, formatJsonMaybe, safeBackupFilename } from "../lib/backup";
 import { toUserMessage } from "../lib/errors";
 
-type BackupPageProps = {
-  identityCode: string | null;
-  onBack: () => void;
-  onExportBackupText: () => Promise<string>;
-};
-
-export function BackupPage(props: BackupPageProps) {
-  const { identityCode, onBack, onExportBackupText } = props;
-
+export function BackupPage() {
+  const { identity } = useSessionContext();
+  const { exportBackupText } = useAccountContext();
   const [backupText, setBackupText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const copyTimerRef = useRef<number | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const filename = useMemo(() => safeBackupFilename(identityCode), [identityCode]);
+  const filename = useMemo(() => safeBackupFilename(identity?.code ?? null), [identity?.code]);
 
   useEffect(() => {
     let cancelled = false;
     setIsLoading(true);
     setError(null);
-    onExportBackupText()
+    exportBackupText()
       .then((txt) => {
         if (cancelled) return;
         setBackupText(formatJsonMaybe(txt));
@@ -41,7 +37,7 @@ export function BackupPage(props: BackupPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [onExportBackupText]);
+  }, [exportBackupText]);
 
   useEffect(() => {
     return () => {
@@ -54,7 +50,7 @@ export function BackupPage(props: BackupPageProps) {
       className="v3-backup"
       title="Backup erstellen"
       subtitle="Speichere diese Informationen sicher. Ohne Backup sind alte Daten nicht wiederherstellbar."
-      onBack={onBack}
+      onBack={goV3}
       testId="backup-view"
       backTestId="backup-back-button"
     >
