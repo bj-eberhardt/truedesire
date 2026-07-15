@@ -15,9 +15,7 @@ export function PairSettingsTab() {
     if (!pair) return false;
     if (pair.weeklyLimitPending) return false;
     if (groupSettings.isLoadingGroupSettings) return false;
-    const nextLimit = groupSettings.allowAllQuestions
-      ? 0
-      : Number(groupSettings.weeklyLimitDraft);
+    const nextLimit = groupSettings.allowAllQuestions ? 0 : Number(groupSettings.weeklyLimitDraft);
     if (!Number.isFinite(nextLimit) || nextLimit < 0 || nextLimit > 50) return false;
     const currentLimit = pair.usage?.weeklyLimit ?? pair.weeklyLimit;
     if (nextLimit === currentLimit) return false;

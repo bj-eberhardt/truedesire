@@ -1,7 +1,4 @@
-export {
-  AppGlobalChrome,
-  AppProviders
-} from "./AppState";
+export { AppGlobalChrome, AppProviders } from "./AppState";
 
 export {
   useAccountContext,

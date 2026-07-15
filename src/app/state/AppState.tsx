@@ -425,7 +425,9 @@ export function AppGlobalChrome({ children }: { children: ReactNode }) {
         onClose={() => account.setAccountDeletedModalOpen(false)}
       />
       {children}
-      {feedback.toast ? <Toast message={feedback.toast.message} kind={feedback.toast.kind} /> : null}
+      {feedback.toast ? (
+        <Toast message={feedback.toast.message} kind={feedback.toast.kind} />
+      ) : null}
       {feedback.error ? <ErrorPanel error={feedback.error} /> : null}
     </div>
   );

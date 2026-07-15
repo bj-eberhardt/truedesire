@@ -1,10 +1,6 @@
 import { useRef, useState } from "react";
 import { goV3, goV3Onboarding, type V3Route } from "../../../app/routes";
-import {
-  useAccountContext,
-  usePairWorkspaceContext,
-  useSessionContext
-} from "../../../app/state";
+import { useAccountContext, usePairWorkspaceContext, useSessionContext } from "../../../app/state";
 import { OnboardingStepper } from "../components/OnboardingStepper";
 import { V3Notice } from "../components/V3Notice";
 import { InfoIcon } from "../components/icons/InfoIcon";

@@ -297,10 +297,7 @@ export function AccountHomePage() {
                       className="secondary"
                       data-testid="pairing-request-accept-button"
                       onClick={async () => {
-                        const result = await pairing.respondPairing(
-                          row.incomingIds[0],
-                          "accept"
-                        );
+                        const result = await pairing.respondPairing(row.incomingIds[0], "accept");
                         if (result?.pairId) workspace.openPairRoute(result.pairId);
                       }}
                     >
