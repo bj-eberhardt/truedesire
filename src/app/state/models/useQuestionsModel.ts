@@ -17,14 +17,7 @@ type UseQuestionsModelOptions = {
 };
 
 export function useQuestionsModel(opts: UseQuestionsModelOptions) {
-  const {
-    apiClient,
-    identity,
-    pair,
-    clearGlobalError,
-    setGlobalError,
-    refreshCurrentPair
-  } = opts;
+  const { apiClient, identity, pair, clearGlobalError, setGlobalError, refreshCurrentPair } = opts;
   const questionState = useQuestions({
     apiClient,
     identity,
