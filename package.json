@@ -17,13 +17,14 @@
     "server:lint": "npm --prefix server run lint",
     "server:architecture": "npm --prefix server run test:architecture",
     "server:test": "npm --prefix server run test",
-    "check": "npm run lint && npm run typecheck && npm run build && npm run server:lint && npm run server:typecheck && npm run server:build && npm run server:architecture",
-    "lint": "eslint src tests scripts vite.config.ts playwright.config.ts eslint.config.js",
+    "test:unit": "vitest run",
+    "check": "npm run lint && npm run typecheck && npm run test:unit && npm run build && npm run server:lint && npm run server:typecheck && npm run server:build && npm run server:architecture",
+    "lint": "eslint src tests scripts vite.config.ts vitest.config.ts playwright.config.ts eslint.config.js",
     "preview": "node scripts/vite-wrapper.mjs preview",
     "test:e2e": "playwright test",
     "dev:docker": "docker compose -f docker-compose.dev.yml up --build",
-    "lint:fix": "eslint src tests scripts vite.config.ts playwright.config.ts eslint.config.js --fix",
-    "format:frontend:check": "prettier src tests scripts public index.html eslint.config.js prettier.config.cjs vite.config.ts playwright.config.ts tsconfig*.json --check",
+    "lint:fix": "eslint src tests scripts vite.config.ts vitest.config.ts playwright.config.ts eslint.config.js --fix",
+    "format:frontend:check": "prettier src tests scripts public index.html eslint.config.js prettier.config.cjs vite.config.ts vitest.config.ts playwright.config.ts tsconfig*.json --check",
     "format:server:check": "prettier server --check",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
@@ -52,6 +53,7 @@
     "prettier": "^3.9.5",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.63.0",
-    "vite": "^8.1.4"
+    "vite": "^8.1.4",
+    "vitest": "^4.1.10"
   }
 }

@@ -50,6 +50,19 @@ jobs:
       - name: Typecheck server
         run: npm run server:typecheck
 
+      - name: Frontend unit tests
+        id: frontend-unit-tests
+        run: npm run test:unit
+
+      - name: Upload frontend unit test results
+        id: frontend-unit-test-results-artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: frontend-unit-test-results
+          path: ci-reports/frontend/unit-tests.json
+          if-no-files-found: warn
+
       - name: Build Frontend
         id: build-frontend
         run: npm run build
@@ -104,9 +117,11 @@ jobs:
           BACKEND_BUILD_OUTCOME: ${{ steps.build-backend.outcome }}
           LINT_OUTCOME: ${{ steps.lint.outcome }}
           LINT_SERVER_OUTCOME: ${{ steps.lint-server.outcome }}
+          FRONTEND_UNIT_TESTS_OUTCOME: ${{ steps.frontend-unit-tests.outcome }}
           BACKEND_TESTS_OUTCOME: ${{ steps.backend-tests.outcome }}
           E2E_OUTCOME: ${{ steps.e2e.outcome }}
           PRETTIER_OUTCOME: ${{ steps.prettier.outcome }}
+          FRONTEND_UNIT_TEST_RESULTS_URL: ${{ steps.frontend-unit-test-results-artifact.outputs.artifact-url }}
           BACKEND_TEST_RESULTS_URL: ${{ steps.backend-test-results-artifact.outputs.artifact-url }}
           PLAYWRIGHT_REPORT_URL: ${{ steps.playwright-report-artifact.outputs.artifact-url }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
@@ -150,6 +165,7 @@ jobs:
           steps.build-backend.outcome != 'success' ||
           steps.lint.outcome != 'success' ||
           steps.lint-server.outcome != 'success' ||
+          steps.frontend-unit-tests.outcome != 'success' ||
           steps.backend-tests.outcome != 'success' ||
           steps.prettier.outcome != 'success' ||
           steps.e2e.outcome != 'success'

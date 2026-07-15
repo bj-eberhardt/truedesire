@@ -28,4 +28,5 @@ server/data/db.json
 
 test-results
 ci-reports
-playwright-report/
+playwright-report
+*.iml
