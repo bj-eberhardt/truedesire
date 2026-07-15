@@ -46,4 +46,3 @@ export function usePairingActions(opts: {
 
   return { clearPairingInlineError, pairingInlineError, respond, sendPairRequest };
 }
-

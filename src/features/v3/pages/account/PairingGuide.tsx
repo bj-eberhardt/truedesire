@@ -35,8 +35,12 @@ export function PairingGuide(props: {
             <ClipboardIcon />
           </button>
         </li>
-        <li>Eine Person sendet die Anfrage. Der Partner nimmt sie an, dann wird die Verknüpfung aktiv.</li>
-        <li>Wenn ihr verbunden seid, könnt ihr euch gegenseitig Fragen ausspielen und Antworten sehen.</li>
+        <li>
+          Eine Person sendet die Anfrage. Der Partner nimmt sie an, dann wird die Verknüpfung aktiv.
+        </li>
+        <li>
+          Wenn ihr verbunden seid, könnt ihr euch gegenseitig Fragen ausspielen und Antworten sehen.
+        </li>
       </ol>
     </section>
   );

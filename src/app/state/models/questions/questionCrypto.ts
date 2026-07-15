@@ -26,11 +26,7 @@ export async function decryptAnswerPayload(blob: EncryptedBlob, aes: CryptoKey) 
   return isAnswerChoice(payload.answer) ? payload.answer : undefined;
 }
 
-export async function encryptQuestionBlob(opts: {
-  aes: CryptoKey;
-  pairId: string;
-  text: string;
-}) {
+export async function encryptQuestionBlob(opts: { aes: CryptoKey; pairId: string; text: string }) {
   return await encryptJson(
     opts.aes,
     { text: opts.text },

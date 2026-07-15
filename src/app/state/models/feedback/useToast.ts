@@ -27,4 +27,3 @@ export function useToast(timeoutMs = 1600): UseToastResult {
 
   return { toast, showToast };
 }
-

@@ -31,9 +31,7 @@ test("derives group settings state from pair usage", () => {
 });
 
 test("detects reached answer limit", () => {
-  expect(isAnswerLimitReached(pair({ usage: { weeklyLimit: 2, answeredThisWeek: 2 } }))).toBe(
-    true
-  );
+  expect(isAnswerLimitReached(pair({ usage: { weeklyLimit: 2, answeredThisWeek: 2 } }))).toBe(true);
 });
 
 test("validates weekly limit drafts", () => {

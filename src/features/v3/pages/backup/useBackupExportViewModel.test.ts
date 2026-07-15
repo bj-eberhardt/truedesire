@@ -71,15 +71,15 @@ beforeEach(() => {
   vi.useFakeTimers();
   const originalConsoleError = console.error;
   vi.spyOn(console, "error").mockImplementation((message?: unknown, ...args: unknown[]) => {
-    if (
-      typeof message === "string" &&
-      message.includes("react-test-renderer is deprecated")
-    ) {
+    if (typeof message === "string" && message.includes("react-test-renderer is deprecated")) {
       return;
     }
     originalConsoleError(message, ...args);
   });
-  Object.defineProperty(globalThis, "IS_REACT_ACT_ENVIRONMENT", { value: true, configurable: true });
+  Object.defineProperty(globalThis, "IS_REACT_ACT_ENVIRONMENT", {
+    value: true,
+    configurable: true
+  });
   Object.defineProperty(globalThis, "window", {
     value: {
       clearTimeout: globalThis.clearTimeout,

@@ -20,4 +20,3 @@ export function usePairingClient(apiClient: ApiClient | null, identity: Identity
     [apiClient, identity]
   );
 }
-

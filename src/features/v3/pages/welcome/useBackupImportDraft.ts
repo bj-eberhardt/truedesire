@@ -69,7 +69,9 @@ export function useBackupImportDraft({
       try {
         JSON.parse(txt);
       } catch {
-        setOnboardError("Die Datei konnte nicht gelesen werden oder ist keine valide Backup-Datei.");
+        setOnboardError(
+          "Die Datei konnte nicht gelesen werden oder ist keine valide Backup-Datei."
+        );
         return;
       }
       await importBackupDraft(txt);

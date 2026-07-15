@@ -1,8 +1,7 @@
 import type { PairView } from "../../../../types";
 
 export type WeeklyLimitValidation =
-  | { ok: true; limit: number }
-  | { ok: false; reason: "not_a_number" | "out_of_range" };
+  { ok: true; limit: number } | { ok: false; reason: "not_a_number" | "out_of_range" };
 
 export function getEffectiveWeeklyLimit(pair: PairView): number {
   return pair.usage?.weeklyLimit ?? pair.weeklyLimit;

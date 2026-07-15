@@ -10,4 +10,3 @@ test("maps known pairing errors to inline messages", () => {
 test("returns null for unknown pairing errors", () => {
   expect(pairingInlineErrorFor("something_else")).toBeNull();
 });
-

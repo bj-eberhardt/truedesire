@@ -31,4 +31,3 @@ export function usePairingRequests(getClient: GetPairingClient) {
     refreshPairingRequests
   };
 }
-

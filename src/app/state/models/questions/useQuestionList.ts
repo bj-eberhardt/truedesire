@@ -2,11 +2,7 @@ import { useCallback, useState, type RefObject } from "react";
 import { sha256Base64 } from "../../../../crypto/sign";
 import type { Identity } from "../../../../state/identity";
 import type { AnswerChoice, DecryptedQuestion, PairView, QuestionView } from "../../../../types";
-import {
-  decryptAnswerPayload,
-  decryptQuestionPayload,
-  deriveQuestionKey
-} from "./questionCrypto";
+import { decryptAnswerPayload, decryptQuestionPayload, deriveQuestionKey } from "./questionCrypto";
 import type { AnswerSummary, ApiClient, SystemQuestionHashes } from "./types";
 
 export function useQuestionList(opts: {

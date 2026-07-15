@@ -22,4 +22,3 @@ export function usePairingPartners(getClient: GetPairingClient) {
     refreshPairingPartners
   };
 }
-

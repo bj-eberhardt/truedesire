@@ -96,14 +96,7 @@ export function useQuestionActions(opts: {
         throw new Error(msg);
       }
     },
-    [
-      apiClient,
-      identity,
-      loadQuestionsAndDecrypt,
-      onAnswerLimitReached,
-      pair,
-      refreshCurrentPair
-    ]
+    [apiClient, identity, loadQuestionsAndDecrypt, onAnswerLimitReached, pair, refreshCurrentPair]
   );
 
   return { addQuestion, deleteQuestion, answer };

@@ -17,15 +17,7 @@ const usePairSelectionPath = path.join(
   "pair-selection",
   "usePairSelection.ts"
 );
-const usePairingPath = path.join(
-  root,
-  "src",
-  "app",
-  "state",
-  "models",
-  "pairing",
-  "usePairing.ts"
-);
+const usePairingPath = path.join(root, "src", "app", "state", "models", "pairing", "usePairing.ts");
 const useAccountModelPath = path.join(root, "src", "app", "state", "models", "useAccountModel.ts");
 const pairWorkspaceHookPath = path.join(root, "src", "app", "hooks", "usePairWorkspace.ts");
 const appContextsPath = path.join(root, "src", "app", "state", "AppContexts.ts");
@@ -150,7 +142,9 @@ test("pair workspace does not own hidden-match visibility state", () => {
 
   for (const file of files) {
     const source = fs.readFileSync(file, "utf8");
-    if (/\bhiddenMatches\b|\bHiddenMatches\b|\bshowHiddenMatches\b|\bhiddenMatchIds\b/.test(source)) {
+    if (
+      /\bhiddenMatches\b|\bHiddenMatches\b|\bshowHiddenMatches\b|\bhiddenMatchIds\b/.test(source)
+    ) {
       failures.push(path.relative(root, file));
     }
   }

@@ -7,4 +7,3 @@ const PAIRING_INLINE_ERRORS: Record<string, string> = {
 export function pairingInlineErrorFor(code: string): string | null {
   return PAIRING_INLINE_ERRORS[code] ?? null;
 }
-

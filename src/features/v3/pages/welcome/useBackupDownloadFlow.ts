@@ -49,7 +49,9 @@ export function useBackupDownloadFlow({
     try {
       const hydrated = await bootstrapAccount();
       if (!hydrated?.userId) {
-        setOnboardError("Konto konnte nicht geladen werden. Bitte kurz warten und erneut versuchen.");
+        setOnboardError(
+          "Konto konnte nicht geladen werden. Bitte kurz warten und erneut versuchen."
+        );
         return;
       }
     } catch (e: unknown) {

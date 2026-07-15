@@ -39,7 +39,9 @@ export function buildPairPlayState(input: PairPlayStateInput) {
 
   const baseOpen = pairReady ? getOpenQuestions(questions, answerSummary) : [];
   const unansweredAll = baseOpen.filter((question) => !answerSummary[question.id]?.mine);
-  const openNonOwn = unansweredAll.filter((question) => question.createdBy !== identityUserId).length;
+  const openNonOwn = unansweredAll.filter(
+    (question) => question.createdBy !== identityUserId
+  ).length;
   const playedPending = baseOpen.filter((question) => !!answerSummary[question.id]?.mine);
 
   const unanswered =

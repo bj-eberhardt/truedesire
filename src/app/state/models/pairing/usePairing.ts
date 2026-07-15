@@ -28,8 +28,11 @@ export function usePairing(
   identity: Identity | null
 ): UsePairingResult {
   const getClient = usePairingClient(apiClient, identity);
-  const { pairingIncoming, pairingOutgoing, refreshPairingRequests: loadPairingRequests } =
-    usePairingRequests(getClient);
+  const {
+    pairingIncoming,
+    pairingOutgoing,
+    refreshPairingRequests: loadPairingRequests
+  } = usePairingRequests(getClient);
   const { myPairs, refreshPairingPartners } = usePairingPartners(getClient);
 
   const refreshPairing = useCallback(
