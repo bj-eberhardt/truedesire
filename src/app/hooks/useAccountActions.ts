@@ -60,7 +60,7 @@ export function useAccountActions(opts: UseAccountActionsOptions): UseAccountAct
     clearMatches();
     clearQuestions();
     setIdentity(null);
-    window.location.hash = "#/v3";
+    window.location.hash = "#/v3/welcome";
     setAccountDeletedModalOpen(true);
   }, [apiClient, clearMatches, clearQuestions, resetLocalIdentity, setIdentity, setPair]);
 

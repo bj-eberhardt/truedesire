@@ -1,0 +1,210 @@
+{
+  "version": 1,
+  "description": "Initial system question catalog",
+  "questions": [
+    {
+      "id": "q_threesome",
+      "text": "Möchtest du gerne einen Dreier ausprobieren?"
+    },
+    {
+      "id": "q_roleplay",
+      "text": "Möchtest du mal ein Rollenspiel ausprobieren?"
+    },
+    {
+      "id": "q_talk",
+      "text": "Möchtest du über Fantasien offener sprechen, z.B. einmal pro Woche 10 Minuten?"
+    },
+    {
+      "id": "q_surprise",
+      "text": "Hättest du Lust auf ein Überraschungs-Date, das wir abwechselnd planen?"
+    },
+    {
+      "id": "q_rules",
+      "text": "Sollen wir unsere Grenzen und No-Gos einmal gemeinsam festhalten?"
+    },
+    {
+      "id": "q_checkin",
+      "text": "Wollen wir einen regelmäßigen Beziehungs-Check-in machen, z.B. sonntags 10 Minuten?"
+    },
+    {
+      "id": "q_conflict_style",
+      "text": "Möchtest du nach einem Streit erst kurz Abstand nehmen und später weiterreden?"
+    },
+    {
+      "id": "q_boundaries_phone",
+      "text": "Sollen wir Handys bei Dates öfter weglegen?"
+    },
+    {
+      "id": "q_sleep_separate",
+      "text": "Wollen wir häufiger in getrennten Betten schlafen?"
+    },
+    {
+      "id": "q_public_affection",
+      "text": "Magst du Zuneigung in der Öffentlichkeit, z.B. Händchen halten oder Küssen?"
+    },
+    {
+      "id": "q_initiative",
+      "text": "Wünschst du dir, dass wir beide öfter Initiative bei Dates, Sex und Nähe zeigen?"
+    },
+    {
+      "id": "q_aftercare",
+      "text": "Ist dir Aftercare wichtig, z.B. Kuscheln, Reden oder Nähe nach Sex?"
+    },
+    {
+      "id": "q_kinks_list",
+      "text": "Wollen wir gemeinsam eine Kink-/Fantasie-Liste mit Neugierig, Vielleicht und Nein machen?"
+    },
+    {
+      "id": "q_safeword",
+      "text": "Sollen wir ein Safeword vereinbaren, falls etwas zu viel wird?"
+    },
+    {
+      "id": "q_toys",
+      "text": "Hättest du Lust, zusammen ein Sex Toy auszusuchen?"
+    },
+    {
+      "id": "q_porn",
+      "text": "Hättest du Lust, gemeinsam Pornos oder erotische Inhalte anzuschauen?"
+    },
+    {
+      "id": "q_flirting_others",
+      "text": "Erlauben wir Flirts mit anderen Personen?"
+    },
+    {
+      "id": "q_exes_contact",
+      "text": "Möchtest du gemeinsam Regeln für Kontakt zu Ex-Partnern festlegen?"
+    },
+    {
+      "id": "q_sex_recording",
+      "text": "Wollen wir uns beim Sex aufnehmen oder filmen?"
+    },
+    {
+      "id": "q_erotic_photos",
+      "text": "Wollen wir uns gegenseitig erotische Bilder schicken?"
+    },
+    {
+      "id": "q_bondage",
+      "text": "Möchtest du Bondage ausprobieren?"
+    },
+    {
+      "id": "q_sm_apartment_weekend",
+      "text": "Möchtest du ein Wochenende in einem SM-Apartment verbringen?"
+    },
+    {
+      "id": "q_blindfold",
+      "text": "Möchtest du Augenbinden beim Sex ausprobieren?"
+    },
+    {
+      "id": "q_spanking",
+      "text": "Möchtest du Spanking ausprobieren, also einvernehmliche Klapse auf Po oder Oberschenkel?"
+    },
+    {
+      "id": "q_temperature_play",
+      "text": "Möchtest du Temperaturspiele mit Eis oder Wärme ausprobieren?"
+    },
+    {
+      "id": "q_wax_play",
+      "text": "Möchtest du Wachs-Spiele mit sicherem Massagewachs ausprobieren?"
+    },
+    {
+      "id": "q_dirty_talk",
+      "text": "Möchtest du Dirty Talk ausprobieren?"
+    },
+    {
+      "id": "q_sex_commands",
+      "text": "Möchtest du beim Sex klare Kommandos geben oder bekommen?"
+    },
+    {
+      "id": "q_private_unusual_place",
+      "text": "Möchtest du Sex an einem ungewöhnlichen, aber privaten Ort ausprobieren?"
+    },
+    {
+      "id": "q_discreet_outdoor_sex",
+      "text": "Möchtest du Outdoor-Sex an einem diskreten Ort ausprobieren?"
+    },
+    {
+      "id": "q_erotic_club",
+      "text": "Möchtest du gemeinsam einen Erotikclub besuchen?"
+    },
+    {
+      "id": "q_swingerclub_visit",
+      "text": "Möchtest du einen Swingerclub besuchen, ohne direkt etwas machen zu müssen?"
+    },
+    {
+      "id": "q_remote_toy",
+      "text": "Möchtest du Sexspielzeug mit Fernsteuerung ausprobieren?"
+    },
+    {
+      "id": "q_anal_play",
+      "text": "Möchtest du Analspiele ausprobieren?"
+    },
+    {
+      "id": "q_fetish_materials",
+      "text": "Möchtest du Latex, Leder oder Lack ausprobieren?"
+    },
+    {
+      "id": "q_daytime_erotic_messages",
+      "text": "Möchtest du tagsüber erotische Nachrichten bekommen?"
+    },
+    {
+      "id": "q_one_leads_evening",
+      "text": "Möchtest du einen Abend planen, an dem eine Person komplett die Führung übernimmt?"
+    },
+    {
+      "id": "q_sexual_needs_missing",
+      "text": "Möchtest du ehrlich besprechen, ob uns sexuell etwas fehlt?"
+    },
+    {
+      "id": "q_two_week_abstinence_date",
+      "text": "Wollen wir ausprobieren, zwei Wochen keinen Sex zu haben und uns dann auf einen festen Termin zu freuen?"
+    },
+    {
+      "id": "q_sex_without_orgasm_goal",
+      "text": "Möchtest du ausprobieren, Sex ohne das Ziel eines Orgasmus zu haben?"
+    },
+    {
+      "id": "q_oral_sex",
+      "text": "Hättest du Lust auf Oralsex?"
+    },
+    {
+      "id": "q_kamasutra_positions",
+      "text": "Hättest du Lust, gemeinsam neue Kamasutra-Stellungen auszuprobieren?"
+    },
+    {
+      "id": "q_mutual_masturbation",
+      "text": "Möchtest du ausprobieren, dass wir gemeinsam masturbieren?"
+    },
+    {
+      "id": "q_say_what_you_want",
+      "text": "Möchtest du beim Sex bewusster sagen, was du dir gerade wünschst?"
+    },
+    {
+      "id": "q_erotic_story_reading",
+      "text": "Hättest du Lust, gemeinsam eine erotische Geschichte zu lesen?"
+    },
+    {
+      "id": "q_shower_or_bath_together",
+      "text": "Hättest du Lust, gemeinsam zu duschen oder zu baden, ohne dass daraus automatisch Sex entstehen muss?"
+    },
+    {
+      "id": "q_fkk",
+      "text": "Hättest du Lust, gemeinsam an einen FKK-Strand oder Badesee zu gehen?"
+    },
+    {
+      "id": "q_food_play_whipped_cream",
+      "text": "Wollen wir uns gegenseitig z.B. mit Sahne einschmieren und abschlecken?"
+    },
+    {
+      "id": "q_textile_free_sauna",
+      "text": "Hättest du Lust, gemeinsam eine Sauna oder Therme mit textilfreiem Bereich zu besuchen?"
+    },
+    {
+      "id": "q_sleep_naked_together",
+      "text": "Möchtest du ausprobieren, nackt nebeneinander zu schlafen?"
+    },
+    {
+      "id": "q_sex_with_lights_on",
+      "text": "Möchtest du ausprobieren, Sex bei Licht zu haben?"
+    }
+  ]
+}

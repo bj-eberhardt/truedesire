@@ -104,7 +104,11 @@ export function usePairWorkspace(opts: UsePairWorkspaceOptions): UsePairWorkspac
         await refreshCurrentPairing();
         const routeTargetPairId =
           pairRoutePairId &&
-          (pairRouteMode === "pair" || pairRouteMode === "ask" || pairRouteMode === "played")
+          (pairRouteMode === "pair" ||
+            pairRouteMode === "pairMatches" ||
+            pairRouteMode === "pairSettings" ||
+            pairRouteMode === "ask" ||
+            pairRouteMode === "played")
             ? pairRoutePairId
             : null;
         const last = await idbGet<string>("ui:lastPairId");
@@ -115,6 +119,27 @@ export function usePairWorkspace(opts: UsePairWorkspaceOptions): UsePairWorkspac
       }
     })();
   }, [apiClient, openPair, refreshCurrentPairing, pairRouteMode, pairRoutePairId]);
+
+  useEffect(() => {
+    if (!apiClient) return;
+    if (!pairRoutePairId) return;
+    if (
+      pairRouteMode !== "pair" &&
+      pairRouteMode !== "pairMatches" &&
+      pairRouteMode !== "pairSettings" &&
+      pairRouteMode !== "ask" &&
+      pairRouteMode !== "played"
+    )
+      return;
+    if (pair?.id === pairRoutePairId) return;
+    (async () => {
+      try {
+        await openPair(pairRoutePairId);
+      } catch {
+        // ignore deep-link load errors
+      }
+    })();
+  }, [apiClient, openPair, pair?.id, pairRouteMode, pairRoutePairId]);
 
   const refreshPairView = useCallback(async () => {
     const targetPairId = pairRoutePairId ?? pair?.id;

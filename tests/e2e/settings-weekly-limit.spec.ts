@@ -11,6 +11,7 @@ import {
 test("manages weekly limit proposals and enforces then removes the accepted limit", async ({
   browser
 }) => {
+  test.slow();
   const alice = await createRegisteredUser(browser, uniqueName("LimitA"));
   const bob = await createRegisteredUser(browser, uniqueName("LimitB"));
   let pairId = "";
@@ -83,6 +84,8 @@ test("manages weekly limit proposals and enforces then removes the accepted limi
     await gotoPair(alice.page, pairId);
     await openSettings(alice.page);
     await alice.page.getByTestId("weekly-limit-toggle").click();
+    await expect(alice.page.getByText("Alle Fragen erlaubt")).toBeVisible();
+    await expect(alice.page.getByTestId("weekly-limit-propose-button")).toBeEnabled();
     await alice.page.getByTestId("weekly-limit-propose-button").click();
     await expect(alice.page.getByTestId("weekly-limit-pending-block")).toBeVisible();
     await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("1");

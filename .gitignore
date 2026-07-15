@@ -27,4 +27,5 @@ server/data/db.json
 *.sw?
 
 test-results
+ci-reports
 playwright-report

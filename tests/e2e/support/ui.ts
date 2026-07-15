@@ -25,8 +25,13 @@ export async function gotoApp(page: Page): Promise<void> {
   await expect(page.getByTestId("app-header")).toBeVisible();
 }
 
+export async function gotoWelcome(page: Page): Promise<void> {
+  await page.goto("/#/v3/welcome");
+  await expect(page.getByTestId("app-header")).toBeVisible();
+}
+
 export async function registerUser(page: Page, nickname: string): Promise<string> {
-  await gotoApp(page);
+  await gotoWelcome(page);
   await expect(page.getByTestId("onboarding-view")).toBeVisible();
   await page.getByTestId("onboarding-new-account-button").click();
   await page.getByTestId("nickname-input").fill(nickname);
@@ -67,7 +72,7 @@ export async function exportBackupText(page: Page): Promise<string> {
 }
 
 export async function importBackupText(page: Page, backupText: string): Promise<string> {
-  await gotoApp(page);
+  await gotoWelcome(page);
   await page.getByTestId("onboarding-has-backup-button").click();
   await page.getByTestId("backup-import-textarea").fill(backupText);
   await page.getByTestId("backup-import-submit-button").click();
@@ -123,7 +128,7 @@ export async function gotoPair(page: Page, pairId: string): Promise<void> {
   const refresh = page.getByTestId("pair-refresh-button");
   if ((await refresh.count()) > 0 && (await refresh.isVisible())) {
     await refresh.click();
-    await page.waitForTimeout(1_700);
+    await expect(refresh).toBeEnabled();
   }
 }
 
@@ -153,7 +158,8 @@ export async function answerCurrentQuestion(
 
 export async function findQuestionByText(page: Page, questionText: string): Promise<void> {
   await expect(page.getByTestId("play-card")).toBeVisible();
-  for (let i = 0; i < 50; i += 1) {
+  const maxNavigationSteps = 250;
+  for (let i = 0; i < maxNavigationSteps; i += 1) {
     const visibleText = await page.getByTestId("play-question-text").innerText();
     if (visibleText.includes(questionText)) return;
     const next = page.getByTestId("play-next-button");

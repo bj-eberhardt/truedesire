@@ -28,6 +28,8 @@ RUN npm ci
 # Copy server source files
 COPY server/tsconfig.json ./
 COPY server/src ./src
+COPY server/scripts ./scripts
+COPY server/data ./data
 
 # Build backend
 RUN npm run build
@@ -40,14 +42,12 @@ WORKDIR /app/server
 ENV NODE_ENV=production
 ENV PORT=3001
 ENV STATIC_DIR=/app/dist
-ENV SYSTEM_QUESTIONS_FILE=/app/server/default-data/system-questions.json
 
 # Copy frontend build from frontend-build stage
 COPY --from=frontend-build /app/dist /app/dist
 
 # Copy backend build from backend-build stage
 COPY --from=backend-build /app/server/dist ./dist
-COPY server/data/system-questions.json ./default-data/system-questions.json
 
 # Install production dependencies
 COPY server/package.json server/package-lock.json ./

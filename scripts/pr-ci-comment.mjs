@@ -4,7 +4,7 @@ const marker = "<!-- pr-ci-comment -->";
 const playwrightResultsPath =
   process.env.PLAYWRIGHT_RESULTS_PATH || "test-results/playwright-results.json";
 const backendTestResultsPath =
-  process.env.BACKEND_TEST_RESULTS_PATH || "test-results/server-tests.json";
+  process.env.BACKEND_TEST_RESULTS_PATH || "ci-reports/backend/server-tests.json";
 
 function iconFor(outcome) {
   if (outcome === "success" || outcome === "passed") return "\u2705";
@@ -97,6 +97,24 @@ function formatFailures(failures, label = "test") {
     .join("\n\n");
 }
 
+function unavailableBackendReportStats(reason) {
+  return {
+    passed: 0,
+    failed: 1,
+    skipped: 0,
+    total: 1,
+    failures: [
+      {
+        title: "Backend test report unavailable",
+        status: "failed",
+        retryCount: 0,
+        duration: 0,
+        error: reason
+      }
+    ]
+  };
+}
+
 async function readPlaywrightStats() {
   try {
     const raw = await readFile(playwrightResultsPath, "utf8");
@@ -111,12 +129,14 @@ async function readPlaywrightStats() {
 
 function readVitestStats(report) {
   const failures = [];
+  let failedSuiteCount = 0;
 
   for (const fileResult of report.testResults ?? []) {
+    const failedAssertions = [];
     for (const testResult of fileResult.assertionResults ?? []) {
       if (testResult.status !== "failed") continue;
 
-      failures.push({
+      failedAssertions.push({
         title: testResult.fullName || testResult.title || fileResult.name || "unknown backend test",
         status: "failed",
         retryCount: 0,
@@ -124,17 +144,35 @@ function readVitestStats(report) {
         error: (testResult.failureMessages ?? []).join("\n\n")
       });
     }
+    failures.push(...failedAssertions);
+
+    if (fileResult.status === "failed" && failedAssertions.length === 0) {
+      failedSuiteCount += 1;
+      failures.push({
+        title: fileResult.name || "unknown backend test suite",
+        status: "failed",
+        retryCount: 0,
+        duration: Math.max(Number(fileResult.endTime ?? 0) - Number(fileResult.startTime ?? 0), 0),
+        error:
+          fileResult.message ||
+          fileResult.failureMessage ||
+          "Backend test suite failed before any test case failed."
+      });
+    }
   }
 
   const passed = Number(report.numPassedTests ?? 0);
-  const failed = Number(report.numFailedTests ?? failures.length);
+  const failedTests = Number(report.numFailedTests ?? 0);
+  const reportedFailedSuites = Number(report.numFailedTestSuites ?? 0);
+  const failed = failedTests + Math.max(failedSuiteCount, reportedFailedSuites - failedTests, 0);
   const skipped = Number(report.numPendingTests ?? 0) + Number(report.numTodoTests ?? 0);
+  const reportedTotal = Number(report.numTotalTests ?? 0);
 
   return {
     passed,
     failed,
     skipped,
-    total: Number(report.numTotalTests ?? passed + failed + skipped),
+    total: reportedTotal > 0 ? reportedTotal : passed + failed + skipped,
     failures
   };
 }
@@ -143,7 +181,14 @@ async function readBackendTestStats() {
   try {
     const raw = await readFile(backendTestResultsPath, "utf8");
     return readVitestStats(JSON.parse(raw));
-  } catch {
+  } catch (error) {
+    if (process.env.BACKEND_TESTS_OUTCOME === "failure") {
+      const message = error instanceof Error ? error.message : String(error);
+      return unavailableBackendReportStats(
+        `Backend test step failed, but ${backendTestResultsPath} could not be read or parsed: ${message}`
+      );
+    }
+
     return { passed: 0, failed: 0, skipped: 0, total: 0, failures: [] };
   }
 }
@@ -160,7 +205,10 @@ const backendTestResultsUrl = process.env.BACKEND_TEST_RESULTS_URL || "";
 const playwright = await readPlaywrightStats();
 const backendNodeTests = await readBackendTestStats();
 const playwrightIcon = playwright.failed > 0 ? iconFor("failed") : iconFor("passed");
-const backendTestsIcon = backendNodeTests.failed > 0 ? iconFor("failed") : iconFor("passed");
+const backendTestsIcon =
+  backendNodeTests.failed > 0 || process.env.BACKEND_TESTS_OUTCOME === "failure"
+    ? iconFor("failed")
+    : iconFor("passed");
 
 const summary = [
   marker,
@@ -176,7 +224,7 @@ const summary = [
   `| Lint | ${lint} | npm run lint:fix |`,
   `| Backend Lint | ${backendLint} | npm run --prefix server lint:fix |`,
   `| Formatting | ${prettier} | npm run format |`,
-  `| Backend tests | ${backendTests} | npm run server:test:docker |`,
+  `| Backend tests | ${backendTests} | see backend test step in PR workflow |`,
   `| E2E tests | ${e2e} | |`,
   "",
   `Backend test artifact: ${backendTestResultsUrl ? `[backend-test-results](${backendTestResultsUrl})` : "_not available_"}`,

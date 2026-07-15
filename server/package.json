@@ -9,12 +9,14 @@
   "scripts": {
     "dev": "node --watch dist/server.js",
     "watch": "tsc -p tsconfig.json --watch --preserveWatchOutput",
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node scripts/copy-sql-migrations.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --config vitest.config.ts",
+    "test": "node --import ../scripts/patch-child-process-exec.mjs ./node_modules/vitest/vitest.mjs run --config vitest.config.ts",
+    "test:architecture": "node --import ../scripts/patch-child-process-exec.mjs ./node_modules/vitest/vitest.mjs run --config vitest.config.ts test/architecture.test.ts",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "start": "node dist/server.js"
+    "start": "node dist/server.js",
+    "system-questions:publish": "node dist/scripts/publishSystemQuestions.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

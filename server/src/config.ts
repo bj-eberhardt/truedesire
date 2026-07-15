@@ -1,4 +1,3 @@
-import path from "node:path";
 import { z } from "zod";
 
 const envNumber = (fallback: number) =>
@@ -22,7 +21,6 @@ const envBoolean = (fallback: boolean) =>
 
 const envSchema = z.object({
   WEEKLY_LIMIT_DEFAULT: envNumber(15),
-  SYSTEM_QUESTIONS_FILE: z.string().optional(),
   STATIC_DIR: z.string().optional(),
   PORT: envNumber(3001),
   DATABASE_URL: z
@@ -48,9 +46,6 @@ export function parseConfig(env: NodeJS.ProcessEnv) {
 
   return {
     defaultWeeklyLimit: parsed.data.WEEKLY_LIMIT_DEFAULT,
-    systemQuestionsFile:
-      parsed.data.SYSTEM_QUESTIONS_FILE ||
-      path.join(process.cwd(), "data", "system-questions.json"),
     staticDir: parsed.data.STATIC_DIR || "",
     port: parsed.data.PORT,
     databaseUrl: parsed.data.DATABASE_URL,
@@ -68,7 +63,6 @@ export function parseConfig(env: NodeJS.ProcessEnv) {
 const config = parseConfig(process.env);
 
 export const DEFAULT_WEEKLY_LIMIT = config.defaultWeeklyLimit;
-export const SYSTEM_QUESTIONS_FILE = config.systemQuestionsFile;
 export const STATIC_DIR = config.staticDir;
 export const PORT = config.port;
 export const DATABASE_URL = config.databaseUrl;

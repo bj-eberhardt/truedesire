@@ -1,6 +1,6 @@
 # Development Configuration
 
-This project supports simple runtime configuration for weekly limits and initial system questions.
+This project supports simple runtime configuration for weekly limits.
 
 ## Weekly Limit (Default = 15)
 
@@ -15,18 +15,24 @@ Example:
 WEEKLY_LIMIT_DEFAULT=20 npm run server:start
 ```
 
-## Initial System Questions
+## System Questions
 
-- System questions are loaded by the server from a JSON file.
-- Default file path:
-  - `server/data/system-questions.json`
-- You can override this path with:
-  - `SYSTEM_QUESTIONS_FILE`
+- System questions are stored in Postgres.
+- SQL migration `002_system_questions.sql` creates only the catalog tables.
+- Versioned catalog files live in `server/data/system-question-catalogs` (`v1.json`, `v2.json`,
+  ...).
+- On startup, the server imports missing catalog versions and calculates question hashes
+  internally. Existing versions are not changed.
+- New catalogs are published as complete versions; no questions are inherited from previous
+  versions.
+- Startup migrations are SQL files in `server/src/db/migrations` and are copied to
+  `server/dist/db/migrations` during `npm --prefix server run build`. Catalog files are copied to
+  `server/dist/data/system-question-catalogs`.
 
-Example:
+Example after building the server:
 
 ```bash
-SYSTEM_QUESTIONS_FILE=/absolute/path/to/my-system-questions.json npm run server:start
+npm --prefix server run system-questions:publish -- server/data/system-question-catalogs/v2.json
 ```
 
 ## Notes
@@ -67,7 +73,6 @@ Backend-ENV:
 - `DB_MIGRATIONS_LOCK_TIMEOUT_MS` (default: `10000`)
 - `STATIC_DIR` (wenn gesetzt, liefert das Backend die gebaute Vite-App aus)
 - `WEEKLY_LIMIT_DEFAULT` (default: `15`)
-- `SYSTEM_QUESTIONS_FILE` (default: `server/data/system-questions.json`)
 - `PAIRING_LIMIT_USER_PER_MIN` (default: `10`)
 - `PAIRING_LIMIT_USER_PER_HOUR` (default: `50`)
 - `PAIRING_LIMIT_IP_PER_MIN` (default: `30`)

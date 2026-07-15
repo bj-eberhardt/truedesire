@@ -1,5 +1,5 @@
 export type V3RouteMode =
-  "home" | "pair" | "ask" | "played" | "backup" | "pairMatches" | "pairSettings";
+  "home" | "welcome" | "pair" | "ask" | "played" | "backup" | "pairMatches" | "pairSettings";
 
 export type V3Route = {
   mode: V3RouteMode;
@@ -12,6 +12,7 @@ export type AppRoute = { kind: "v3"; route: V3Route };
 function parseV3SubRoute(hashPath: string): V3Route {
   const h = hashPath || "/";
   if (new RegExp("^/backup/?$").test(h)) return { pairId: null, mode: "backup" };
+  if (new RegExp("^/welcome/?$").test(h)) return { pairId: null, mode: "welcome" };
   const mPairMatches = h.match(new RegExp("^/pair/([^/]+)/matches/?$"));
   if (mPairMatches) return { pairId: decodeURIComponent(mPairMatches[1]), mode: "pairMatches" };
   const mPairSettings = h.match(new RegExp("^/pair/([^/]+)/settings/?$"));
@@ -70,9 +71,13 @@ export function goV3Backup() {
   window.location.hash = "#/v3/backup";
 }
 
+export function goV3Welcome() {
+  window.location.hash = "#/v3/welcome";
+}
+
 export function goV3Onboarding(step: NonNullable<V3Route["onboard"]>) {
   if (step === "start") {
-    window.location.hash = "#/v3";
+    window.location.hash = "#/v3/welcome";
     return;
   }
   window.location.hash = `#/v3/onboarding/${step}`;

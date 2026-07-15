@@ -32,7 +32,6 @@ services:
       NODE_ENV: production
       PORT: "${PORT:-3001}"
       DATABASE_URL: "postgres://${POSTGRES_USER:-truedesire}:${POSTGRES_PASSWORD:-truedesire}@postgres:5432/${POSTGRES_DB:-truedesire}"
-      SYSTEM_QUESTIONS_FILE: /app/server/default-data/system-questions.json
       STATIC_DIR: /app/dist
     ports:
       - target: 3001

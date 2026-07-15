@@ -1,18 +1,16 @@
 import { useEffect, useRef, useState } from "react";
-import type { AnswerChoice, PairView } from "../../../types";
+import { goV3Pair } from "../../../app/routes";
+import { usePairWorkspaceContext, useQuestionsContext } from "../../../app/state";
+import type { AnswerChoice } from "../../../types";
 import { InlineError } from "../components/InlineError";
 import { V3View } from "../components/V3View";
 import { ANSWER_SAVED_FLASH_TIMEOUT_MS } from "../hooks/useSavedFlash";
 import { toUserMessage } from "../lib/errors";
 
-type AskPageProps = {
-  pairId: string;
-  pair: PairView | null;
-  onBack: () => void;
-  onSave: (text: string, selfAnswer: AnswerChoice) => Promise<void>;
-};
-
-export function AskPage(props: AskPageProps) {
+export function AskPage() {
+  const { route, pair } = usePairWorkspaceContext();
+  const { addQuestion } = useQuestionsContext();
+  const pairId = route.route.pairId ?? "";
   const [questionText, setQuestionText] = useState("");
   const [questionSelfAnswer, setQuestionSelfAnswer] = useState<AnswerChoice | null>(null);
   const [askError, setAskError] = useState<string | null>(null);
@@ -26,8 +24,8 @@ export function AskPage(props: AskPageProps) {
   }, []);
 
   const canSave =
-    !!props.pair &&
-    props.pair.status === "active" &&
+    !!pair &&
+    pair.status === "active" &&
     !!questionText.trim() &&
     !!questionSelfAnswer &&
     !isSaving;
@@ -36,7 +34,7 @@ export function AskPage(props: AskPageProps) {
     <V3View
       title="Eigene Frage stellen"
       subtitle="Neue Frage erstellen und deine eigene Antwort direkt speichern. Danach wird die Frage auch deinem Partner angezeigt - ohne dich als Autor zu nennen."
-      onBack={props.onBack}
+      onBack={() => goV3Pair(pairId)}
       testId="ask-view"
       backTestId="ask-back-button"
     >
@@ -95,10 +93,10 @@ export function AskPage(props: AskPageProps) {
             }
             try {
               setIsSaving(true);
-              await props.onSave(text, questionSelfAnswer);
+              await addQuestion(text, questionSelfAnswer);
               setAskSuccess(true);
               window.setTimeout(() => {
-                props.onBack();
+                goV3Pair(pairId);
               }, ANSWER_SAVED_FLASH_TIMEOUT_MS);
             } catch (e: unknown) {
               setIsSaving(false);

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { api } from "../api/api";
 import { decryptJson, encryptJson } from "../crypto/aead";
 import { derivePairAesKey } from "../crypto/sharedKey";
@@ -38,6 +38,7 @@ export function useQuestions(opts: {
   const [rawQuestions, setRawQuestions] = useState<QuestionView[]>([]);
   const [answerSummary, setAnswerSummary] = useState<AnswerSummary>({});
   const [systemQuestionHashes, setSystemQuestionHashes] = useState<SystemQuestionHashes>({});
+  const systemQuestionHashesRef = useRef<SystemQuestionHashes>({});
 
   function toSystemQuestionHashes(
     catalog: Array<{ id: string; version: number; sha256B64: string }>
@@ -57,15 +58,20 @@ export function useQuestions(opts: {
     setAnswerSummary({});
   }, []);
 
+  const updateSystemQuestionHashes = useCallback((next: SystemQuestionHashes) => {
+    systemQuestionHashesRef.current = next;
+    setSystemQuestionHashes(next);
+  }, []);
+
   const refreshSystemQuestionHashes = useCallback(async () => {
     if (!apiClient) return;
     try {
       const system = await apiClient.system.questions();
-      setSystemQuestionHashes(toSystemQuestionHashes(system.verificationCatalog));
+      updateSystemQuestionHashes(toSystemQuestionHashes(system.verificationCatalog));
     } catch {
-      setSystemQuestionHashes({});
+      updateSystemQuestionHashes({});
     }
-  }, [apiClient]);
+  }, [apiClient, updateSystemQuestionHashes]);
 
   const ensureSystemQuestionsSeeded = useCallback(
     async (p: PairView) => {
@@ -75,7 +81,7 @@ export function useQuestions(opts: {
         if (p.seededSystemQuestionsAt) return;
         const aes = await derivePairAesKey(identity.keys.ecdhPrivateKey, p, identity.userId);
         const system = await apiClient.system.questions();
-        setSystemQuestionHashes(toSystemQuestionHashes(system.verificationCatalog));
+        updateSystemQuestionHashes(toSystemQuestionHashes(system.verificationCatalog));
         const items = await Promise.all(
           system.questions.map(async (q) => ({
             systemId: q.id,
@@ -97,7 +103,7 @@ export function useQuestions(opts: {
         // ignore seeding errors
       }
     },
-    [apiClient, identity?.keys.ecdhPrivateKey, identity?.userId]
+    [apiClient, identity?.keys.ecdhPrivateKey, identity?.userId, updateSystemQuestionHashes]
   );
 
   const loadQuestionsAndDecrypt = useCallback(
@@ -125,9 +131,10 @@ export function useQuestions(opts: {
               typeof payload.systemVersion === "number" && Number.isInteger(payload.systemVersion)
                 ? payload.systemVersion
                 : null;
+            const verificationHashes = systemQuestionHashesRef.current;
             const expected = version
-              ? (systemQuestionHashes[`${systemId}:${version}`] ?? [])
-              : (systemQuestionHashes[systemId] ?? []);
+              ? (verificationHashes[`${systemId}:${version}`] ?? [])
+              : (verificationHashes[systemId] ?? []);
             const actual = await sha256Base64(text);
             const hash = String(payload.systemHash);
             const ok = expected.includes(hash) && hash === actual;
@@ -162,7 +169,7 @@ export function useQuestions(opts: {
       }
       setAnswerSummary(summary);
     },
-    [apiClient, identity, pair, systemQuestionHashes]
+    [apiClient, identity, pair]
   );
 
   const addQuestion = useCallback(
