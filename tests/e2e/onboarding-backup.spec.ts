@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 import {
   exportBackupText,
   gotoApp,
+  gotoWelcome,
   importBackupText,
   openProfileMenu,
   readPairingCode,
@@ -15,6 +16,10 @@ test("validates registration, creates an account, and downloads the optional onb
 
   await test.step("open onboarding and verify empty nickname cannot be submitted", async () => {
     await gotoApp(page);
+    await expect(page.getByTestId("welcome-teaser")).toBeVisible();
+    await expect(page.getByTestId("onboarding-view")).toHaveCount(0);
+    await page.getByTestId("welcome-start-button").click();
+    await expect(page).toHaveURL(/#\/v3\/welcome$/);
     await expect(page.getByTestId("onboarding-view")).toBeVisible();
     await page.getByTestId("onboarding-new-account-button").click();
     await page.getByTestId("nickname-input").fill("");
@@ -50,7 +55,7 @@ test("exports a backup, rejects invalid import text, imports a valid backup, and
   let backupText = "";
 
   await test.step("register source account and export backup text", async () => {
-    await gotoApp(page);
+    await gotoWelcome(page);
     await page.getByTestId("onboarding-new-account-button").click();
     await page.getByTestId("nickname-input").fill(nickname);
     await page.getByTestId("create-account-button").click();
@@ -63,7 +68,7 @@ test("exports a backup, rejects invalid import text, imports a valid backup, and
   await test.step("show an inline error for invalid backup JSON", async () => {
     const invalidContext = await browser.newContext();
     const invalidPage = await invalidContext.newPage();
-    await gotoApp(invalidPage);
+    await gotoWelcome(invalidPage);
     await invalidPage.getByTestId("onboarding-has-backup-button").click();
     await invalidPage.getByTestId("backup-import-textarea").fill("{bad json");
     await invalidPage.getByTestId("backup-import-submit-button").click();
@@ -95,5 +100,6 @@ test("exports a backup, rejects invalid import text, imports a valid backup, and
     await expect(page.getByTestId("info-modal")).toBeVisible();
     await page.getByTestId("info-modal-ok-button").click();
     await expect(page.getByTestId("onboarding-view")).toBeVisible();
+    await expect(page).toHaveURL(/#\/v3\/welcome$/);
   });
 });

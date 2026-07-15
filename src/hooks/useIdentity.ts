@@ -8,7 +8,7 @@ type UseIdentityResult = {
   isBootstrappingAccount: boolean;
   setIdentity: (next: Identity | null) => void;
   bootstrap: () => Promise<Identity | null>;
-  register: () => Promise<void>;
+  register: (nicknameOverride?: string) => Promise<Identity>;
   resetLocalIdentity: () => Promise<void>;
 };
 
@@ -34,17 +34,22 @@ export function useIdentity(): UseIdentityResult {
     void bootstrap();
   }, [bootstrap]);
 
-  const register = useCallback(async () => {
-    const trimmed = nickname.trim();
-    if (!trimmed) throw new Error("nickname_required");
-    const next = await loadIdentity({ nickname: trimmed, ensureRegistered: true });
-    if (!next) throw new Error("identity_not_available");
-    if (!next.userId) {
-      throw new Error("register_failed");
-    }
-    setIdentity(next);
-    setNickname(next.nickname);
-  }, [nickname]);
+  const register = useCallback(
+    async (nicknameOverride?: string) => {
+      const trimmed = (nicknameOverride ?? nickname).trim();
+      if (!trimmed) throw new Error("nickname_required");
+      await resetIdentity();
+      const next = await loadIdentity({ nickname: trimmed, ensureRegistered: true });
+      if (!next) throw new Error("identity_not_available");
+      if (!next.userId) {
+        throw new Error("register_failed");
+      }
+      setIdentity(next);
+      setNickname(next.nickname);
+      return next;
+    },
+    [nickname]
+  );
 
   const resetLocalIdentity = useCallback(async () => {
     await resetIdentity();

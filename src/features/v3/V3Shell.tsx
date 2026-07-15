@@ -12,9 +12,11 @@ import { V3Notice } from "./components/V3Notice";
 import { InfoIcon } from "./components/icons/InfoIcon";
 import { AskPage } from "./pages/Ask";
 import { BackupPage } from "./pages/Backup";
+import { AccountHomePage } from "./pages/AccountHome";
 import { HomePage } from "./pages/Home";
 import { PairPage } from "./pages/Pair";
 import { PlayedPage } from "./pages/Played";
+import { WelcomePage } from "./pages/Welcome";
 
 type V3ShellProps = {
   route: V3Route;
@@ -22,7 +24,7 @@ type V3ShellProps = {
   identity: { userId: string; nickname: string; code?: string | null } | null;
   nickname: string;
   onNicknameChange: (next: string) => void;
-  onRegister: () => Promise<void>;
+  onRegister: (nickname?: string) => Promise<void>;
   onBootstrap: () => Promise<unknown>;
   inlineNotice: string | null;
 
@@ -202,8 +204,8 @@ export function V3Shell(props: V3ShellProps) {
               onBack={goV3}
               onExportBackupText={props.onExportBackupText}
             />
-          ) : (
-            <HomePage
+          ) : routeMode === "welcome" || routeOnboard !== "start" ? (
+            <WelcomePage
               isBootstrappingAccount={props.isBootstrappingAccount}
               identity={props.identity}
               nickname={props.nickname}
@@ -211,13 +213,20 @@ export function V3Shell(props: V3ShellProps) {
               onRegister={props.onRegister}
               onBootstrap={props.onBootstrap}
               onImportBackupText={props.onImportBackupText}
-              onboardingStep={routeOnboard}
               onExportBackupText={props.onExportBackupText}
+              onboardingStep={routeOnboard}
+            />
+          ) : !props.identity?.userId ? (
+            <HomePage isBootstrappingAccount={props.isBootstrappingAccount} />
+          ) : (
+            <AccountHomePage
+              identity={props.identity}
               myPairs={props.myPairs}
               pairingIncoming={props.pairingIncoming}
               pairingOutgoing={props.pairingOutgoing}
               pairingInlineError={props.pairingInlineError}
               onClearPairingInlineError={props.onClearPairingInlineError}
+              onCopyPairingCode={props.onCopyPairingCode}
               onRefreshPairingRequests={props.onRefreshPairingRequests}
               onSendPairRequest={props.onSendPairRequest}
               onRespondPairing={props.onRespondPairing}

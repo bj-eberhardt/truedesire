@@ -70,6 +70,10 @@ export function usePairing(
       const reqs = await client.pairing.requests();
       setPairingIncoming(reqs.incoming);
       setPairingOutgoing(reqs.outgoing);
+      if (!reqs.incoming.length && !reqs.outgoing.length) {
+        const pairs = await client.pairs.list();
+        setMyPairs(pairs.pairs);
+      }
     },
     [getClient]
   );

@@ -83,7 +83,7 @@ export function PlayedPage(props: PlayedPageProps) {
                         Frage wurde beantwortet.
                       </div>
                     ) : null}
-                    <div className="v3-choice-row">
+                    <div className="v3-choice-row v3-played-choice-row">
                       <button
                         className={`choice yes ${mine === "yes" ? "active" : ""}`}
                         data-testid="played-answer-yes-button"

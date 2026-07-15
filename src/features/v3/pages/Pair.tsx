@@ -247,6 +247,7 @@ export function PairPage(props: PairPageProps) {
           <RefreshButton
             testId="pair-refresh-button"
             onClick={props.onRefreshView}
+            disabled={props.isLoadingPairData}
             title="Ansicht neu laden"
           />
         </div>
@@ -381,9 +382,6 @@ export function PairPage(props: PairPageProps) {
                     <div className="pill mono">
                       {q ? `Frage ${safeIndex + 1}/${ordered.length}` : "Gespeichert"}
                     </div>
-                    {q && (answerSummary[q.id]?.total ?? 0) === 1 ? (
-                      <div className="pill v3-badge-partner-answered">Vom Partner beantwortet</div>
-                    ) : null}
                   </div>
                   <div className="v3-play-question" data-testid="play-question-text">
                     {visibleQuestionText}

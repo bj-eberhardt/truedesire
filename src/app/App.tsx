@@ -133,11 +133,14 @@ export default function App() {
     clearQuestions
   });
 
-  const registerAndRefreshPairing = useCallback(async () => {
-    setError(null);
-    await register();
-    await refreshPairing();
-  }, [refreshPairing, register]);
+  const registerAndRefreshPairing = useCallback(
+    async (nicknameOverride?: string) => {
+      setError(null);
+      const nextIdentity = await register(nicknameOverride);
+      await refreshPairing(nextIdentity);
+    },
+    [refreshPairing, register]
+  );
 
   const deleteAccountAndClearError = useCallback(async () => {
     setError(null);
