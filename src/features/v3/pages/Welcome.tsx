@@ -418,9 +418,7 @@ export function WelcomePage() {
           </>
         ) : null}
 
-        {onboardError ? (
-          <V3PageError testId="onboarding-error">{onboardError}</V3PageError>
-        ) : null}
+        {onboardError ? <V3PageError testId="onboarding-error">{onboardError}</V3PageError> : null}
       </section>
     </>
   );

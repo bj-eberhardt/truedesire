@@ -72,9 +72,7 @@ export function usePairPlayModel() {
   const playedPending = baseOpen.filter((q) => !!answerSummary[q.id]?.mine);
 
   const unanswered =
-    remainingNew > 0
-      ? unansweredAll
-      : unansweredAll.filter((q) => q.createdBy === identityUserId);
+    remainingNew > 0 ? unansweredAll : unansweredAll.filter((q) => q.createdBy === identityUserId);
   const ordered = sortByCreatedAtDesc(unanswered);
 
   const safeIndex = Math.min(cardIndex, Math.max(0, ordered.length - 1));
@@ -92,10 +90,8 @@ export function usePairPlayModel() {
   const canPrev = !!currentQuestion && safeIndex > 0;
   const canNext = !!currentQuestion && safeIndex < ordered.length - 1;
 
-  const showLimitNotice =
-    !flash.showSaved && !isUnlimited && remainingNew === 0 && openNonOwn > 0;
-  const allCurrentAnswered =
-    questions.length > 0 && unansweredAll.length === 0 && openNonOwn === 0;
+  const showLimitNotice = !flash.showSaved && !isUnlimited && remainingNew === 0 && openNonOwn > 0;
+  const allCurrentAnswered = questions.length > 0 && unansweredAll.length === 0 && openNonOwn === 0;
   const limitNoticeText =
     openNonOwn > 0
       ? `Wochenlimit erreicht. Nach dem Wochenreset am ${nextWeeklyResetDateText()} kannst du wieder neue Fragen beantworten. Es warten dann noch ${openNonOwn} offene Fragen auf dich.`

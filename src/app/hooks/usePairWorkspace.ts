@@ -55,15 +55,7 @@ type UsePairWorkspaceResult = {
 };
 
 export function usePairWorkspace(opts: UsePairWorkspaceOptions): UsePairWorkspaceResult {
-  const {
-    apiClient,
-    route,
-    pairSelection,
-    pairing,
-    questions,
-    matches,
-    hiddenMatches
-  } = opts;
+  const { apiClient, route, pairSelection, pairing, questions, matches, hiddenMatches } = opts;
   const { pairRouteMode, pairRoutePairId } = route;
   const { pair, selectPair } = pairSelection;
   const { refreshCurrentPairing } = pairing;
