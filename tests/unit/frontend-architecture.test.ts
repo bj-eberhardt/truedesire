@@ -7,6 +7,14 @@ const v3ShellPath = path.join(root, "src", "features", "v3", "V3Shell.tsx");
 const v3PagesDir = path.join(root, "src", "features", "v3", "pages");
 const pairPagePath = path.join(v3PagesDir, "Pair.tsx");
 const accountHomePath = path.join(v3PagesDir, "AccountHome.tsx");
+const pairMatchesTabPath = path.join(v3PagesDir, "pair", "PairMatchesTab.tsx");
+const pairPlayTabPath = path.join(v3PagesDir, "pair", "PairPlayTab.tsx");
+const pairPlayModelPath = path.join(v3PagesDir, "pair", "usePairPlayModel.ts");
+const viewOnlyPagePaths = [
+  path.join(v3PagesDir, "Ask.tsx"),
+  path.join(v3PagesDir, "Played.tsx"),
+  path.join(v3PagesDir, "Welcome.tsx")
+];
 const appHooksDir = path.join(root, "src", "app", "hooks");
 const hooksDir = path.join(root, "src", "hooks");
 const usePairSelectionPath = path.join(
@@ -106,7 +114,10 @@ test("recently split frontend modules stay below orchestration-size limits", () 
     { file: accountHomePath, maxLines: 140 },
     { file: usePairSelectionPath, maxLines: 120 },
     { file: usePairingPath, maxLines: 120 },
-    { file: useAccountModelPath, maxLines: 80 }
+    { file: useAccountModelPath, maxLines: 80 },
+    { file: pairMatchesTabPath, maxLines: 80 },
+    { file: pairPlayTabPath, maxLines: 60 },
+    { file: pairPlayModelPath, maxLines: 130 }
   ];
 
   const failures = limits.flatMap(({ file, maxLines }) => {
@@ -132,6 +143,15 @@ test("top-level V3 pages do not contain polling or interval refresh logic", () =
       failures.push(path.relative(root, file));
     }
   }
+
+  expect(failures).toEqual([]);
+});
+
+test("view-only V3 pages do not own workflow hooks", () => {
+  const failures = viewOnlyPagePaths.flatMap((file) => {
+    const source = fs.readFileSync(file, "utf8");
+    return /\buse(?:State|Effect|Ref|Callback|Memo)\b/.test(source) ? [path.relative(root, file)] : [];
+  });
 
   expect(failures).toEqual([]);
 });
