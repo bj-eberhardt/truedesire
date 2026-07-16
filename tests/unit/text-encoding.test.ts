@@ -3,7 +3,13 @@ import path from "node:path";
 import { expect, test } from "vitest";
 
 const root = process.cwd();
-const scanRoots = ["src", "tests", "scripts", ".github"];
+const scanRoots = ["src", "server", "tests", "scripts", "docs", ".github"];
+const scanFiles = ["AGENTS.md", "DEV.md", "README.md", "THIRD_PARTY_NOTICES.md"];
+const skippedDirectoryNames = new Set(["node_modules", "dist"]);
+const skippedRelativePaths = new Set([
+  path.join("server", "data", "db.json"),
+  path.join("server", "data", "db.json.tmp")
+]);
 const checkedExtensions = new Set([
   ".css",
   ".html",
@@ -30,15 +36,27 @@ function listFiles(dir: string): string[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   return entries.flatMap((entry) => {
     const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) return listFiles(fullPath);
-    return entry.isFile() && checkedExtensions.has(path.extname(entry.name)) ? [fullPath] : [];
+    if (entry.isDirectory()) {
+      if (skippedDirectoryNames.has(entry.name)) return [];
+      return listFiles(fullPath);
+    }
+    const relative = path.relative(root, fullPath);
+    return entry.isFile() &&
+      checkedExtensions.has(path.extname(entry.name)) &&
+      !skippedRelativePaths.has(relative)
+      ? [fullPath]
+      : [];
   });
 }
 
-test("frontend source text does not contain common mojibake markers", () => {
+test("project source text does not contain common mojibake markers", () => {
   const failures: string[] = [];
+  const files = [
+    ...scanRoots.flatMap((scanRoot) => listFiles(path.join(root, scanRoot))),
+    ...scanFiles.map((file) => path.join(root, file)).filter((file) => fs.existsSync(file))
+  ];
 
-  for (const file of scanRoots.flatMap((scanRoot) => listFiles(path.join(root, scanRoot)))) {
+  for (const file of files) {
     const relative = path.relative(root, file);
     const lines = fs.readFileSync(file, "utf8").split(/\r?\n/);
     lines.forEach((line, index) => {

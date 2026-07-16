@@ -1,7 +1,6 @@
 import { ProfileAvatar } from "../../../components/ProfileAvatar";
 import { RefreshButton } from "../../../components/RefreshButton";
-import { V3LoadingState } from "../components/V3PageState";
-import { V3Notice } from "../components/V3Notice";
+import { PairStatusBadge, V3LoadingState, V3Notice } from "../components";
 import { SettingsIcon } from "../components/icons/SettingsIcon";
 import { PairMatchesTab } from "./pair/PairMatchesTab";
 import { PairPlayTab } from "./pair/PairPlayTab";
@@ -58,17 +57,7 @@ export function PairPage() {
               <h2>{pair.partner?.nickname ?? pair.id}</h2>
               <div className="v3-pair-sub">
                 <span className="pill mono v3-pair-code">{pair.partner?.code ?? "—"}</span>
-                {pair.partnerDeleted || pair.status !== "active" ? (
-                  <span
-                    className={`pill status ${pair.status === "active" ? "ok" : pair.status === "ended" ? "ended" : "pending"}`}
-                  >
-                    {pair.partnerDeleted
-                      ? "gelöscht"
-                      : pair.status === "ended"
-                        ? "beendet"
-                        : "ausstehend"}
-                  </span>
-                ) : null}
+                <PairStatusBadge status={pair.status} partnerDeleted={pair.partnerDeleted} />
               </div>
             </div>
           </div>

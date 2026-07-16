@@ -1,3 +1,5 @@
+import { V3Panel } from "../../components";
+
 export function PairingForm(props: {
   inlineError: string | null;
   partnerCodeInput: string;
@@ -6,12 +8,11 @@ export function PairingForm(props: {
   onSendPairRequest: () => Promise<void>;
 }) {
   return (
-    <section className="card v3-card v3-panel" data-testid="pairing-panel">
-      <h2>Mit Partner verknüpfen</h2>
-      <p className="hint">
-        Gib den Code deines Partners ein und sende die Anfrage. Sobald dein Partner sie annimmt, ist
-        die Verknüpfung aktiv.
-      </p>
+    <V3Panel
+      testId="pairing-panel"
+      title="Mit Partner verknüpfen"
+      hint="Gib den Code deines Partners ein und sende die Anfrage. Sobald dein Partner sie annimmt, ist die Verknüpfung aktiv."
+    >
       <div className="row v3-pairing-form">
         <input
           className="v3-partner-code-input"
@@ -37,6 +38,6 @@ export function PairingForm(props: {
           {props.inlineError}
         </div>
       ) : null}
-    </section>
+    </V3Panel>
   );
 }

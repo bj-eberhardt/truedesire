@@ -1,6 +1,5 @@
 import { goV3 } from "../../../app/routes";
-import { V3PageError } from "../components/V3PageState";
-import { V3View } from "../components/V3View";
+import { V3PageError, V3View } from "../components";
 import { useBackupExportViewModel } from "./backup/useBackupExportViewModel";
 
 export function BackupPage() {

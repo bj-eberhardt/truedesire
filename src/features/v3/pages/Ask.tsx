@@ -1,5 +1,4 @@
-import { V3PageError } from "../components/V3PageState";
-import { V3View } from "../components/V3View";
+import { AnswerChoiceGroup, V3PageError, V3View } from "../components";
 import { useAskQuestionModel } from "./ask/useAskQuestionModel";
 
 export function AskPage() {
@@ -36,32 +35,12 @@ export function AskPage() {
         />
       </label>
 
-      <div className="v3-choice-row" role="group" aria-label="Deine Antwort">
-        <button
-          type="button"
-          className={`choice yes ${questionSelfAnswer === "yes" ? "active" : ""}`}
-          data-testid="ask-answer-yes-button"
-          onClick={() => setQuestionSelfAnswer("yes")}
-        >
-          Ja
-        </button>
-        <button
-          type="button"
-          className={`choice maybe ${questionSelfAnswer === "maybe" ? "active" : ""}`}
-          data-testid="ask-answer-maybe-button"
-          onClick={() => setQuestionSelfAnswer("maybe")}
-        >
-          Vielleicht
-        </button>
-        <button
-          type="button"
-          className={`choice no ${questionSelfAnswer === "no" ? "active" : ""}`}
-          data-testid="ask-answer-no-button"
-          onClick={() => setQuestionSelfAnswer("no")}
-        >
-          Nein
-        </button>
-      </div>
+      <AnswerChoiceGroup
+        ariaLabel="Deine Antwort"
+        value={questionSelfAnswer}
+        onSelect={setQuestionSelfAnswer}
+        testIdPrefix="ask-answer"
+      />
 
       <div className="v3-actions">
         <button

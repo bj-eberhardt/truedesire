@@ -1,49 +1,68 @@
 import { RefreshButton } from "../../../../components/RefreshButton";
-import type { PairSettingsModel } from "./usePairSettingsModel";
+import type { PairView } from "../../../../types";
+import { V3SectionHeader } from "../../components";
 
-type PairSettingsModelProps = {
-  model: PairSettingsModel;
+type GroupSettingsAction = "accept" | "reject" | "cancel";
+
+type PairSettingsHeaderProps = {
+  onRefresh: () => Promise<void> | void;
 };
 
-export function PairSettingsHeader({ model }: PairSettingsModelProps) {
+type PairSettingsLoadingProps = {
+  isLoading: boolean;
+};
+
+type PairSettingsPanelProps = {
+  allowAllQuestions: boolean;
+  canProposeSettings: boolean;
+  isLoadingGroupSettings: boolean;
+  isOwnPendingRequest: boolean;
+  pair: PairView | null;
+  weeklyLimitDraft: string;
+  onProposeGroupSettings: () => Promise<void> | void;
+  onRespondGroupSettings: (action: GroupSettingsAction) => Promise<void> | void;
+  onSetQuestionsUnlimited: (unlimited: boolean) => void;
+  onUpdateWeeklyLimitDraft: (value: string) => void;
+};
+
+export function PairSettingsHeader({ onRefresh }: PairSettingsHeaderProps) {
   return (
-    <div className="row">
-      <h2 style={{ margin: 0 }}>Gruppen-Einstellungen</h2>
-      <RefreshButton
-        testId="settings-refresh-button"
-        onClick={model.refreshGroupSettings}
-        title="Gruppen-Einstellungen neu laden"
-      />
-    </div>
+    <V3SectionHeader
+      title="Gruppen-Einstellungen"
+      action={
+        <RefreshButton
+          testId="settings-refresh-button"
+          onClick={onRefresh}
+          title="Gruppen-Einstellungen neu laden"
+        />
+      }
+    />
   );
 }
 
-export function PairSettingsLoading({ model }: PairSettingsModelProps) {
-  if (!model.isLoadingGroupSettings) return null;
+export function PairSettingsLoading({ isLoading }: PairSettingsLoadingProps) {
+  if (!isLoading) return null;
 
   return <div className="hint">Gruppen-Einstellungen werden geladen...</div>;
 }
 
-export function PairSettingsPanel({ model }: PairSettingsModelProps) {
-  if (model.isLoadingGroupSettings || !model.pair) return null;
+export function PairSettingsPanel(props: PairSettingsPanelProps) {
+  if (props.isLoadingGroupSettings || !props.pair) return null;
 
   return (
     <div className="settings-panel" data-testid="settings-panel">
-      <PairSettingsLimitForm model={model} />
-      <PairSettingsPendingRequest model={model} />
+      <PairSettingsLimitForm {...props} pair={props.pair} />
+      <PairSettingsPendingRequest {...props} pair={props.pair} />
     </div>
   );
 }
 
-function PairSettingsLimitForm({ model }: PairSettingsModelProps) {
-  const pair = model.pair;
-  if (!pair) return null;
-
+function PairSettingsLimitForm(props: PairSettingsPanelProps & { pair: PairView }) {
   return (
     <div className="settings-item">
       <div className="settings-item-title">Fragenlimit pro Woche</div>
       <p className="settings-text">
-        Wenn aktiviert können pro Spieler nur {model.weeklyLimitDraft || "0"} Fragen pro Woche
+        Wenn aktiviert können pro Spieler nur {props.weeklyLimitDraft || "0"} Fragen pro Woche
         beantwortet werden, erst in der darauf folgenden Woche gibt es weitere Fragen. So ist die
         Spannung jede Woche groß, ob es ein weiteres Match gibt.
       </p>
@@ -54,12 +73,12 @@ function PairSettingsLimitForm({ model }: PairSettingsModelProps) {
             <input
               type="checkbox"
               data-testid="weekly-limit-toggle"
-              checked={!model.allowAllQuestions}
-              onChange={(e) => model.setQuestionsUnlimited(!e.target.checked)}
-              disabled={!!pair.weeklyLimitPending || model.isLoadingGroupSettings}
+              checked={!props.allowAllQuestions}
+              onChange={(e) => props.onSetQuestionsUnlimited(!e.target.checked)}
+              disabled={!!props.pair.weeklyLimitPending || props.isLoadingGroupSettings}
             />
           </label>
-          {model.allowAllQuestions ? (
+          {props.allowAllQuestions ? (
             <div className="settings-unlimited-state">Alle Fragen erlaubt</div>
           ) : (
             <div className="settings-number-field">
@@ -71,9 +90,9 @@ function PairSettingsLimitForm({ model }: PairSettingsModelProps) {
                 max="50"
                 step="1"
                 aria-label="Fragen pro Woche"
-                value={model.weeklyLimitDraft}
-                onChange={(e) => model.updateWeeklyLimitDraft(e.target.value.replace(/\D/g, ""))}
-                disabled={!!pair.weeklyLimitPending || model.isLoadingGroupSettings}
+                value={props.weeklyLimitDraft}
+                onChange={(e) => props.onUpdateWeeklyLimitDraft(e.target.value.replace(/\D/g, ""))}
+                disabled={!!props.pair.weeklyLimitPending || props.isLoadingGroupSettings}
               />
               <span className="settings-number-suffix">Fragen/Woche</span>
             </div>
@@ -84,16 +103,16 @@ function PairSettingsLimitForm({ model }: PairSettingsModelProps) {
         <div className="settings-current" data-testid="weekly-limit-current">
           <span className="settings-current-label">Aktuell</span>
           <span className="settings-current-value">
-            {pair.weeklyLimit === 0
+            {props.pair.weeklyLimit === 0
               ? "Alle Fragen erlaubt"
-              : `${pair.weeklyLimit} Fragen pro Woche`}
+              : `${props.pair.weeklyLimit} Fragen pro Woche`}
           </span>
         </div>
         <button
           className="primary settings-propose-button"
           data-testid="weekly-limit-propose-button"
-          onClick={model.proposeGroupSettings}
-          disabled={!model.canProposeSettings}
+          onClick={props.onProposeGroupSettings}
+          disabled={!props.canProposeSettings}
         >
           Änderung vorschlagen
         </button>
@@ -102,24 +121,24 @@ function PairSettingsLimitForm({ model }: PairSettingsModelProps) {
   );
 }
 
-function PairSettingsPendingRequest({ model }: PairSettingsModelProps) {
-  const pending = model.pair?.weeklyLimitPending;
+function PairSettingsPendingRequest(props: PairSettingsPanelProps & { pair: PairView }) {
+  const pending = props.pair.weeklyLimitPending;
   if (!pending) return null;
 
   return (
     <div className="settings-pending-block" data-testid="weekly-limit-pending-block">
       <div className="settings-item-title">Offene Einstellungsanfrage</div>
-      {model.isOwnPendingRequest ? (
-        <OwnPendingRequest model={model} />
+      {props.isOwnPendingRequest ? (
+        <OwnPendingRequest {...props} pair={props.pair} />
       ) : (
-        <PartnerPendingRequest model={model} />
+        <PartnerPendingRequest {...props} pair={props.pair} />
       )}
     </div>
   );
 }
 
-function OwnPendingRequest({ model }: PairSettingsModelProps) {
-  const pending = model.pair?.weeklyLimitPending;
+function OwnPendingRequest(props: PairSettingsPanelProps & { pair: PairView }) {
+  const pending = props.pair.weeklyLimitPending;
   if (!pending) return null;
 
   return (
@@ -129,8 +148,8 @@ function OwnPendingRequest({ model }: PairSettingsModelProps) {
         <button
           className="secondary action-cancel"
           data-testid="weekly-limit-cancel-button"
-          onClick={() => model.respondGroupSettings("cancel")}
-          disabled={model.isLoadingGroupSettings}
+          onClick={() => props.onRespondGroupSettings("cancel")}
+          disabled={props.isLoadingGroupSettings}
           title="Eigenen Vorschlag zurückziehen"
         >
           Zurückziehen
@@ -140,8 +159,8 @@ function OwnPendingRequest({ model }: PairSettingsModelProps) {
   );
 }
 
-function PartnerPendingRequest({ model }: PairSettingsModelProps) {
-  const pending = model.pair?.weeklyLimitPending;
+function PartnerPendingRequest(props: PairSettingsPanelProps & { pair: PairView }) {
+  const pending = props.pair.weeklyLimitPending;
   if (!pending) return null;
 
   return (
@@ -153,16 +172,16 @@ function PartnerPendingRequest({ model }: PairSettingsModelProps) {
         <button
           className="action-accept"
           data-testid="weekly-limit-accept-button"
-          onClick={() => model.respondGroupSettings("accept")}
-          disabled={model.isLoadingGroupSettings}
+          onClick={() => props.onRespondGroupSettings("accept")}
+          disabled={props.isLoadingGroupSettings}
         >
           Annehmen
         </button>
         <button
           className="action-reject"
           data-testid="weekly-limit-reject-button"
-          onClick={() => model.respondGroupSettings("reject")}
-          disabled={model.isLoadingGroupSettings}
+          onClick={() => props.onRespondGroupSettings("reject")}
+          disabled={props.isLoadingGroupSettings}
         >
           Ablehnen
         </button>

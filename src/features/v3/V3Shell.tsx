@@ -1,8 +1,8 @@
-import "../../styles/v3.css";
+import "../../styles/v3/index.css";
 import { useFeedbackContext, usePairWorkspaceContext, useSessionContext } from "../../app/state";
 import { V3Footer } from "./components/V3Footer";
 import { V3Header } from "./components/V3Header";
-import { V3Notice } from "./components/V3Notice";
+import { V3Notice } from "./components";
 import { InfoIcon } from "./components/icons/InfoIcon";
 import { AccountHomePage } from "./pages/AccountHome";
 import { AskPage } from "./pages/Ask";
