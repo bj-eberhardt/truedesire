@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { idbGet } from "../../../storage/idb";
+import { idbGet } from "../../../../storage/idb";
 import type {
   ApiClient,
   OpenPairWorkflow,

@@ -3,8 +3,8 @@ import type { api } from "../../../api/api";
 import type { MatchView } from "../../../domain/matches/computeMatchViews";
 import type { PairView } from "../../../types";
 import { useAppRoute } from "../../hooks/useAppRoute";
-import { usePairWorkspace } from "../../hooks/usePairWorkspace";
 import type { PairWorkspaceContextValue } from "../AppContexts";
+import { usePairWorkspace } from "./pair-workspace/usePairWorkspace";
 
 type ApiClient = ReturnType<typeof api>;
 

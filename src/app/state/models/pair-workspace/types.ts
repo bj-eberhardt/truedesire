@@ -1,7 +1,7 @@
-import type { api } from "../../../api/api";
-import type { MatchView } from "../../../domain/matches/computeMatchViews";
-import type { PairView } from "../../../types";
-import type { V3Route } from "../../routes";
+import type { api } from "../../../../api/api";
+import type { MatchView } from "../../../../domain/matches/computeMatchViews";
+import type { PairView } from "../../../../types";
+import type { V3Route } from "../../../routes";
 
 export type ApiClient = ReturnType<typeof api>;
 

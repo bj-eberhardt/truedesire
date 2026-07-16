@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { useOpenPairWorkflow } from "./pair-workspace/useOpenPairWorkflow";
-import { usePairDeepLinkLoader } from "./pair-workspace/usePairDeepLinkLoader";
+import { useOpenPairWorkflow } from "./useOpenPairWorkflow";
+import { usePairDeepLinkLoader } from "./usePairDeepLinkLoader";
 import type {
   ApiClient,
   MatchesApi,
@@ -8,7 +8,7 @@ import type {
   PairSelectionApi,
   PairWorkspaceRoute,
   QuestionsApi
-} from "./pair-workspace/types";
+} from "./types";
 
 type UsePairWorkspaceOptions = {
   apiClient: ApiClient | null;

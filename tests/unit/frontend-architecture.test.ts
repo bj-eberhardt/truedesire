@@ -7,6 +7,7 @@ const v3ShellPath = path.join(root, "src", "features", "v3", "V3Shell.tsx");
 const v3PagesDir = path.join(root, "src", "features", "v3", "pages");
 const pairPagePath = path.join(v3PagesDir, "Pair.tsx");
 const accountHomePath = path.join(v3PagesDir, "AccountHome.tsx");
+const appHooksDir = path.join(root, "src", "app", "hooks");
 const hooksDir = path.join(root, "src", "hooks");
 const usePairSelectionPath = path.join(
   root,
@@ -19,7 +20,15 @@ const usePairSelectionPath = path.join(
 );
 const usePairingPath = path.join(root, "src", "app", "state", "models", "pairing", "usePairing.ts");
 const useAccountModelPath = path.join(root, "src", "app", "state", "models", "useAccountModel.ts");
-const pairWorkspaceHookPath = path.join(root, "src", "app", "hooks", "usePairWorkspace.ts");
+const pairWorkspaceDomainPath = path.join(
+  root,
+  "src",
+  "app",
+  "state",
+  "models",
+  "pair-workspace",
+  "usePairWorkspace.ts"
+);
 const appContextsPath = path.join(root, "src", "app", "state", "AppContexts.ts");
 const appModelPath = path.join(root, "src", "app", "state", "useAppModel.ts");
 const appStateTypesPath = path.join(root, "src", "app", "state", "types.ts");
@@ -32,6 +41,10 @@ const forbiddenRootHookPaths = [
   path.join(root, "src", "hooks", "usePairSelection.ts"),
   path.join(root, "src", "hooks", "useQuestions.ts"),
   path.join(root, "src", "hooks", "useToast.ts")
+];
+const forbiddenAppHookPaths = [
+  path.join(root, "src", "app", "hooks", "useInlineNotice.ts"),
+  path.join(root, "src", "app", "hooks", "usePairWorkspace.ts")
 ];
 const pairWorkspaceModelPath = path.join(
   root,
@@ -138,7 +151,7 @@ test("V3 pages consume domain state via app state or local page models", () => {
 
 test("pair workspace does not own hidden-match visibility state", () => {
   const failures: string[] = [];
-  const files = [pairWorkspaceHookPath, pairWorkspaceModelPath];
+  const files = [pairWorkspaceDomainPath, pairWorkspaceModelPath];
 
   for (const file of files) {
     const source = fs.readFileSync(file, "utf8");
@@ -187,4 +200,19 @@ test("root hooks folder does not expose shared state hooks", () => {
     .sort();
 
   expect(rootHookFiles).toEqual([]);
+});
+
+test("app hooks folder only exposes route-level hooks", () => {
+  const forbiddenExisting = forbiddenAppHookPaths
+    .filter((file) => fs.existsSync(file))
+    .map((file) => path.relative(root, file));
+
+  const appHookFiles = fs
+    .readdirSync(appHooksDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".ts"))
+    .map((entry) => entry.name)
+    .sort();
+
+  expect(forbiddenExisting).toEqual([]);
+  expect(appHookFiles).toEqual(["useAppRoute.ts"]);
 });

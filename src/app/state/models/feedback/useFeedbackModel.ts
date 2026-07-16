@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
-import { useInlineNotice } from "../../../hooks/useInlineNotice";
 import type { FeedbackContextValue } from "../../AppContexts";
+import { useInlineNotice } from "./useInlineNotice";
 import { useToast } from "./useToast";
 
 type FeedbackModel = {
