@@ -1,0 +1,400 @@
+@media (min-width: 768px) {
+  .v3-shell .v3 {
+    padding: 18px;
+  }
+
+  .v3-shell .v3-pair-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .v3-shell .v3-backup-grid {
+    grid-template-columns: 1fr 320px;
+    align-items: start;
+  }
+
+  /* Align action buttons with the textarea (not the label) */
+  .v3-shell .v3-backup-actions {
+    padding-top: 22px;
+  }
+
+  /* On desktop, make the stepper look like a real vertical timeline. */
+  .v3-shell .v3-step {
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .v3-shell .v3-step-marker {
+    align-self: stretch;
+  }
+
+  .v3-shell .v3-step-line {
+    min-height: 12px;
+  }
+}
+
+.v3-shell .pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 28px;
+  border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent) 8%, var(--bg));
+  color: var(--text-h);
+  padding: 5px 10px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.v3-shell .pill.status.ok {
+  border-color: color-mix(in oklab, #16a34a 42%, var(--border));
+  background: color-mix(in oklab, #16a34a 12%, var(--bg));
+  color: color-mix(in oklab, #16a34a 84%, var(--text-h));
+}
+
+.v3-shell .pill.status.pending {
+  border-color: color-mix(in oklab, #f59e0b 34%, var(--border));
+  background: color-mix(in oklab, #f59e0b 10%, var(--bg));
+}
+
+.v3-shell .pill.status.ended {
+  border-color: color-mix(in oklab, var(--text) 24%, var(--border));
+  background: color-mix(in oklab, var(--text) 8%, var(--bg));
+}
+
+.v3-shell .inline-error {
+  margin-top: 8px;
+  color: #dc2626;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 500;
+}
+
+.v3-shell .v3-pair-card {
+  text-align: left;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.v3-shell .v3-pair-card:hover {
+  border-color: color-mix(in oklab, var(--accent) 34%, var(--border));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--accent) 13%, var(--bg)),
+    color-mix(in oklab, var(--accent2) 9%, var(--bg))
+  );
+  box-shadow:
+    rgba(0, 0, 0, 0.14) 0 16px 34px -24px,
+    color-mix(in oklab, var(--accent) 20%, transparent) 0 0 0 3px;
+  transform: translateY(-1px);
+}
+
+.v3-shell .v3-pair-card:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 30%, transparent);
+}
+
+.v3-shell .v3-pairing-form {
+  align-items: flex-start;
+}
+
+.v3-shell .v3-partner-code-input {
+  width: 300px;
+  min-width: 300px;
+  max-width: 100%;
+  flex: 0 0 12ch;
+  text-transform: uppercase;
+}
+
+.v3-shell .v3-pairing-refresh-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: start;
+}
+
+.v3-shell .v3-pairing-refresh-meta {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.v3-shell .v3-remaining-pill {
+  border-color: color-mix(in oklab, #0ea5e9 34%, var(--border));
+  background: color-mix(in oklab, #0ea5e9 10%, var(--bg));
+  color: color-mix(in oklab, #0ea5e9 86%, var(--text-h));
+  font-weight: 700;
+}
+
+.v3-shell .settings-panel {
+  display: grid;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.v3-shell .settings-item,
+.v3-shell .settings-pending-block {
+  border: 1px solid color-mix(in oklab, var(--accent) 16%, var(--border));
+  background: color-mix(in oklab, var(--bg) 84%, transparent);
+  border-radius: 16px;
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.v3-shell .settings-item-title {
+  color: var(--text-h);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.25;
+}
+
+.v3-shell .settings-text {
+  margin: 0;
+  max-width: 72ch;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.v3-shell .settings-current-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.v3-shell .settings-current {
+  display: grid;
+  gap: 3px;
+  width: fit-content;
+  min-width: min(100%, 250px);
+  border-left: 3px solid color-mix(in oklab, var(--accent) 42%, var(--border));
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  padding: 8px 0 8px 12px;
+}
+
+.v3-shell .settings-current-label {
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.v3-shell .settings-current-value {
+  color: var(--text-h);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.v3-shell .settings-limit-controls {
+  display: grid;
+  grid-template-columns: minmax(0, max-content);
+  gap: 12px;
+  align-items: stretch;
+  border-top: 1px solid color-mix(in oklab, var(--accent) 12%, var(--border));
+  padding-top: 12px;
+}
+
+.v3-shell .settings-limit-group {
+  min-height: 72px;
+  width: fit-content;
+  max-width: 100%;
+  display: grid;
+  grid-template-columns: minmax(180px, max-content) minmax(230px, max-content);
+  gap: 20px;
+  align-items: center;
+  border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--bg) 90%, transparent);
+  padding: 0 18px;
+}
+
+.v3-shell .settings-toggle {
+  min-height: 44px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0;
+}
+
+.v3-shell .settings-toggle input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.v3-shell .settings-toggle > span {
+  display: grid;
+  gap: 2px;
+  color: var(--text-h);
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.v3-shell .settings-control-label {
+  color: var(--text-h);
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.v3-shell .settings-toggle > span {
+  min-width: 0;
+}
+
+.v3-shell .settings-control-help {
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.v3-shell .settings-unlimited-state {
+  color: var(--text-h);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: right;
+}
+
+.v3-shell .settings-number-field {
+  display: grid;
+  grid-template-columns: 112px auto;
+  gap: 10px;
+  align-items: center;
+  margin: 0;
+}
+
+.v3-shell .settings-number-field input {
+  width: 100%;
+  min-height: 48px;
+  text-align: center;
+}
+
+.v3-shell .settings-number-suffix {
+  color: var(--text-h);
+  font-size: 14px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.v3-shell .settings-propose-button {
+  min-height: 44px;
+  align-self: center;
+  margin-bottom: 0;
+}
+
+@media (max-width: 860px) {
+  .v3-shell .v3-welcome-teaser {
+    grid-template-columns: 1fr;
+  }
+
+  .v3-shell .v3-welcome-headline {
+    max-width: 15ch;
+  }
+
+  .v3-shell .v3-privacy-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .v3-shell .v3-welcome-teaser {
+    margin-bottom: 12px;
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .v3-shell .v3-welcome-copy {
+    gap: 12px;
+  }
+
+  .v3-shell .v3-welcome-brand {
+    font-size: 36px;
+  }
+
+  .v3-shell .v3-welcome-claim {
+    font-size: 24px;
+  }
+
+  .v3-shell .v3-welcome-copy p {
+    font-size: 14px;
+  }
+
+  .v3-shell .v3-chat-shell {
+    padding: 12px;
+  }
+
+  .v3-shell .v3-chat-bubble {
+    max-width: 100%;
+  }
+
+  .v3-shell .v3-chat-secret {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 9px;
+  }
+
+  .v3-shell .v3-chat-secret-answer {
+    min-width: 56px;
+    padding-inline: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v3-shell .v3-chat-bubble,
+  .v3-shell .v3-chat-secret,
+  .v3-shell .v3-chat-match {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+@media (max-width: 560px) {
+  .v3-shell .v3-pairing-refresh-row {
+    grid-template-columns: 1fr;
+  }
+
+  .v3-shell .v3-pairing-refresh-meta {
+    align-items: flex-start;
+  }
+
+  .v3-shell .settings-limit-controls {
+    grid-template-columns: 1fr;
+    align-items: stretch;
+  }
+
+  .v3-shell .settings-limit-group {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .v3-shell .settings-number-field {
+    grid-template-columns: 1fr;
+  }
+
+  .v3-shell .settings-unlimited-state {
+    text-align: left;
+  }
+
+  .v3-shell .settings-current-row {
+    align-items: stretch;
+  }
+
+  .v3-shell .settings-propose-button {
+    width: 100%;
+  }
+
+  .v3-shell .settings-pending-block .settings-request-head button {
+    margin-left: 14px;
+  }
+}

@@ -1,0 +1,91 @@
+.v3-shell .confirm-overlay,
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.v3-shell .confirm-dialog,
+.confirm-dialog {
+  width: min(520px, calc(100vw - 36px));
+  border-radius: 18px;
+  border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
+  background: var(--bg);
+  box-shadow:
+    rgba(0, 0, 0, 0.3) 0 24px 60px -30px,
+    rgba(0, 0, 0, 0.18) 0 20px 32px -24px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.v3-shell .confirm-title,
+.confirm-title {
+  font-weight: 700;
+  color: var(--text-h);
+  letter-spacing: -0.2px;
+}
+
+.v3-shell .confirm-desc,
+.confirm-desc {
+  opacity: 0.9;
+}
+
+.v3-shell .confirm-actions,
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
+
+.v3-shell .modal-overlay,
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 75;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.v3-shell .modal-dialog,
+.modal-dialog {
+  width: min(560px, calc(100vw - 36px));
+  border-radius: 18px;
+  border: 1px solid color-mix(in oklab, #16a34a 22%, var(--border));
+  background: var(--bg);
+  box-shadow:
+    rgba(0, 0, 0, 0.3) 0 24px 60px -30px,
+    rgba(0, 0, 0, 0.18) 0 20px 32px -24px;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.v3-shell .modal-title,
+.modal-title {
+  font-weight: 750;
+  color: var(--text-h);
+  letter-spacing: -0.2px;
+}
+
+.v3-shell .modal-desc,
+.modal-desc {
+  opacity: 0.92;
+}
+
+.v3-shell .modal-actions,
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 4px;
+}
