@@ -47,7 +47,9 @@ function workspaceValue(pair: PairView): PairWorkspaceContextValue {
   };
 }
 
-function groupSettingsValue(overrides: Partial<GroupSettingsContextValue>): GroupSettingsContextValue {
+function groupSettingsValue(
+  overrides: Partial<GroupSettingsContextValue>
+): GroupSettingsContextValue {
   return {
     weeklyLimitDraft: "5",
     allowAllQuestions: false,

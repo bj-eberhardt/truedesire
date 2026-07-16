@@ -79,11 +79,13 @@ function workspaceValue(openPairRoute = vi.fn()): PairWorkspaceContextValue {
   };
 }
 
-async function renderAccountHomeModel(opts: {
-  account?: AccountContextValue;
-  pairing?: PairingContextValue;
-  workspace?: PairWorkspaceContextValue;
-} = {}) {
+async function renderAccountHomeModel(
+  opts: {
+    account?: AccountContextValue;
+    pairing?: PairingContextValue;
+    workspace?: PairWorkspaceContextValue;
+  } = {}
+) {
   let current: AccountHomeModel | null = null;
   let renderer: ReactTestRenderer | null = null;
 

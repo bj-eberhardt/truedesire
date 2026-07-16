@@ -1,7 +1,10 @@
 import { ProfileAvatar } from "../../../../components/ProfileAvatar";
 import type { AccountPair } from "./accountHomeTypes";
 
-export function PartnersPanel(props: { pairs: AccountPair[]; onOpenPair: (pairId: string) => void }) {
+export function PartnersPanel(props: {
+  pairs: AccountPair[];
+  onOpenPair: (pairId: string) => void;
+}) {
   return (
     <section className="card v3-card v3-panel" data-testid="partners-panel">
       <h2>Deine Partner</h2>

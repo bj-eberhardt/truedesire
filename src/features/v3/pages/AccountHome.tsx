@@ -37,9 +37,7 @@ export function AccountHomePage() {
         />
       ) : null}
 
-      {hasPairs ? (
-        <PartnersPanel pairs={visiblePairs} onOpenPair={openPairRoute} />
-      ) : null}
+      {hasPairs ? <PartnersPanel pairs={visiblePairs} onOpenPair={openPairRoute} /> : null}
 
       {!hasPairs ? (
         <PairingGuide pairingCode={pairingCode} onCopyPairingCode={copyPairingCode} />

@@ -1,8 +1,4 @@
-import {
-  PairSettingsHeader,
-  PairSettingsLoading,
-  PairSettingsPanel
-} from "./PairSettingsViews";
+import { PairSettingsHeader, PairSettingsLoading, PairSettingsPanel } from "./PairSettingsViews";
 import { usePairSettingsModel } from "./usePairSettingsModel";
 
 export function PairSettingsTab() {
