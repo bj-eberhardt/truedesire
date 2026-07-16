@@ -1,7 +1,7 @@
 import { forwardRef } from "react";
 import { ProfileAvatar } from "../../../../components/ProfileAvatar";
 import { RefreshButton } from "../../../../components/RefreshButton";
-import type { PairingContextValue } from "../../../../app/state";
+import type { RespondPairing } from "./accountHomeTypes";
 import type { GroupedPairingRequest } from "./groupPairingRequests";
 
 type PairingRequestsPanelProps = {
@@ -10,7 +10,7 @@ type PairingRequestsPanelProps = {
   lastCheckedLabel: string;
   onOpenPairRoute: (pairId: string) => void;
   onRefresh: () => Promise<void>;
-  respondPairing: PairingContextValue["respondPairing"];
+  respondPairing: RespondPairing;
   secondsUntilRefresh: number;
 };
 

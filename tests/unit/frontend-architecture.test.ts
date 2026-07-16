@@ -7,9 +7,28 @@ const v3ShellPath = path.join(root, "src", "features", "v3", "V3Shell.tsx");
 const v3PagesDir = path.join(root, "src", "features", "v3", "pages");
 const pairPagePath = path.join(v3PagesDir, "Pair.tsx");
 const accountHomePath = path.join(v3PagesDir, "AccountHome.tsx");
+const accountHomeModelPath = path.join(v3PagesDir, "account", "useAccountHomeModel.ts");
+const accountViewPaths = [
+  path.join(v3PagesDir, "account", "PairingForm.tsx"),
+  path.join(v3PagesDir, "account", "PairingGuide.tsx"),
+  path.join(v3PagesDir, "account", "PairingRequestsPanel.tsx"),
+  path.join(v3PagesDir, "account", "PartnersPanel.tsx")
+];
 const pairMatchesTabPath = path.join(v3PagesDir, "pair", "PairMatchesTab.tsx");
 const pairPlayTabPath = path.join(v3PagesDir, "pair", "PairPlayTab.tsx");
+const pairSettingsTabPath = path.join(v3PagesDir, "pair", "PairSettingsTab.tsx");
+const pairPageModelPath = path.join(v3PagesDir, "pair", "usePairPageModel.ts");
 const pairPlayModelPath = path.join(v3PagesDir, "pair", "usePairPlayModel.ts");
+const pairSettingsModelPath = path.join(v3PagesDir, "pair", "usePairSettingsModel.ts");
+const pairTabContainerPaths = [pairMatchesTabPath, pairPlayTabPath, pairSettingsTabPath];
+const pairViewPaths = [
+  path.join(v3PagesDir, "pair", "PairMatchCard.tsx"),
+  path.join(v3PagesDir, "pair", "PairPlayCard.tsx"),
+  path.join(v3PagesDir, "pair", "PairPlayStates.tsx"),
+  path.join(v3PagesDir, "pair", "PairPlayToolbar.tsx"),
+  path.join(v3PagesDir, "pair", "PairPlayViews.tsx"),
+  path.join(v3PagesDir, "pair", "PairSettingsViews.tsx")
+];
 const viewOnlyPagePaths = [
   path.join(v3PagesDir, "Ask.tsx"),
   path.join(v3PagesDir, "Played.tsx"),
@@ -111,13 +130,18 @@ test("PairPage remains a container instead of growing back into tab implementati
 
 test("recently split frontend modules stay below orchestration-size limits", () => {
   const limits = [
-    { file: accountHomePath, maxLines: 140 },
+    { file: accountHomePath, maxLines: 70 },
+    { file: accountHomeModelPath, maxLines: 90 },
+    { file: pairPagePath, maxLines: 150 },
     { file: usePairSelectionPath, maxLines: 120 },
     { file: usePairingPath, maxLines: 120 },
     { file: useAccountModelPath, maxLines: 80 },
     { file: pairMatchesTabPath, maxLines: 80 },
     { file: pairPlayTabPath, maxLines: 60 },
-    { file: pairPlayModelPath, maxLines: 130 }
+    { file: pairSettingsTabPath, maxLines: 60 },
+    { file: pairPageModelPath, maxLines: 80 },
+    { file: pairPlayModelPath, maxLines: 130 },
+    { file: pairSettingsModelPath, maxLines: 70 }
   ];
 
   const failures = limits.flatMap(({ file, maxLines }) => {
@@ -167,6 +191,52 @@ test("V3 pages consume domain state via app state or local page models", () => {
       failures.push(path.relative(root, file));
     }
   }
+
+  expect(failures).toEqual([]);
+});
+
+test("pair tab containers delegate state access to local models", () => {
+  const failures = pairTabContainerPaths.flatMap((file) => {
+    const source = fs.readFileSync(file, "utf8");
+    return /from\s+["'](?:\.\.\/){4}app\/state/.test(source) ||
+      /\buse(?:State|Effect|Memo|Callback|Ref)\b/.test(source)
+      ? [path.relative(root, file)]
+      : [];
+  });
+
+  expect(failures).toEqual([]);
+});
+
+test("PairPage delegates context and route actions to its local model", () => {
+  const source = fs.readFileSync(pairPagePath, "utf8");
+
+  expect(source).toContain("usePairPageModel");
+  expect(source).not.toMatch(/from\s+["'](?:\.\.\/){3}app\/state/);
+  expect(source).not.toMatch(/from\s+["'](?:\.\.\/){3}app\/routes/);
+});
+
+test("pair view components do not import app state directly", () => {
+  const failures = pairViewPaths.flatMap((file) => {
+    const source = fs.readFileSync(file, "utf8");
+    return /from\s+["'](?:\.\.\/){4}app\/state/.test(source) ? [path.relative(root, file)] : [];
+  });
+
+  expect(failures).toEqual([]);
+});
+
+test("AccountHome delegates workflow state to its local model", () => {
+  const source = fs.readFileSync(accountHomePath, "utf8");
+
+  expect(source).toContain("useAccountHomeModel");
+  expect(source).not.toMatch(/from\s+["'](?:\.\.\/){3}app\/state/);
+  expect(source).not.toMatch(/\buse(?:State|Effect|Memo|Callback|Ref)\b/);
+});
+
+test("account view components do not import app state directly", () => {
+  const failures = accountViewPaths.flatMap((file) => {
+    const source = fs.readFileSync(file, "utf8");
+    return /from\s+["'](?:\.\.\/){4}app\/state/.test(source) ? [path.relative(root, file)] : [];
+  });
 
   expect(failures).toEqual([]);
 });

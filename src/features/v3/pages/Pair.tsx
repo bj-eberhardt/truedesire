@@ -1,56 +1,31 @@
-import {
-  useGroupSettingsContext,
-  useMatchesContext,
-  usePairWorkspaceContext,
-  useSessionContext
-} from "../../../app/state";
 import { ProfileAvatar } from "../../../components/ProfileAvatar";
 import { RefreshButton } from "../../../components/RefreshButton";
-import { goV3, goV3Pair, goV3PairMatches, goV3PairSettings } from "../../../app/routes";
 import { V3LoadingState } from "../components/V3PageState";
 import { V3Notice } from "../components/V3Notice";
 import { SettingsIcon } from "../components/icons/SettingsIcon";
 import { PairMatchesTab } from "./pair/PairMatchesTab";
 import { PairPlayTab } from "./pair/PairPlayTab";
 import { PairSettingsTab } from "./pair/PairSettingsTab";
+import { usePairPageModel } from "./pair/usePairPageModel";
 
 export function PairPage() {
-  const { identity } = useSessionContext();
-  const workspace = usePairWorkspaceContext();
-  const matchesContext = useMatchesContext();
-  const groupSettings = useGroupSettingsContext();
-  const pairId = workspace.route.route.pairId ?? "";
-  const routeMode = workspace.route.route.mode;
-  const pair = workspace.pair;
-  const pairReady = !!pair && pair.id === pairId;
+  const model = usePairPageModel();
 
-  const activeTab =
-    routeMode === "pairMatches" ? "matches" : routeMode === "pairSettings" ? "settings" : "play";
-  const showPlay = activeTab === "play";
-  const showMatches = activeTab === "matches";
-  const showSettings = activeTab === "settings";
-  const pendingSettingsCount =
-    pairReady &&
-    pair.weeklyLimitPending &&
-    pair.weeklyLimitPending.proposedBy !== (identity?.userId ?? "")
-      ? 1
-      : 0;
-
-  if (!pairReady) {
+  if (!model.pairReady || !model.pair) {
     return (
       <section className="card v3-card" data-testid="pair-loading-view">
         <div className="row">
           <button
             className="secondary"
             data-testid="pair-loading-back-button"
-            onClick={goV3}
+            onClick={model.goBack}
             title="Zurück zur Partnerübersicht"
           >
             ← Zurück
           </button>
           <RefreshButton
             testId="pair-loading-refresh-button"
-            onClick={workspace.refreshPairView}
+            onClick={model.refreshPairView}
             disabled
             title="Ansicht neu laden"
           />
@@ -63,13 +38,15 @@ export function PairPage() {
     );
   }
 
+  const pair = model.pair;
+
   return (
-    <section className="card v3-card v3-pair" data-testid="pair-view" data-pair-id={pairId}>
+    <section className="card v3-card v3-pair" data-testid="pair-view" data-pair-id={model.pairId}>
       <div className="v3-pair-topbar">
         <button
           className="secondary v3-pair-back"
           data-testid="pair-back-button"
-          onClick={goV3}
+          onClick={model.goBack}
           title="Zurück zur Partnerübersicht"
         >
           ← Zurück
@@ -99,19 +76,19 @@ export function PairPage() {
         <div className="v3-pair-actions">
           <RefreshButton
             testId="pair-refresh-button"
-            onClick={workspace.refreshPairView}
-            disabled={workspace.isLoadingPairData}
+            onClick={model.refreshPairView}
+            disabled={model.isLoadingPairData}
             title="Ansicht neu laden"
           />
         </div>
       </div>
 
-      {pendingSettingsCount ? (
+      {model.pendingSettingsCount ? (
         <V3Notice
           icon={<SettingsIcon />}
           title="Offene Einstellungsanfrage"
           hint="Tippe hier, um sie in den Einstellungen zu prüfen."
-          onClick={() => goV3PairSettings(pairId)}
+          onClick={model.openSettingsNotice}
         />
       ) : null}
 
@@ -123,50 +100,41 @@ export function PairPage() {
         <button
           type="button"
           className="v3-pair-tab"
-          data-active={showPlay ? "true" : "false"}
+          data-active={model.showPlay ? "true" : "false"}
           role="tab"
           data-testid="pair-tab-play"
-          aria-selected={showPlay}
-          onClick={() => {
-            goV3Pair(pairId);
-            void workspace.refreshPairView();
-          }}
+          aria-selected={model.showPlay}
+          onClick={model.switchToPlay}
         >
           Fragen
         </button>
         <button
           type="button"
           className="v3-pair-tab"
-          data-active={showMatches ? "true" : "false"}
+          data-active={model.showMatches ? "true" : "false"}
           role="tab"
           data-testid="pair-tab-matches"
-          aria-selected={showMatches}
-          onClick={() => {
-            goV3PairMatches(pairId);
-            void matchesContext.computeMatches();
-          }}
+          aria-selected={model.showMatches}
+          onClick={model.switchToMatches}
         >
           Matches
         </button>
         <button
           type="button"
           className="v3-pair-tab"
-          data-active={showSettings ? "true" : "false"}
+          data-active={model.showSettings ? "true" : "false"}
           role="tab"
           data-testid="pair-tab-settings"
-          aria-selected={showSettings}
-          onClick={() => {
-            goV3PairSettings(pairId);
-            void groupSettings.refreshGroupSettings();
-          }}
+          aria-selected={model.showSettings}
+          onClick={model.switchToSettings}
         >
-          Einstellungen{pendingSettingsCount ? ` (${pendingSettingsCount})` : ""}
+          Einstellungen{model.pendingSettingsCount ? ` (${model.pendingSettingsCount})` : ""}
         </button>
       </div>
 
-      {showPlay ? <PairPlayTab /> : null}
-      {showMatches ? <PairMatchesTab /> : null}
-      {showSettings ? <PairSettingsTab /> : null}
+      {model.showPlay ? <PairPlayTab /> : null}
+      {model.showMatches ? <PairMatchesTab /> : null}
+      {model.showSettings ? <PairSettingsTab /> : null}
     </section>
   );
 }
