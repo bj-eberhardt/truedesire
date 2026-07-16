@@ -150,7 +150,9 @@ test("top-level V3 pages do not contain polling or interval refresh logic", () =
 test("view-only V3 pages do not own workflow hooks", () => {
   const failures = viewOnlyPagePaths.flatMap((file) => {
     const source = fs.readFileSync(file, "utf8");
-    return /\buse(?:State|Effect|Ref|Callback|Memo)\b/.test(source) ? [path.relative(root, file)] : [];
+    return /\buse(?:State|Effect|Ref|Callback|Memo)\b/.test(source)
+      ? [path.relative(root, file)]
+      : [];
   });
 
   expect(failures).toEqual([]);

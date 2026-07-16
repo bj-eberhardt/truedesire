@@ -79,4 +79,3 @@ export function PlayedPage() {
     </V3View>
   );
 }
-

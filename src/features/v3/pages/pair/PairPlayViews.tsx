@@ -15,8 +15,8 @@ export function PairPlayIntro({ model }: PairPlayModelProps) {
     <div className="v3-play-intro">
       <h2>Fragen spielen</h2>
       <p className="hint">
-        Du und dein Partner habt jetzt Fragen zum Spielen. Beantworte offene Fragen, um neue
-        Matches zu entdecken.
+        Du und dein Partner habt jetzt Fragen zum Spielen. Beantworte offene Fragen, um neue Matches
+        zu entdecken.
         {!model.isUnlimited ? (
           <span className="v3-weekly-hint">
             Du kannst diese Woche noch

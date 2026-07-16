@@ -23,8 +23,11 @@ export function usePairPlayModel() {
     answerQuestion: questionsContext.answerQuestion
   });
   const flash = answerFlow.flash;
-  const { cardIndex, goNext: setNextCardIndex, goPrev: setPrevCardIndex } =
-    usePairPlayNavigation(pairId);
+  const {
+    cardIndex,
+    goNext: setNextCardIndex,
+    goPrev: setPrevCardIndex
+  } = usePairPlayNavigation(pairId);
   const [stablePlayState, setStablePlayState] = useState<{
     pair: PairView;
     questions: DecryptedQuestion[];

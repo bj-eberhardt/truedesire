@@ -8,12 +8,7 @@ type PairMatchCardProps = {
   showHiddenMatches: boolean;
 };
 
-export function PairMatchCard({
-  match,
-  onHide,
-  onRestore,
-  showHiddenMatches
-}: PairMatchCardProps) {
+export function PairMatchCard({ match, onHide, onRestore, showHiddenMatches }: PairMatchCardProps) {
   return (
     <div
       className={`match-card ${match.grade}`}
