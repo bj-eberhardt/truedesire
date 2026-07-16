@@ -1,0 +1,310 @@
+import fs from "node:fs";
+import path from "node:path";
+import { expect, test } from "vitest";
+
+const root = process.cwd();
+const v3ShellPath = path.join(root, "src", "features", "v3", "V3Shell.tsx");
+const v3PagesDir = path.join(root, "src", "features", "v3", "pages");
+const pairPagePath = path.join(v3PagesDir, "Pair.tsx");
+const accountHomePath = path.join(v3PagesDir, "AccountHome.tsx");
+const accountHomeModelPath = path.join(v3PagesDir, "account", "useAccountHomeModel.ts");
+const accountViewPaths = [
+  path.join(v3PagesDir, "account", "PairingForm.tsx"),
+  path.join(v3PagesDir, "account", "PairingGuide.tsx"),
+  path.join(v3PagesDir, "account", "PairingRequestsPanel.tsx"),
+  path.join(v3PagesDir, "account", "PartnersPanel.tsx")
+];
+const pairMatchesTabPath = path.join(v3PagesDir, "pair", "PairMatchesTab.tsx");
+const pairPlayTabPath = path.join(v3PagesDir, "pair", "PairPlayTab.tsx");
+const pairSettingsTabPath = path.join(v3PagesDir, "pair", "PairSettingsTab.tsx");
+const pairPageModelPath = path.join(v3PagesDir, "pair", "usePairPageModel.ts");
+const pairPlayModelPath = path.join(v3PagesDir, "pair", "usePairPlayModel.ts");
+const pairSettingsModelPath = path.join(v3PagesDir, "pair", "usePairSettingsModel.ts");
+const pairTabContainerPaths = [pairMatchesTabPath, pairPlayTabPath, pairSettingsTabPath];
+const pairViewPaths = [
+  path.join(v3PagesDir, "pair", "PairMatchCard.tsx"),
+  path.join(v3PagesDir, "pair", "PairPlayCard.tsx"),
+  path.join(v3PagesDir, "pair", "PairPlayStates.tsx"),
+  path.join(v3PagesDir, "pair", "PairPlayToolbar.tsx"),
+  path.join(v3PagesDir, "pair", "PairPlayViews.tsx"),
+  path.join(v3PagesDir, "pair", "PairSettingsViews.tsx")
+];
+const viewOnlyPagePaths = [
+  path.join(v3PagesDir, "Ask.tsx"),
+  path.join(v3PagesDir, "Played.tsx"),
+  path.join(v3PagesDir, "Welcome.tsx")
+];
+const appHooksDir = path.join(root, "src", "app", "hooks");
+const hooksDir = path.join(root, "src", "hooks");
+const usePairSelectionPath = path.join(
+  root,
+  "src",
+  "app",
+  "state",
+  "models",
+  "pair-selection",
+  "usePairSelection.ts"
+);
+const usePairingPath = path.join(root, "src", "app", "state", "models", "pairing", "usePairing.ts");
+const useAccountModelPath = path.join(root, "src", "app", "state", "models", "useAccountModel.ts");
+const pairWorkspaceDomainPath = path.join(
+  root,
+  "src",
+  "app",
+  "state",
+  "models",
+  "pair-workspace",
+  "usePairWorkspace.ts"
+);
+const appContextsPath = path.join(root, "src", "app", "state", "AppContexts.ts");
+const appModelPath = path.join(root, "src", "app", "state", "useAppModel.ts");
+const appStateTypesPath = path.join(root, "src", "app", "state", "types.ts");
+const forbiddenRootHookPaths = [
+  path.join(root, "src", "hooks", "useApiClient.ts"),
+  path.join(root, "src", "hooks", "useHiddenMatches.ts"),
+  path.join(root, "src", "hooks", "useIdentity.ts"),
+  path.join(root, "src", "hooks", "useMatches.ts"),
+  path.join(root, "src", "hooks", "usePairing.ts"),
+  path.join(root, "src", "hooks", "usePairSelection.ts"),
+  path.join(root, "src", "hooks", "useQuestions.ts"),
+  path.join(root, "src", "hooks", "useToast.ts")
+];
+const forbiddenAppHookPaths = [
+  path.join(root, "src", "app", "hooks", "useInlineNotice.ts"),
+  path.join(root, "src", "app", "hooks", "usePairWorkspace.ts")
+];
+const pairWorkspaceModelPath = path.join(
+  root,
+  "src",
+  "app",
+  "state",
+  "models",
+  "usePairWorkspaceModel.ts"
+);
+
+function listFiles(dir: string): string[] {
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  return entries.flatMap((entry) => {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) return listFiles(fullPath);
+    return entry.isFile() && /\.(ts|tsx)$/.test(entry.name) ? [fullPath] : [];
+  });
+}
+
+test("V3Shell stays prop-less and does not reintroduce shell prop bags", () => {
+  const source = fs.readFileSync(v3ShellPath, "utf8");
+
+  expect(source).toMatch(/export function V3Shell\(\)/);
+  expect(source).not.toMatch(/\bV3ShellProps\b/);
+});
+
+test("top-level V3 pages do not expose broad page prop interfaces", () => {
+  const failures: string[] = [];
+
+  for (const file of listFiles(v3PagesDir)) {
+    const relative = path.relative(root, file);
+    const source = fs.readFileSync(file, "utf8");
+
+    if (/\btype\s+\w*PageProps\b/.test(source) || /\binterface\s+\w*PageProps\b/.test(source)) {
+      failures.push(`${relative}: PageProps type/interface`);
+    }
+
+    const exportedPage = source.match(/export function \w+Page\(([^)]*)\)/);
+    if (exportedPage?.[1]?.trim()) {
+      failures.push(`${relative}: exported Page function has parameters`);
+    }
+  }
+
+  expect(failures).toEqual([]);
+});
+
+test("PairPage remains a container instead of growing back into tab implementations", () => {
+  const source = fs.readFileSync(pairPagePath, "utf8");
+  const lineCount = source.split(/\r?\n/).length;
+
+  expect(lineCount).toBeLessThanOrEqual(220);
+  expect(source).toContain("<PairPlayTab />");
+  expect(source).toContain("<PairMatchesTab />");
+  expect(source).toContain("<PairSettingsTab />");
+});
+
+test("recently split frontend modules stay below orchestration-size limits", () => {
+  const limits = [
+    { file: accountHomePath, maxLines: 70 },
+    { file: accountHomeModelPath, maxLines: 90 },
+    { file: pairPagePath, maxLines: 150 },
+    { file: usePairSelectionPath, maxLines: 120 },
+    { file: usePairingPath, maxLines: 120 },
+    { file: useAccountModelPath, maxLines: 80 },
+    { file: pairMatchesTabPath, maxLines: 80 },
+    { file: pairPlayTabPath, maxLines: 60 },
+    { file: pairSettingsTabPath, maxLines: 60 },
+    { file: pairPageModelPath, maxLines: 80 },
+    { file: pairPlayModelPath, maxLines: 130 },
+    { file: pairSettingsModelPath, maxLines: 70 }
+  ];
+
+  const failures = limits.flatMap(({ file, maxLines }) => {
+    const lineCount = fs.readFileSync(file, "utf8").split(/\r?\n/).length;
+    return lineCount > maxLines
+      ? [`${path.relative(root, file)} has ${lineCount} lines, limit is ${maxLines}`]
+      : [];
+  });
+
+  expect(failures).toEqual([]);
+});
+
+test("top-level V3 pages do not contain polling or interval refresh logic", () => {
+  const failures: string[] = [];
+  const topLevelPageFiles = fs
+    .readdirSync(v3PagesDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".tsx"))
+    .map((entry) => path.join(v3PagesDir, entry.name));
+
+  for (const file of topLevelPageFiles) {
+    const source = fs.readFileSync(file, "utf8");
+    if (/\b(?:setInterval|clearInterval)\b|\bDate\.now\(\)|\bpoll(?:ing)?\b/i.test(source)) {
+      failures.push(path.relative(root, file));
+    }
+  }
+
+  expect(failures).toEqual([]);
+});
+
+test("view-only V3 pages do not own workflow hooks", () => {
+  const failures = viewOnlyPagePaths.flatMap((file) => {
+    const source = fs.readFileSync(file, "utf8");
+    return /\buse(?:State|Effect|Ref|Callback|Memo)\b/.test(source)
+      ? [path.relative(root, file)]
+      : [];
+  });
+
+  expect(failures).toEqual([]);
+});
+
+test("V3 pages consume domain state via app state or local page models", () => {
+  const failures: string[] = [];
+
+  for (const file of listFiles(v3PagesDir)) {
+    const source = fs.readFileSync(file, "utf8");
+    if (/from\s+["'](?:\.\.\/){3,4}hooks\//.test(source)) {
+      failures.push(path.relative(root, file));
+    }
+  }
+
+  expect(failures).toEqual([]);
+});
+
+test("pair tab containers delegate state access to local models", () => {
+  const failures = pairTabContainerPaths.flatMap((file) => {
+    const source = fs.readFileSync(file, "utf8");
+    return /from\s+["'](?:\.\.\/){4}app\/state/.test(source) ||
+      /\buse(?:State|Effect|Memo|Callback|Ref)\b/.test(source)
+      ? [path.relative(root, file)]
+      : [];
+  });
+
+  expect(failures).toEqual([]);
+});
+
+test("PairPage delegates context and route actions to its local model", () => {
+  const source = fs.readFileSync(pairPagePath, "utf8");
+
+  expect(source).toContain("usePairPageModel");
+  expect(source).not.toMatch(/from\s+["'](?:\.\.\/){3}app\/state/);
+  expect(source).not.toMatch(/from\s+["'](?:\.\.\/){3}app\/routes/);
+});
+
+test("pair view components do not import app state directly", () => {
+  const failures = pairViewPaths.flatMap((file) => {
+    const source = fs.readFileSync(file, "utf8");
+    return /from\s+["'](?:\.\.\/){4}app\/state/.test(source) ? [path.relative(root, file)] : [];
+  });
+
+  expect(failures).toEqual([]);
+});
+
+test("AccountHome delegates workflow state to its local model", () => {
+  const source = fs.readFileSync(accountHomePath, "utf8");
+
+  expect(source).toContain("useAccountHomeModel");
+  expect(source).not.toMatch(/from\s+["'](?:\.\.\/){3}app\/state/);
+  expect(source).not.toMatch(/\buse(?:State|Effect|Memo|Callback|Ref)\b/);
+});
+
+test("account view components do not import app state directly", () => {
+  const failures = accountViewPaths.flatMap((file) => {
+    const source = fs.readFileSync(file, "utf8");
+    return /from\s+["'](?:\.\.\/){4}app\/state/.test(source) ? [path.relative(root, file)] : [];
+  });
+
+  expect(failures).toEqual([]);
+});
+
+test("pair workspace does not own hidden-match visibility state", () => {
+  const failures: string[] = [];
+  const files = [pairWorkspaceDomainPath, pairWorkspaceModelPath];
+
+  for (const file of files) {
+    const source = fs.readFileSync(file, "utf8");
+    if (
+      /\bhiddenMatches\b|\bHiddenMatches\b|\bshowHiddenMatches\b|\bhiddenMatchIds\b/.test(source)
+    ) {
+      failures.push(path.relative(root, file));
+    }
+  }
+
+  expect(failures).toEqual([]);
+});
+
+test("app context public types do not depend on hook implementation files", () => {
+  const source = [appContextsPath, appStateTypesPath]
+    .map((file) => fs.readFileSync(file, "utf8"))
+    .join("\n");
+
+  expect(source).not.toMatch(/from\s+["'](?:\.\.\/)+hooks\//);
+});
+
+test("useAppModel remains a composition root without local state", () => {
+  const source = fs.readFileSync(appModelPath, "utf8");
+
+  expect(source).not.toMatch(/\buseState\b/);
+});
+
+test("domain-owned hooks do not reappear in the root hooks folder", () => {
+  const existing = forbiddenRootHookPaths
+    .filter((file) => fs.existsSync(file))
+    .map((file) => path.relative(root, file));
+
+  expect(existing).toEqual([]);
+});
+
+test("root hooks folder does not expose shared state hooks", () => {
+  if (!fs.existsSync(hooksDir)) {
+    expect(fs.existsSync(hooksDir)).toBe(false);
+    return;
+  }
+
+  const rootHookFiles = fs
+    .readdirSync(hooksDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".ts"))
+    .map((entry) => entry.name)
+    .sort();
+
+  expect(rootHookFiles).toEqual([]);
+});
+
+test("app hooks folder only exposes route-level hooks", () => {
+  const forbiddenExisting = forbiddenAppHookPaths
+    .filter((file) => fs.existsSync(file))
+    .map((file) => path.relative(root, file));
+
+  const appHookFiles = fs
+    .readdirSync(appHooksDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".ts"))
+    .map((entry) => entry.name)
+    .sort();
+
+  expect(forbiddenExisting).toEqual([]);
+  expect(appHookFiles).toEqual(["useAppRoute.ts"]);
+});

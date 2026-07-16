@@ -1,18 +1,15 @@
+import { useSessionContext } from "../../../app/state";
+import { V3LoadingState } from "../components/V3PageState";
 import { WelcomeTeaser } from "../components/WelcomeTeaser";
 
-type HomePageProps = {
-  isBootstrappingAccount: boolean;
-};
+export function HomePage() {
+  const { isBootstrappingAccount } = useSessionContext();
 
-export function HomePage(props: HomePageProps) {
-  if (props.isBootstrappingAccount) {
+  if (isBootstrappingAccount) {
     return (
-      <section className="card v3-card v3-view" data-testid="account-loading-view">
-        <h2>Konto wird geladen…</h2>
-        <p className="hint">
-          Bitte kurz warten. Wir prüfen, ob bereits Kontodaten auf diesem Gerät vorhanden sind.
-        </p>
-      </section>
+      <V3LoadingState testId="account-loading-view" title="Konto wird geladen…" framed>
+        Bitte kurz warten. Wir prüfen, ob bereits Kontodaten auf diesem Gerät vorhanden sind.
+      </V3LoadingState>
     );
   }
 

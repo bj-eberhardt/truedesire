@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 const marker = "<!-- pr-ci-comment -->";
 const playwrightResultsPath =
   process.env.PLAYWRIGHT_RESULTS_PATH || "test-results/playwright-results.json";
+const frontendUnitTestResultsPath =
+  process.env.FRONTEND_UNIT_TEST_RESULTS_PATH || "ci-reports/frontend/unit-tests.json";
 const backendTestResultsPath =
   process.env.BACKEND_TEST_RESULTS_PATH || "ci-reports/backend/server-tests.json";
 
@@ -97,7 +99,7 @@ function formatFailures(failures, label = "test") {
     .join("\n\n");
 }
 
-function unavailableBackendReportStats(reason) {
+function unavailableTestReportStats(title, reason) {
   return {
     passed: 0,
     failed: 1,
@@ -105,7 +107,7 @@ function unavailableBackendReportStats(reason) {
     total: 1,
     failures: [
       {
-        title: "Backend test report unavailable",
+        title,
         status: "failed",
         retryCount: 0,
         duration: 0,
@@ -184,8 +186,26 @@ async function readBackendTestStats() {
   } catch (error) {
     if (process.env.BACKEND_TESTS_OUTCOME === "failure") {
       const message = error instanceof Error ? error.message : String(error);
-      return unavailableBackendReportStats(
+      return unavailableTestReportStats(
+        "Backend test report unavailable",
         `Backend test step failed, but ${backendTestResultsPath} could not be read or parsed: ${message}`
+      );
+    }
+
+    return { passed: 0, failed: 0, skipped: 0, total: 0, failures: [] };
+  }
+}
+
+async function readFrontendUnitTestStats() {
+  try {
+    const raw = await readFile(frontendUnitTestResultsPath, "utf8");
+    return readVitestStats(JSON.parse(raw));
+  } catch (error) {
+    if (process.env.FRONTEND_UNIT_TESTS_OUTCOME === "failure") {
+      const message = error instanceof Error ? error.message : String(error);
+      return unavailableTestReportStats(
+        "Frontend unit test report unavailable",
+        `Frontend unit test step failed, but ${frontendUnitTestResultsPath} could not be read or parsed: ${message}`
       );
     }
 
@@ -197,14 +217,21 @@ const frontendBuild = labelFor(process.env.FRONTEND_BUILD_OUTCOME);
 const backendBuild = labelFor(process.env.BACKEND_BUILD_OUTCOME);
 const lint = labelFor(process.env.LINT_OUTCOME);
 const backendLint = labelFor(process.env.LINT_SERVER_OUTCOME);
+const frontendUnitTests = labelFor(process.env.FRONTEND_UNIT_TESTS_OUTCOME);
 const backendTests = labelFor(process.env.BACKEND_TESTS_OUTCOME);
 const prettier = labelFor(process.env.PRETTIER_OUTCOME);
 const e2e = labelFor(process.env.E2E_OUTCOME);
 const reportUrl = process.env.PLAYWRIGHT_REPORT_URL || process.env.RUN_URL || "";
+const frontendUnitTestResultsUrl = process.env.FRONTEND_UNIT_TEST_RESULTS_URL || "";
 const backendTestResultsUrl = process.env.BACKEND_TEST_RESULTS_URL || "";
 const playwright = await readPlaywrightStats();
+const frontendUnitNodeTests = await readFrontendUnitTestStats();
 const backendNodeTests = await readBackendTestStats();
 const playwrightIcon = playwright.failed > 0 ? iconFor("failed") : iconFor("passed");
+const frontendUnitTestsIcon =
+  frontendUnitNodeTests.failed > 0 || process.env.FRONTEND_UNIT_TESTS_OUTCOME === "failure"
+    ? iconFor("failed")
+    : iconFor("passed");
 const backendTestsIcon =
   backendNodeTests.failed > 0 || process.env.BACKEND_TESTS_OUTCOME === "failure"
     ? iconFor("failed")
@@ -215,6 +242,7 @@ const summary = [
   "## PR CI",
   "",
   `Playwright tests: ${playwrightIcon} **${playwright.passed}/${playwright.total} successful**`,
+  `Frontend unit tests: ${frontendUnitTestsIcon} **${frontendUnitNodeTests.passed}/${frontendUnitNodeTests.total} successful**`,
   `Backend tests: ${backendTestsIcon} **${backendNodeTests.passed}/${backendNodeTests.total} successful**`,
   "",
   "| Check | Status | Hint",
@@ -224,11 +252,18 @@ const summary = [
   `| Lint | ${lint} | npm run lint:fix |`,
   `| Backend Lint | ${backendLint} | npm run --prefix server lint:fix |`,
   `| Formatting | ${prettier} | npm run format |`,
+  `| Frontend unit tests | ${frontendUnitTests} | npm run test:unit |`,
   `| Backend tests | ${backendTests} | see backend test step in PR workflow |`,
   `| E2E tests | ${e2e} | |`,
   "",
+  `Frontend unit test artifact: ${frontendUnitTestResultsUrl ? `[frontend-unit-test-results](${frontendUnitTestResultsUrl})` : "_not available_"}`,
   `Backend test artifact: ${backendTestResultsUrl ? `[backend-test-results](${backendTestResultsUrl})` : "_not available_"}`,
   `Playwright report artifact: ${reportUrl ? `[playwright-report](${reportUrl})` : "_not available_"}`,
+  "",
+  details(
+    `Frontend unit test failures (${frontendUnitNodeTests.failed})`,
+    formatFailures(frontendUnitNodeTests.failures, "frontend unit test")
+  ),
   "",
   details(
     `Backend test failures (${backendNodeTests.failed})`,
@@ -244,6 +279,9 @@ const summary = [
     "Artifacts",
     [
       reportUrl ? `- [playwright-report](${reportUrl})` : "- playwright-report: not available",
+      frontendUnitTestResultsUrl
+        ? `- [frontend-unit-test-results](${frontendUnitTestResultsUrl})`
+        : "- frontend-unit-test-results: not available",
       backendTestResultsUrl
         ? `- [backend-test-results](${backendTestResultsUrl})`
         : "- backend-test-results: not available",

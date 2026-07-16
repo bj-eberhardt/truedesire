@@ -1,49 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
 import { goV3 } from "../../../app/routes";
-import { useAccountContext, useSessionContext } from "../../../app/state";
-import { InlineError } from "../components/InlineError";
+import { V3PageError } from "../components/V3PageState";
 import { V3View } from "../components/V3View";
-import { downloadTextFile, formatJsonMaybe, safeBackupFilename } from "../lib/backup";
-import { toUserMessage } from "../lib/errors";
+import { useBackupExportViewModel } from "./backup/useBackupExportViewModel";
 
 export function BackupPage() {
-  const { identity } = useSessionContext();
-  const { exportBackupText } = useAccountContext();
-  const [backupText, setBackupText] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const copyTimerRef = useRef<number | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  const filename = useMemo(() => safeBackupFilename(identity?.code ?? null), [identity?.code]);
-
-  useEffect(() => {
-    let cancelled = false;
-    setIsLoading(true);
-    setError(null);
-    exportBackupText()
-      .then((txt) => {
-        if (cancelled) return;
-        setBackupText(formatJsonMaybe(txt));
-      })
-      .catch((e: unknown) => {
-        if (cancelled) return;
-        setError(toUserMessage(e));
-      })
-      .finally(() => {
-        if (cancelled) return;
-        setIsLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [exportBackupText]);
-
-  useEffect(() => {
-    return () => {
-      if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
-    };
-  }, []);
+  const backup = useBackupExportViewModel();
 
   return (
     <V3View
@@ -54,18 +15,18 @@ export function BackupPage() {
       testId="backup-view"
       backTestId="backup-back-button"
     >
-      {error ? (
-        <InlineError testId="backup-error">{error}</InlineError>
+      {backup.error ? (
+        <V3PageError testId="backup-error">{backup.error}</V3PageError>
       ) : (
         <div className="v3-backup-grid" data-testid="backup-grid">
           <label className="field v3-field v3-backup-text">
             <textarea
               data-testid="backup-export-textarea"
-              value={backupText}
-              onChange={(e) => setBackupText(e.target.value)}
+              value={backup.backupText}
+              onChange={(e) => backup.setBackupText(e.target.value)}
               rows={14}
               spellCheck={false}
-              disabled={isLoading}
+              disabled={backup.isLoading}
             />
           </label>
 
@@ -73,26 +34,21 @@ export function BackupPage() {
             <button
               className="secondary"
               data-testid="backup-copy-button"
-              onClick={async () => {
-                await navigator.clipboard.writeText(backupText);
-                setCopied(true);
-                if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current);
-                copyTimerRef.current = window.setTimeout(() => setCopied(false), 1400);
-              }}
-              disabled={!backupText.trim()}
+              onClick={() => void backup.copyBackupText()}
+              disabled={!backup.backupText.trim()}
             >
               In Zwischenablage kopieren
             </button>
             <button
               className="secondary"
               data-testid="backup-download-button"
-              onClick={() => downloadTextFile({ filename, content: backupText })}
-              disabled={!backupText.trim()}
-              title={`Lädt ${filename} herunter`}
+              onClick={backup.downloadBackup}
+              disabled={!backup.backupText.trim()}
+              title={`Lädt ${backup.filename} herunter`}
             >
               Download
             </button>
-            {copied ? (
+            {backup.copied ? (
               <div
                 className="hint v3-copied"
                 data-testid="backup-copied-status"
