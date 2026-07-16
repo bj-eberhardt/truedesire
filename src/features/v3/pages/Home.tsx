@@ -1,5 +1,5 @@
 import { useSessionContext } from "../../../app/state";
-import { V3LoadingState } from "../components/V3PageState";
+import { V3LoadingState } from "../components";
 import { WelcomeTeaser } from "../components/WelcomeTeaser";
 
 export function HomePage() {

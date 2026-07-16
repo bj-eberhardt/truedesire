@@ -1,0 +1,194 @@
+.v3-shell .v3-play-card {
+  border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
+  background: color-mix(in oklab, var(--bg) 84%, transparent);
+  border-radius: 18px;
+  padding: 14px;
+  margin-top: 12px;
+  transition:
+    background 240ms ease,
+    border-color 240ms ease;
+  touch-action: pan-y;
+}
+
+.v3-shell .v3-play-card[data-saved="true"] {
+  border-color: color-mix(in oklab, #16a34a 55%, var(--border));
+  background: color-mix(in oklab, #16a34a 12%, var(--bg));
+}
+
+.v3-shell .v3-answer-saved {
+  margin: 8px 0 0;
+  color: #16a34a;
+  font-weight: 650;
+  opacity: 0.98;
+  transition: opacity 200ms ease;
+}
+
+.v3-shell .v3-play-summary {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 10px 0 6px;
+}
+
+.v3-shell .v3-play-summary-spacer {
+  flex: 1 1 auto;
+  min-width: 12px;
+}
+
+.v3-shell .v3-play-panel {
+  border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
+  background: linear-gradient(
+    135deg,
+    color-mix(in oklab, var(--accent) 10%, var(--bg)),
+    color-mix(in oklab, var(--accent2) 8%, var(--bg))
+  );
+  border-radius: 18px;
+  padding: 10px 12px 12px;
+  margin-top: 12px;
+}
+
+.v3-shell .v3-play-panel .v3-play-card {
+  margin-top: 0;
+}
+
+.v3-shell .v3-choice-row .choice.active {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 20%, transparent);
+}
+
+.v3-shell .v3-choice-row .choice:not(.active) {
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
+  border-color: var(--border);
+}
+
+.v3-shell .v3-choice-row .choice:not(.active):hover {
+  background: color-mix(in oklab, var(--bg) 84%, transparent);
+}
+
+.v3-shell .v3-play-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.v3-shell .v3-limit-notice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.v3-shell .v3-limit-notice-icon {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex: 0 0 auto;
+  opacity: 0.9;
+}
+
+.v3-shell .v3-remaining-pill.v3-remaining-low {
+  border-color: color-mix(in oklab, #f59e0b 40%, var(--border));
+  background: color-mix(in oklab, #f59e0b 14%, var(--bg));
+  color: color-mix(in oklab, #f59e0b 92%, var(--text-h));
+  font-weight: 750;
+}
+
+.v3-shell .v3-play-question {
+  font-size: 20px;
+  letter-spacing: -0.2px;
+  color: var(--text-h);
+  margin: 12px 0 10px;
+}
+
+.v3-shell .v3-play-nav {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.v3-shell .v3-play-nav .v3-play-next {
+  margin-left: auto;
+}
+
+.v3-shell .v3-nav-icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.v3-shell .v3-play-nav-slot {
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  align-items: center;
+}
+
+.v3-shell .v3-play-nav-slot-prev {
+  justify-items: start;
+}
+
+.v3-shell .v3-play-nav-slot-next {
+  justify-items: end;
+}
+
+.v3-shell .v3-play-nav-message {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.v3-shell .v3-play-prev,
+.v3-shell .v3-play-next {
+  padding: 8px 10px;
+}
+
+.v3-shell .v3-played-list {
+  display: grid;
+  gap: 12px;
+}
+
+.v3-shell .v3-footer {
+  border-top: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
+  padding: 10px 14px;
+  background: color-mix(in oklab, var(--bg) 90%, transparent);
+  display: flex;
+  justify-content: flex-end;
+}
+
+.v3-shell .toast {
+  position: fixed;
+  left: 50%;
+  top: 16px;
+  transform: translateX(-50%);
+  width: min(1126px, calc(100vw - 28px));
+  padding: 10px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 60;
+  box-shadow:
+    rgba(0, 0, 0, 0.18) 0 14px 30px -22px,
+    rgba(0, 0, 0, 0.12) 0 12px 18px -18px;
+  border-color: var(--accent-border);
+  background: color-mix(in oklab, var(--bg) 82%, transparent);
+  backdrop-filter: blur(10px) saturate(1.2);
+}
+
+.v3-shell .toast[data-kind="success"] {
+  border-color: color-mix(in oklab, #16a34a 60%, var(--border));
+  background: color-mix(in oklab, #16a34a 12%, var(--bg));
+  color: var(--text-h);
+}
+
+.v3-shell .toast[data-kind="error"] {
+  border-color: color-mix(in oklab, #ef4444 55%, var(--border));
+  background: color-mix(in oklab, #ef4444 10%, var(--bg));
+  color: var(--text-h);
+}

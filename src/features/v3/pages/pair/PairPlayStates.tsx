@@ -1,13 +1,30 @@
 import { CalendarIcon } from "../../components/icons/CalendarIcon";
 import { ClockIcon } from "../../components/icons/ClockIcon";
-import { nextWeeklyResetDateText, type PairPlayModel } from "./usePairPlayModel";
+import { nextWeeklyResetDateText } from "./usePairPlayModel";
 
-type PairPlayModelProps = {
-  model: PairPlayModel;
+type PairPlayIntroProps = {
+  showLimitNotice: boolean;
+  isUnlimited: boolean;
+  remainingNew: number;
 };
 
-export function PairPlayIntro({ model }: PairPlayModelProps) {
-  if (model.showLimitNotice) return null;
+type PairPlayLoadingProps = {
+  isLoading: boolean;
+};
+
+type PairPlayLimitNoticeProps = {
+  showLimitNotice: boolean;
+  limitNoticeText: string | null;
+};
+
+type PairPlayEmptyStateProps = {
+  orderedCount: number;
+  showSavedOnlyCard: boolean;
+  allCurrentAnswered: boolean;
+};
+
+export function PairPlayIntro({ isUnlimited, remainingNew, showLimitNotice }: PairPlayIntroProps) {
+  if (showLimitNotice) return null;
 
   return (
     <div className="v3-play-intro">
@@ -15,15 +32,15 @@ export function PairPlayIntro({ model }: PairPlayModelProps) {
       <p className="hint">
         Du und dein Partner habt jetzt Fragen zum Spielen. Beantworte offene Fragen, um neue Matches
         zu entdecken.
-        {!model.isUnlimited ? (
+        {!isUnlimited ? (
           <span className="v3-weekly-hint">
             Du kannst diese Woche noch
             <span
               className={`pill mono v3-inline-count-pill ${
-                model.remainingNew < 3 ? "v3-inline-count-low" : ""
+                remainingNew < 3 ? "v3-inline-count-low" : ""
               }`}
             >
-              {model.remainingNew}
+              {remainingNew}
             </span>
             neue Antworten geben. Wochenreset am {nextWeeklyResetDateText()}.{" "}
             <CalendarIcon className="v3-weekly-calendar-icon" />
@@ -34,8 +51,8 @@ export function PairPlayIntro({ model }: PairPlayModelProps) {
   );
 }
 
-export function PairPlayLoading({ model }: PairPlayModelProps) {
-  if (!model.isLoadingPairData) return null;
+export function PairPlayLoading({ isLoading }: PairPlayLoadingProps) {
+  if (!isLoading) return null;
 
   return (
     <div className="hint" data-testid="pair-loading-indicator">
@@ -44,21 +61,28 @@ export function PairPlayLoading({ model }: PairPlayModelProps) {
   );
 }
 
-export function PairPlayLimitNotice({ model }: PairPlayModelProps) {
-  if (!model.showLimitNotice) return null;
+export function PairPlayLimitNotice({
+  limitNoticeText,
+  showLimitNotice
+}: PairPlayLimitNoticeProps) {
+  if (!showLimitNotice) return null;
 
   return (
     <div className="notice v3-limit-notice" data-testid="weekly-limit-notice">
       <ClockIcon />
-      <div>{model.limitNoticeText}</div>
+      <div>{limitNoticeText}</div>
     </div>
   );
 }
 
-export function PairPlayEmptyState({ model }: PairPlayModelProps) {
-  if (model.ordered.length || model.showSavedOnlyCard) return null;
+export function PairPlayEmptyState({
+  allCurrentAnswered,
+  orderedCount,
+  showSavedOnlyCard
+}: PairPlayEmptyStateProps) {
+  if (orderedCount || showSavedOnlyCard) return null;
 
-  if (model.allCurrentAnswered) {
+  if (allCurrentAnswered) {
     return (
       <div className="v3-success" data-testid="all-answered-state">
         <strong>Alles beantwortet</strong>

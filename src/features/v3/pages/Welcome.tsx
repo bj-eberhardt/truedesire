@@ -1,5 +1,5 @@
 import { OnboardingStepper } from "../components/OnboardingStepper";
-import { V3LoadingState, V3PageError } from "../components/V3PageState";
+import { V3LoadingState, V3PageError } from "../components";
 import { BackupImportStep } from "./welcome/BackupImportStep";
 import { BackupSaveStep } from "./welcome/BackupSaveStep";
 import { CreateAccountStep } from "./welcome/CreateAccountStep";

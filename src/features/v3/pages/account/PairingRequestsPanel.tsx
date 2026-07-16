@@ -1,6 +1,7 @@
 import { forwardRef } from "react";
 import { ProfileAvatar } from "../../../../components/ProfileAvatar";
 import { RefreshButton } from "../../../../components/RefreshButton";
+import { V3Panel, V3SectionHeader } from "../../components";
 import type { RespondPairing } from "./accountHomeTypes";
 import type { GroupedPairingRequest } from "./groupPairingRequests";
 
@@ -27,21 +28,20 @@ export const PairingRequestsPanel = forwardRef<HTMLElement, PairingRequestsPanel
     } = props;
 
     return (
-      <section ref={ref} className="card v3-card v3-panel" data-testid="pairing-requests-panel">
-        <div className="row v3-pairing-refresh-row">
-          <h2>Offene Verknüpfungsanfragen</h2>
-          <div className="v3-pairing-refresh-meta">
-            <span className="hint">
-              Nächste Prüfung in {secondsUntilRefresh}s · zuletzt: {lastCheckedLabel}
-            </span>
+      <V3Panel ref={ref} testId="pairing-requests-panel">
+        <V3SectionHeader
+          className="v3-pairing-refresh-row"
+          title="Offene Verknüpfungsanfragen"
+          subtitle={`Nächste Prüfung in ${secondsUntilRefresh}s · zuletzt: ${lastCheckedLabel}`}
+          action={
             <RefreshButton
               testId="pairing-requests-refresh-button"
               onClick={onRefresh}
               disabled={isRefreshing}
               title="Neue Pair-Anfragen prüfen"
             />
-          </div>
-        </div>
+          }
+        />
         {!groupedRequests.length ? (
           <div className="empty" data-testid="pairing-requests-empty">
             Keine offenen Anfragen.
@@ -98,7 +98,7 @@ export const PairingRequestsPanel = forwardRef<HTMLElement, PairingRequestsPanel
             </div>
           ))}
         </div>
-      </section>
+      </V3Panel>
     );
   }
 );

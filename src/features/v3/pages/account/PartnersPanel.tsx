@@ -1,4 +1,5 @@
 import { ProfileAvatar } from "../../../../components/ProfileAvatar";
+import { PairStatusBadge, V3Panel } from "../../components";
 import type { AccountPair } from "./accountHomeTypes";
 
 export function PartnersPanel(props: {
@@ -6,12 +7,11 @@ export function PartnersPanel(props: {
   onOpenPair: (pairId: string) => void;
 }) {
   return (
-    <section className="card v3-card v3-panel" data-testid="partners-panel">
-      <h2>Deine Partner</h2>
-      <p className="hint">
-        Du hast bereits folgende verknüpfte Partner. Tippe auf einen Partner, um die Fragen zu
-        öffnen.
-      </p>
+    <V3Panel
+      testId="partners-panel"
+      title="Deine Partner"
+      hint="Du hast bereits folgende verknüpfte Partner. Tippe auf einen Partner, um die Fragen zu öffnen."
+    >
       <div className="v3-pair-grid">
         {props.pairs.map((pair) => (
           <button
@@ -29,22 +29,15 @@ export function PartnersPanel(props: {
                 <div className="v3-pair-card-code mono">{pair.partner?.code ?? "—"}</div>
               </div>
             </div>
-            <div
-              className={`pill mono status ${
-                pair.status === "active" ? "ok" : pair.status === "ended" ? "ended" : "pending"
-              }`}
-            >
-              {pair.partnerDeleted
-                ? "gelöscht"
-                : pair.status === "active"
-                  ? "aktiv"
-                  : pair.status === "ended"
-                    ? "beendet"
-                    : "ausstehend"}
-            </div>
+            <PairStatusBadge
+              status={pair.status}
+              partnerDeleted={pair.partnerDeleted}
+              showActive
+              className="mono"
+            />
           </button>
         ))}
       </div>
-    </section>
+    </V3Panel>
   );
 }

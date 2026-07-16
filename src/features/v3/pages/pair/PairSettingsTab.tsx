@@ -9,9 +9,20 @@ export function PairSettingsTab() {
   return (
     <>
       <div className="divider" />
-      <PairSettingsHeader model={model} />
-      <PairSettingsLoading model={model} />
-      <PairSettingsPanel model={model} />
+      <PairSettingsHeader onRefresh={model.refreshGroupSettings} />
+      <PairSettingsLoading isLoading={model.isLoadingGroupSettings} />
+      <PairSettingsPanel
+        allowAllQuestions={model.allowAllQuestions}
+        canProposeSettings={model.canProposeSettings}
+        isLoadingGroupSettings={model.isLoadingGroupSettings}
+        isOwnPendingRequest={Boolean(model.isOwnPendingRequest)}
+        pair={model.pair}
+        weeklyLimitDraft={model.weeklyLimitDraft}
+        onProposeGroupSettings={model.proposeGroupSettings}
+        onRespondGroupSettings={model.respondGroupSettings}
+        onSetQuestionsUnlimited={model.setQuestionsUnlimited}
+        onUpdateWeeklyLimitDraft={model.updateWeeklyLimitDraft}
+      />
     </>
   );
 }

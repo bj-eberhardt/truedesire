@@ -1,4 +1,5 @@
 import { RefreshButton } from "../../../../components/RefreshButton";
+import { V3SectionHeader } from "../../components";
 import { PairMatchCard } from "./PairMatchCard";
 import { usePairMatchesModel } from "./usePairMatchesModel";
 
@@ -8,25 +9,26 @@ export function PairMatchesTab() {
   return (
     <>
       <div className="divider" />
-      <div className="v3-matches-head">
-        <div>
-          <h2>
-            {model.showHiddenMatches
-              ? `Ausgeblendete Matches (${model.visibleMatchesCount})`
-              : `Matches (${model.visibleMatchesCount})`}
-          </h2>
-          <p className="hint v3-matches-subtitle">
-            {model.showHiddenMatches
-              ? "Hier findest du Matches, die du ausgeblendet hast."
-              : "Hier findest du Matches, bei denen Ihr beide grundsätzlich dafür seid. Nutzt die Gelegenheit und sprecht drüber."}
-          </p>
-        </div>
-        <RefreshButton
-          testId="matches-refresh-button"
-          onClick={model.computeMatches}
-          title="Matches neu berechnen"
-        />
-      </div>
+      <V3SectionHeader
+        className="v3-matches-head"
+        title={
+          model.showHiddenMatches
+            ? `Ausgeblendete Matches (${model.visibleMatchesCount})`
+            : `Matches (${model.visibleMatchesCount})`
+        }
+        subtitle={
+          model.showHiddenMatches
+            ? "Hier findest du Matches, die du ausgeblendet hast."
+            : "Hier findest du Matches, bei denen Ihr beide grundsätzlich dafür seid. Nutzt die Gelegenheit und sprecht drüber."
+        }
+        action={
+          <RefreshButton
+            testId="matches-refresh-button"
+            onClick={model.computeMatches}
+            title="Matches neu berechnen"
+          />
+        }
+      />
 
       {model.isLoadingMatches ? (
         <div className="hint">Matches werden geladen...</div>

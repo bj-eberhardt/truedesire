@@ -1,12 +1,21 @@
-import type { PairPlayModel } from "./usePairPlayModel";
+import type { PairView } from "../../../../types";
 
 type PairPlayToolbarProps = {
-  model: PairPlayModel;
+  pairStatus: PairView["status"];
+  partnerDeleted?: boolean;
+  playedPendingCount: number;
+  onAsk: () => void;
+  onPlayed: () => void;
 };
 
-export function PairPlayToolbar({ model }: PairPlayToolbarProps) {
-  const pair = model.pair;
-  if (!pair) return null;
+export function PairPlayToolbar({
+  pairStatus,
+  partnerDeleted,
+  playedPendingCount,
+  onAsk,
+  onPlayed
+}: PairPlayToolbarProps) {
+  const disabled = pairStatus !== "active" || !!partnerDeleted;
 
   return (
     <div className="v3-play-toolbar" data-testid="play-summary">
@@ -15,8 +24,8 @@ export function PairPlayToolbar({ model }: PairPlayToolbarProps) {
           <button
             className="primary"
             data-testid="ask-question-button"
-            onClick={model.goAsk}
-            disabled={pair.status !== "active" || !!pair.partnerDeleted}
+            onClick={onAsk}
+            disabled={disabled}
           >
             Neue Frage stellen
           </button>
@@ -24,16 +33,16 @@ export function PairPlayToolbar({ model }: PairPlayToolbarProps) {
             Du möchtest eigene Fragen stellen und beantwortet haben?
           </div>
         </div>
-        {model.playedPending.length ? (
+        {playedPendingCount ? (
           <div className="v3-play-action-card">
             <button
               className="secondary"
               data-testid="played-answers-button"
-              onClick={model.goPlayed}
-              disabled={pair.status !== "active" || !!pair.partnerDeleted}
+              onClick={onPlayed}
+              disabled={disabled}
               title="Deine bereits abgegebenen Antworten anpassen (solange dein Partner noch nicht geantwortet hat)."
             >
-              Antworten anpassen ({model.playedPending.length})
+              Antworten anpassen ({playedPendingCount})
             </button>
             <div className="v3-action-hint">
               Solange dein Partner die Frage nicht beantwortet hat, kannst du deine Meinung gerne

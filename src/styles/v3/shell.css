@@ -1,0 +1,30 @@
+.v3-shell {
+  --accent: #e11d48;
+  --accent2: #fb7185;
+  --accent-bg: color-mix(in oklab, var(--accent) 14%, transparent);
+  --accent-border: color-mix(in oklab, var(--accent) 55%, transparent);
+
+  background:
+    radial-gradient(
+      900px 520px at 12% -12%,
+      color-mix(in oklab, var(--accent) 18%, transparent),
+      transparent 55%
+    ),
+    radial-gradient(
+      720px 460px at 96% 0%,
+      color-mix(in oklab, var(--accent2) 14%, transparent),
+      transparent 55%
+    ),
+    var(--bg);
+}
+
+.v3-shell .v3 {
+  flex: 1 1 auto;
+  padding: 14px;
+}
+
+.v3-shell .v3-container {
+  width: 870px;
+  max-width: 100%;
+  margin: 0 auto;
+}

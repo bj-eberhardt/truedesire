@@ -1,4 +1,4 @@
-import { V3Notice } from "../../components/V3Notice";
+import { V3Notice } from "../../components";
 import { InfoIcon } from "../../components/icons/InfoIcon";
 
 export function BackupSaveStep({

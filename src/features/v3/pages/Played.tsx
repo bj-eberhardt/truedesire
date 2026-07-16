@@ -1,5 +1,4 @@
-import { V3LoadingState, V3PageError } from "../components/V3PageState";
-import { V3View } from "../components/V3View";
+import { AnswerChoiceGroup, V3LoadingState, V3PageError, V3View } from "../components";
 import { usePlayedAnswersModel } from "./played/usePlayedAnswersModel";
 
 export function PlayedPage() {
@@ -41,32 +40,13 @@ export function PlayedPage() {
                     Frage wurde beantwortet.
                   </div>
                 ) : null}
-                <div className="v3-choice-row v3-played-choice-row">
-                  <button
-                    className={`choice yes ${mine === "yes" ? "active" : ""}`}
-                    data-testid="played-answer-yes-button"
-                    onClick={() => played.answerPendingQuestion(pq.id, pq.text, "yes")}
-                    disabled={locked || played.flash.isSaving}
-                  >
-                    Ja
-                  </button>
-                  <button
-                    className={`choice maybe ${mine === "maybe" ? "active" : ""}`}
-                    data-testid="played-answer-maybe-button"
-                    onClick={() => played.answerPendingQuestion(pq.id, pq.text, "maybe")}
-                    disabled={locked || played.flash.isSaving}
-                  >
-                    Vielleicht
-                  </button>
-                  <button
-                    className={`choice no ${mine === "no" ? "active" : ""}`}
-                    data-testid="played-answer-no-button"
-                    onClick={() => played.answerPendingQuestion(pq.id, pq.text, "no")}
-                    disabled={locked || played.flash.isSaving}
-                  >
-                    Nein
-                  </button>
-                </div>
+                <AnswerChoiceGroup
+                  className="v3-played-choice-row"
+                  value={mine}
+                  onSelect={(answer) => played.answerPendingQuestion(pq.id, pq.text, answer)}
+                  disabled={locked || played.flash.isSaving}
+                  testIdPrefix="played-answer"
+                />
               </div>
             );
           })}
