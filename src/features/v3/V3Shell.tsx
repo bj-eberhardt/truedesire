@@ -22,7 +22,16 @@ export function V3Shell() {
   const route = workspace.route.route;
   const routeMode = route.mode;
   const routeOnboard = route.onboard ?? "start";
-  const routeKey = `${routeMode}:${route.pairId ?? ""}:${routeOnboard}`;
+  const routeKey =
+    routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings"
+      ? `pair:${route.pairId ?? ""}`
+      : routeMode === "welcome" || routeOnboard !== "start"
+        ? "welcome"
+        : routeMode === "home"
+          ? identity?.userId
+            ? "account-home"
+            : "home"
+          : `${routeMode}:${route.pairId ?? ""}`;
 
   useEffect(() => {
     if (feedback.inlineNotice) {
