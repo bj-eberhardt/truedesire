@@ -15,7 +15,11 @@ export function PairPlayTab() {
   return (
     <V3RevealContent
       isLoading={model.isLoadingPairData}
-      loading={<div className="hint" data-testid="pair-loading-indicator">Fragen werden geladen...</div>}
+      loading={
+        <div className="hint" data-testid="pair-loading-indicator">
+          Fragen werden geladen...
+        </div>
+      }
     >
       <PairPlayIntro
         showLimitNotice={model.showLimitNotice}
