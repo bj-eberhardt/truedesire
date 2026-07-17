@@ -486,7 +486,8 @@
   background: linear-gradient(180deg, #e11d48, #fb7185);
 }
 
-.v3-shell .match-card.maybe {
+.v3-shell .match-card.maybe,
+.v3-shell .match-card.mutualMaybe {
   border-color: color-mix(in oklab, #7c3aed 20%, var(--border));
   background:
     radial-gradient(
@@ -497,11 +498,12 @@
     color-mix(in oklab, var(--bg) 92%, transparent);
 }
 
-.v3-shell .match-card.maybe::before {
+.v3-shell .match-card.maybe::before,
+.v3-shell .match-card.mutualMaybe::before {
   background: linear-gradient(180deg, #7c3aed, #a78bfa);
 }
 
-.v3-shell .match-card.okay::before {
+.v3-shell .match-card.ok::before {
   background: linear-gradient(180deg, #64748b, #94a3b8);
 }
 
@@ -539,11 +541,12 @@
   color: color-mix(in oklab, #e11d48 82%, var(--text-h));
 }
 
-.v3-shell .badge.maybe {
+.v3-shell .badge.maybe,
+.v3-shell .badge.mutualMaybe {
   color: color-mix(in oklab, #7c3aed 82%, var(--text-h));
 }
 
-.v3-shell .badge.okay {
+.v3-shell .badge.ok {
   color: color-mix(in oklab, #64748b 78%, var(--text-h));
 }
 

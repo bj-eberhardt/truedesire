@@ -8,13 +8,9 @@ import {
   type MatchView
 } from "../../../../domain/matches/computeMatchViews";
 import type { Identity } from "../../../../state/identity";
-import type { AnswerChoice, DecryptedQuestion, PairView, QuestionView } from "../../../../types";
+import type { DecryptedQuestion, PairView, QuestionView } from "../../../../types";
 
 type ApiClient = ReturnType<typeof api>;
-
-function isAnswerChoice(value: unknown): value is AnswerChoice {
-  return value === "yes" || value === "no" || value === "maybe";
-}
 
 type UseMatchesResult = {
   matches: MatchView[];
@@ -55,34 +51,18 @@ export function useMatches(opts: {
           currentPair,
           identity.userId
         );
-        const allAnswers = await apiClient.answers.listByPair(currentPair.id);
-        const answersByQuestion: Record<string, typeof allAnswers> = {};
-        for (const answer of allAnswers) {
-          (answersByQuestion[answer.questionId] ??= []).push(answer);
-        }
+        const matchResults = await apiClient.matches.list(currentPair.id);
+        const matchesByQuestionId = new Map(
+          matchResults.map((match) => [match.questionId, match] as const)
+        );
 
         const questionSource = rawQuestionsOverride?.length
           ? rawQuestionsOverride
           : await apiClient.questions.list(currentPair.id);
         const matchQuestions: MatchQuestionInput[] = [];
         for (const question of questionSource) {
-          const answers = answersByQuestion[question.id] ?? [];
-          const decoded: AnswerChoice[] = [];
-          let hasInvalidAnswer = false;
-          for (const answer of answers) {
-            try {
-              const payload = await decryptJson<{ answer?: unknown }>(aes, answer.blob);
-              if (!isAnswerChoice(payload.answer)) {
-                hasInvalidAnswer = true;
-                break;
-              }
-              decoded.push(payload.answer);
-            } catch {
-              hasInvalidAnswer = true;
-              break;
-            }
-          }
-          if (hasInvalidAnswer) continue;
+          const matchResult = matchesByQuestionId.get(question.id);
+          if (!matchResult) continue;
 
           let questionText: string =
             decryptedQuestionsOverride?.find((item) => item.id === question.id)?.text ?? "";
@@ -98,7 +78,7 @@ export function useMatches(opts: {
             id: question.id,
             text: questionText,
             createdAt: question.createdAt,
-            answers: decoded
+            grade: matchResult.grade
           });
         }
         setMatches(computeMatchViews(matchQuestions));

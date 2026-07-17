@@ -72,12 +72,17 @@ function groupSettingsValue(
   return {
     weeklyLimitDraft: "5",
     allowAllQuestions: false,
+    matchPolicy: "allowMutualMaybe",
+    matchPolicyDraft: "allowMutualMaybe",
     isLoadingGroupSettings: false,
     updateWeeklyLimitDraft: vi.fn(),
     setQuestionsUnlimited: vi.fn(),
+    updateMatchPolicyDraft: vi.fn(),
     refreshGroupSettings,
     proposeGroupSettings: vi.fn(),
-    respondGroupSettings: vi.fn()
+    respondGroupSettings: vi.fn(),
+    proposeMatchPolicy: vi.fn(),
+    respondMatchPolicy: vi.fn()
   };
 }
 
@@ -197,6 +202,26 @@ test("counts pending settings only when the partner proposed them", async () => 
 
   expect(ownPendingHook.current.pendingSettingsCount).toBe(0);
   await ownPendingHook.unmount();
+});
+
+test("counts partner match policy proposals as pending settings", async () => {
+  const hook = await renderPairPageModel({
+    workspace: {
+      ...workspaceValue("pair"),
+      pair: {
+        ...pair,
+        matchPolicyPending: {
+          id: "match-pending-1",
+          proposedBy: "user-2",
+          policy: "perfectOnly",
+          createdAt: 1
+        }
+      }
+    }
+  });
+
+  expect(hook.current.pendingSettingsCount).toBe(1);
+  await hook.unmount();
 });
 
 test("tab actions change routes and trigger related refresh actions", async () => {

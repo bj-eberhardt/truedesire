@@ -57,7 +57,29 @@ export const deleteQuestionBodySchema = z.object({
 
 export const answerBodySchema = z.object({
   questionId: z.string().min(1),
-  blob: encryptedBlobSchema
+  blob: encryptedBlobSchema,
+  matchTokens: z
+    .object({
+      perfect: z.array(z.string().min(16).max(256)).max(2).default([]),
+      mixedMaybe: z.array(z.string().min(16).max(256)).max(2).default([]),
+      mutualMaybe: z.array(z.string().min(16).max(256)).max(2).default([])
+    })
+    .default({ perfect: [], mixedMaybe: [], mutualMaybe: [] }),
+  policyVersion: z.number().int().min(1).max(10).default(1),
+  maybeCountsAsMatch: z.boolean().optional()
+});
+
+export const matchPolicySchema = z.enum(["perfectOnly", "allowMixedMaybe", "allowMutualMaybe"]);
+
+export const matchPolicyBodySchema = z.object({
+  pairId: z.string().min(1),
+  policy: matchPolicySchema
+});
+
+export const matchPolicyRespondBodySchema = z.object({
+  pairId: z.string().min(1),
+  proposalId: z.string().min(1),
+  action: z.enum(["accept", "reject", "cancel"])
 });
 
 export const pairIdParamsSchema = z.object({
@@ -78,5 +100,7 @@ export type SeedSystemQuestionsBody = z.infer<typeof seedSystemQuestionsBodySche
 export type QuestionBody = z.infer<typeof questionBodySchema>;
 export type DeleteQuestionBody = z.infer<typeof deleteQuestionBodySchema>;
 export type AnswerBody = z.infer<typeof answerBodySchema>;
+export type MatchPolicyBody = z.infer<typeof matchPolicyBodySchema>;
+export type MatchPolicyRespondBody = z.infer<typeof matchPolicyRespondBodySchema>;
 export type PairIdParams = z.infer<typeof pairIdParamsSchema>;
 export type QuestionIdParams = z.infer<typeof questionIdParamsSchema>;

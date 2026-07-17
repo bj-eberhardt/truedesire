@@ -218,6 +218,7 @@
   display: flex;
   gap: 10px;
   align-items: center;
+  min-width: 0;
 }
 
 .v3-shell .v3-request-name {
@@ -229,6 +230,17 @@
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+@media (min-width: 680px) {
+  .v3-shell .v3-request {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .v3-shell .v3-request-actions {
+    justify-self: end;
+  }
 }
 
 .v3-shell .v3-request-actions [data-testid="pairing-request-accept-button"]:hover:not(:disabled) {

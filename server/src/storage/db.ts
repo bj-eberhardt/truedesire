@@ -18,6 +18,12 @@ export type PairRecord = {
   weeklyLimit: number;
   weeklyLimitProposals: { [userId: string]: number | undefined };
   weeklyLimitPending: { id: string; proposedBy: string; limit: number; createdAt: number } | null;
+  matchPolicyPending: {
+    id: string;
+    proposedBy: string;
+    policy: MatchPolicy;
+    createdAt: number;
+  } | null;
   seededSystemQuestionsAt: number | null;
   createdAt: number;
   updatedAt: number;
@@ -39,6 +45,14 @@ export type EncryptedBlob = {
   schemaVersion: number;
 };
 
+export type MatchPolicy = "perfectOnly" | "allowMixedMaybe" | "allowMutualMaybe";
+
+export type MatchTokenSet = {
+  perfect: string[];
+  mixedMaybe: string[];
+  mutualMaybe: string[];
+};
+
 export type QuestionRecord = {
   id: string;
   pairId: string;
@@ -55,4 +69,13 @@ export type AnswerRecord = {
   createdAt: number;
   updatedAt?: number;
   blob: EncryptedBlob;
+  matchTokens: MatchTokenSet;
+  policyVersion: number;
+  maybeCountsAsMatch?: boolean | null;
+};
+
+export type MatchRecord = {
+  questionId: string;
+  createdAt: number;
+  grade: "perfect" | "maybe" | "mutualMaybe";
 };

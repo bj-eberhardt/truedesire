@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import type { Identity } from "../../../../state/identity";
-import type { AnswerChoice, PairView } from "../../../../types";
+import type { AnswerChoice, MatchPolicy, PairView } from "../../../../types";
+import { derivePairHmacKey } from "../../../../crypto/sharedKey";
+import { createMatchTokens, MATCH_POLICY_VERSION } from "../../../../domain/matches/matchTokens";
 import { deriveQuestionKey, encryptAnswerBlob, encryptQuestionBlob } from "./questionCrypto";
 import type { ApiClient } from "./types";
 
@@ -8,6 +10,7 @@ export function useQuestionActions(opts: {
   apiClient: ApiClient | null;
   identity: Identity | null;
   pair: PairView | null;
+  matchPolicy: MatchPolicy;
   loadQuestionsAndDecrypt: (pairOverride?: PairView) => Promise<void>;
   onAnswerLimitReached?: (reached: boolean) => void;
   refreshCurrentPair?: () => Promise<void>;
@@ -16,6 +19,7 @@ export function useQuestionActions(opts: {
     apiClient,
     identity,
     pair,
+    matchPolicy,
     loadQuestionsAndDecrypt,
     onAnswerLimitReached,
     refreshCurrentPair
@@ -24,9 +28,11 @@ export function useQuestionActions(opts: {
   const addQuestion = useCallback(
     async (text: string, selfAnswer: AnswerChoice) => {
       if (!apiClient || !pair || !identity?.userId) return;
+      if (!pair.partner) throw new Error("pair_not_complete");
       const trimmed = text.trim();
       if (!trimmed) return;
       const aes = await deriveQuestionKey(identity, pair);
+      const hmacKey = await derivePairHmacKey(identity.keys.ecdhPrivateKey, pair, identity.userId);
       const blob = await encryptQuestionBlob({ aes, pairId: pair.id, text: trimmed });
       const created = await apiClient.questions.create(pair.id, blob);
 
@@ -37,7 +43,20 @@ export function useQuestionActions(opts: {
           questionId: created.id,
           answer: selfAnswer
         });
-        await apiClient.answers.create(created.id, answerBlob);
+        const matchTokens = await createMatchTokens({
+          hmacKey,
+          pairId: pair.id,
+          questionId: created.id,
+          myUserId: identity.userId,
+          partnerUserId: pair.partner.id,
+          answer: selfAnswer,
+          matchPolicy
+        });
+        await apiClient.answers.create(created.id, answerBlob, {
+          matchTokens,
+          policyVersion: MATCH_POLICY_VERSION,
+          maybeCountsAsMatch: matchPolicy !== "perfectOnly"
+        });
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
         if (msg === "weekly_limit_reached") {
@@ -53,7 +72,7 @@ export function useQuestionActions(opts: {
       await refreshCurrentPair?.();
       await loadQuestionsAndDecrypt();
     },
-    [apiClient, identity, loadQuestionsAndDecrypt, pair, refreshCurrentPair]
+    [apiClient, identity, loadQuestionsAndDecrypt, matchPolicy, pair, refreshCurrentPair]
   );
 
   const deleteQuestion = useCallback(
@@ -68,15 +87,30 @@ export function useQuestionActions(opts: {
   const answer = useCallback(
     async (questionId: string, choice: AnswerChoice) => {
       if (!apiClient || !pair || !identity?.userId) return;
+      if (!pair.partner) throw new Error("pair_not_complete");
       const aes = await deriveQuestionKey(identity, pair);
+      const hmacKey = await derivePairHmacKey(identity.keys.ecdhPrivateKey, pair, identity.userId);
       const blob = await encryptAnswerBlob({
         aes,
         pairId: pair.id,
         questionId,
         answer: choice
       });
+      const matchTokens = await createMatchTokens({
+        hmacKey,
+        pairId: pair.id,
+        questionId,
+        myUserId: identity.userId,
+        partnerUserId: pair.partner.id,
+        answer: choice,
+        matchPolicy
+      });
       try {
-        await apiClient.answers.upsert(questionId, blob);
+        await apiClient.answers.upsert(questionId, blob, {
+          matchTokens,
+          policyVersion: MATCH_POLICY_VERSION,
+          maybeCountsAsMatch: matchPolicy !== "perfectOnly"
+        });
         onAnswerLimitReached?.(false);
         await refreshCurrentPair?.();
         await loadQuestionsAndDecrypt();
@@ -96,7 +130,15 @@ export function useQuestionActions(opts: {
         throw new Error(msg);
       }
     },
-    [apiClient, identity, loadQuestionsAndDecrypt, onAnswerLimitReached, pair, refreshCurrentPair]
+    [
+      apiClient,
+      identity,
+      loadQuestionsAndDecrypt,
+      matchPolicy,
+      onAnswerLimitReached,
+      pair,
+      refreshCurrentPair
+    ]
   );
 
   return { addQuestion, deleteQuestion, answer };

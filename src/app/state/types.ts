@@ -1,6 +1,6 @@
 import type { MatchView } from "../../domain/matches/computeMatchViews";
 import type { Identity } from "../../state/identity";
-import type { AnswerChoice, DecryptedQuestion, PairView } from "../../types";
+import type { AnswerChoice, DecryptedQuestion, MatchPolicy, PairView } from "../../types";
 import type { AppRoute } from "../routes";
 
 export type ToastKind = "default" | "success" | "error";
@@ -93,12 +93,17 @@ export type MatchesContextValue = {
 export type GroupSettingsContextValue = {
   weeklyLimitDraft: string;
   allowAllQuestions: boolean;
+  matchPolicy: MatchPolicy;
+  matchPolicyDraft: MatchPolicy;
   isLoadingGroupSettings: boolean;
   updateWeeklyLimitDraft: (value: string) => void;
   setQuestionsUnlimited: (enabled: boolean) => void;
+  updateMatchPolicyDraft: (policy: MatchPolicy) => void;
   refreshGroupSettings: () => Promise<void>;
   proposeGroupSettings: () => Promise<void>;
   respondGroupSettings: (action: "accept" | "reject" | "cancel") => Promise<void>;
+  proposeMatchPolicy: () => Promise<void>;
+  respondMatchPolicy: (action: "accept" | "reject" | "cancel") => Promise<void>;
 };
 
 export type AccountContextValue = {

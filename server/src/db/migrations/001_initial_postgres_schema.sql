@@ -22,6 +22,7 @@ create table if not exists pairs (
   status text not null check (status in ('pending', 'active', 'ended')),
   weekly_limit integer not null,
   weekly_limit_pending jsonb null,
+  match_policy_pending jsonb null,
   seeded_system_questions_at bigint null,
   created_at bigint not null,
   updated_at bigint not null
@@ -51,7 +52,18 @@ create table if not exists answers (
   user_id text not null references users(id),
   created_at bigint not null,
   updated_at bigint null,
-  blob jsonb not null
+  blob jsonb not null,
+  match_tokens jsonb not null default '[]'::jsonb,
+  policy_version integer not null default 1,
+  maybe_counts_as_match boolean null
+);
+
+create table if not exists pair_match_policies (
+  pair_id text not null references pairs(id) on delete cascade,
+  user_id text not null references users(id) on delete cascade,
+  policy text not null check (policy in ('perfectOnly', 'allowMixedMaybe', 'allowMutualMaybe')),
+  updated_at bigint not null,
+  primary key (pair_id, user_id)
 );
 
 create table if not exists auth_nonces (
@@ -75,4 +87,5 @@ create unique index if not exists answers_question_user_idx on answers(question_
 create index if not exists answers_question_idx on answers(question_id);
 create index if not exists answers_pair_user_created_idx on answers(pair_id, user_id, created_at);
 create index if not exists answers_pair_idx on answers(pair_id);
+create index if not exists pair_match_policies_user_idx on pair_match_policies(user_id);
 create index if not exists auth_nonces_user_expires_idx on auth_nonces(user_id, expires_at);

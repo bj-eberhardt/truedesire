@@ -18,6 +18,7 @@ export function pairValues(pair: PairRecord) {
     pair.status,
     pair.weeklyLimit,
     pair.weeklyLimitPending,
+    pair.matchPolicyPending,
     pair.seededSystemQuestionsAt,
     pair.createdAt,
     pair.updatedAt
@@ -28,9 +29,10 @@ export async function insertPair(client: DbClient, pair: PairRecord): Promise<Pa
   const result = await client.query<PairRow>(
     `insert into pairs(
        id, user_a, user_b, confirm_a, confirm_b, status, weekly_limit, weekly_limit_pending,
+       match_policy_pending,
        seeded_system_questions_at, created_at, updated_at
      )
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
      returning *`,
     pairValues(pair)
   );

@@ -1,4 +1,5 @@
-import { PairSettingsHeader, PairSettingsLoading, PairSettingsPanel } from "./PairSettingsViews";
+import { V3RevealContent } from "../../components";
+import { PairSettingsHeader, PairSettingsPanel } from "./PairSettingsViews";
 import { usePairSettingsModel } from "./usePairSettingsModel";
 
 export function PairSettingsTab() {
@@ -10,19 +11,30 @@ export function PairSettingsTab() {
     <>
       <div className="divider" />
       <PairSettingsHeader onRefresh={model.refreshGroupSettings} />
-      <PairSettingsLoading isLoading={model.isLoadingGroupSettings} />
-      <PairSettingsPanel
-        allowAllQuestions={model.allowAllQuestions}
-        canProposeSettings={model.canProposeSettings}
-        isLoadingGroupSettings={model.isLoadingGroupSettings}
-        isOwnPendingRequest={Boolean(model.isOwnPendingRequest)}
-        pair={model.pair}
-        weeklyLimitDraft={model.weeklyLimitDraft}
-        onProposeGroupSettings={model.proposeGroupSettings}
-        onRespondGroupSettings={model.respondGroupSettings}
-        onSetQuestionsUnlimited={model.setQuestionsUnlimited}
-        onUpdateWeeklyLimitDraft={model.updateWeeklyLimitDraft}
-      />
+      <V3RevealContent
+        isLoading={model.isLoadingGroupSettings}
+        loading={<div className="hint">Gruppen-Einstellungen werden geladen...</div>}
+      >
+        <PairSettingsPanel
+          allowAllQuestions={model.allowAllQuestions}
+          canProposeMatchPolicy={model.canProposeMatchPolicy}
+          canProposeWeeklyLimit={model.canProposeWeeklyLimit}
+          isLoadingGroupSettings={model.isLoadingGroupSettings}
+          isOwnMatchPolicyPending={Boolean(model.isOwnMatchPolicyPending)}
+          isOwnWeeklyLimitPending={Boolean(model.isOwnWeeklyLimitPending)}
+          matchPolicy={model.matchPolicy}
+          matchPolicyDraft={model.matchPolicyDraft}
+          pair={model.pair}
+          weeklyLimitDraft={model.weeklyLimitDraft}
+          onProposeGroupSettings={model.proposeGroupSettings}
+          onProposeMatchPolicy={model.proposeMatchPolicy}
+          onRespondGroupSettings={model.respondGroupSettings}
+          onRespondMatchPolicy={model.respondMatchPolicy}
+          onSetQuestionsUnlimited={model.setQuestionsUnlimited}
+          onUpdateMatchPolicyDraft={model.updateMatchPolicyDraft}
+          onUpdateWeeklyLimitDraft={model.updateWeeklyLimitDraft}
+        />
+      </V3RevealContent>
     </>
   );
 }

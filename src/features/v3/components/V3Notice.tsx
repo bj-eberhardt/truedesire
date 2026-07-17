@@ -7,6 +7,7 @@ export function V3Notice(props: {
   onClick?: () => void;
   className?: string;
   testId?: string;
+  animationState?: "open" | "closing";
 }) {
   const body = (
     <>
@@ -26,6 +27,7 @@ export function V3Notice(props: {
         type="button"
         className={className}
         data-testid={props.testId ?? "v3-notice"}
+        data-animation-state={props.animationState ?? "open"}
         onClick={props.onClick}
       >
         {body}
@@ -37,6 +39,7 @@ export function V3Notice(props: {
     <div
       className={className}
       data-testid={props.testId ?? "v3-notice"}
+      data-animation-state={props.animationState ?? "open"}
       role="status"
       aria-live="polite"
     >

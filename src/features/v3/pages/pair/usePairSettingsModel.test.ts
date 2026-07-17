@@ -53,12 +53,17 @@ function groupSettingsValue(
   return {
     weeklyLimitDraft: "5",
     allowAllQuestions: false,
+    matchPolicy: "allowMutualMaybe",
+    matchPolicyDraft: "allowMutualMaybe",
     isLoadingGroupSettings: false,
     updateWeeklyLimitDraft: vi.fn(),
     setQuestionsUnlimited: vi.fn(),
+    updateMatchPolicyDraft: vi.fn(),
     refreshGroupSettings: vi.fn(),
     proposeGroupSettings: vi.fn(),
     respondGroupSettings: vi.fn(),
+    proposeMatchPolicy: vi.fn(),
+    respondMatchPolicy: vi.fn(),
     ...overrides
   };
 }
@@ -132,13 +137,13 @@ test("enables proposing settings only for a valid changed weekly limit", async (
   const unchanged = await renderPairSettingsModel({
     groupSettings: groupSettingsValue({ weeklyLimitDraft: "5" })
   });
-  expect(unchanged.current.canProposeSettings).toBe(false);
+  expect(unchanged.current.canProposeWeeklyLimit).toBe(false);
   await unchanged.unmount();
 
   const changed = await renderPairSettingsModel({
     groupSettings: groupSettingsValue({ weeklyLimitDraft: "3" })
   });
-  expect(changed.current.canProposeSettings).toBe(true);
+  expect(changed.current.canProposeWeeklyLimit).toBe(true);
   await changed.unmount();
 });
 
@@ -146,13 +151,13 @@ test("disables proposing settings while loading, pending, or invalid", async () 
   const loading = await renderPairSettingsModel({
     groupSettings: groupSettingsValue({ weeklyLimitDraft: "3", isLoadingGroupSettings: true })
   });
-  expect(loading.current.canProposeSettings).toBe(false);
+  expect(loading.current.canProposeWeeklyLimit).toBe(false);
   await loading.unmount();
 
   const invalid = await renderPairSettingsModel({
     groupSettings: groupSettingsValue({ weeklyLimitDraft: "99" })
   });
-  expect(invalid.current.canProposeSettings).toBe(false);
+  expect(invalid.current.canProposeWeeklyLimit).toBe(false);
   await invalid.unmount();
 
   const pending = await renderPairSettingsModel({
@@ -162,7 +167,7 @@ test("disables proposing settings while loading, pending, or invalid", async () 
     },
     groupSettings: groupSettingsValue({ weeklyLimitDraft: "3" })
   });
-  expect(pending.current.canProposeSettings).toBe(false);
+  expect(pending.current.canProposeWeeklyLimit).toBe(false);
   await pending.unmount();
 });
 
@@ -174,7 +179,7 @@ test("detects whether the pending request belongs to the current user", async ()
     },
     groupSettings: groupSettingsValue({})
   });
-  expect(ownPending.current.isOwnPendingRequest).toBe(true);
+  expect(ownPending.current.isOwnWeeklyLimitPending).toBe(true);
   await ownPending.unmount();
 
   const partnerPending = await renderPairSettingsModel({
@@ -184,6 +189,76 @@ test("detects whether the pending request belongs to the current user", async ()
     },
     groupSettings: groupSettingsValue({})
   });
-  expect(partnerPending.current.isOwnPendingRequest).toBe(false);
+  expect(partnerPending.current.isOwnWeeklyLimitPending).toBe(false);
+  await partnerPending.unmount();
+});
+
+test("enables proposing match policy only for a changed draft without pending request", async () => {
+  const unchanged = await renderPairSettingsModel({
+    groupSettings: groupSettingsValue({
+      matchPolicy: "allowMutualMaybe",
+      matchPolicyDraft: "allowMutualMaybe"
+    })
+  });
+  expect(unchanged.current.canProposeMatchPolicy).toBe(false);
+  await unchanged.unmount();
+
+  const changed = await renderPairSettingsModel({
+    groupSettings: groupSettingsValue({
+      matchPolicy: "allowMutualMaybe",
+      matchPolicyDraft: "perfectOnly"
+    })
+  });
+  expect(changed.current.canProposeMatchPolicy).toBe(true);
+  await changed.unmount();
+
+  const pending = await renderPairSettingsModel({
+    pair: {
+      ...basePair,
+      matchPolicyPending: {
+        id: "match-pending-1",
+        proposedBy: "user-2",
+        policy: "perfectOnly",
+        createdAt: 1
+      }
+    },
+    groupSettings: groupSettingsValue({
+      matchPolicy: "allowMutualMaybe",
+      matchPolicyDraft: "perfectOnly"
+    })
+  });
+  expect(pending.current.canProposeMatchPolicy).toBe(false);
+  await pending.unmount();
+});
+
+test("detects whether the pending match policy request belongs to the current user", async () => {
+  const ownPending = await renderPairSettingsModel({
+    pair: {
+      ...basePair,
+      matchPolicyPending: {
+        id: "match-pending-1",
+        proposedBy: "user-1",
+        policy: "perfectOnly",
+        createdAt: 1
+      }
+    },
+    groupSettings: groupSettingsValue({})
+  });
+  expect(ownPending.current.isOwnMatchPolicyPending).toBe(true);
+  await ownPending.unmount();
+
+  const partnerPending = await renderPairSettingsModel({
+    pair: {
+      ...basePair,
+      matchPolicyPending: {
+        id: "match-pending-1",
+        proposedBy: "user-2",
+        policy: "perfectOnly",
+        createdAt: 1
+      }
+    },
+    groupSettings: groupSettingsValue({})
+  });
+  expect(partnerPending.current.isOwnMatchPolicyPending).toBe(false);
   await partnerPending.unmount();
 });

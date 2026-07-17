@@ -10,7 +10,7 @@ export function usePairSettingsModel() {
   const { pair } = usePairWorkspaceContext();
   const groupSettings = useGroupSettingsContext();
 
-  const canProposeSettings = useMemo(() => {
+  const canProposeWeeklyLimit = useMemo(() => {
     if (!pair) return false;
     if (pair.weeklyLimitPending) return false;
     if (groupSettings.isLoadingGroupSettings) return false;
@@ -25,16 +25,35 @@ export function usePairSettingsModel() {
     pair
   ]);
 
+  const canProposeMatchPolicy = useMemo(() => {
+    if (!pair) return false;
+    if (pair.matchPolicyPending) return false;
+    if (groupSettings.isLoadingGroupSettings) return false;
+    return groupSettings.matchPolicyDraft !== groupSettings.matchPolicy;
+  }, [
+    groupSettings.isLoadingGroupSettings,
+    groupSettings.matchPolicy,
+    groupSettings.matchPolicyDraft,
+    pair
+  ]);
+
   return {
     allowAllQuestions: groupSettings.allowAllQuestions,
-    canProposeSettings,
+    canProposeMatchPolicy,
+    canProposeWeeklyLimit,
     isLoadingGroupSettings: groupSettings.isLoadingGroupSettings,
-    isOwnPendingRequest: pair?.weeklyLimitPending?.proposedBy === identity?.userId,
+    isOwnMatchPolicyPending: pair?.matchPolicyPending?.proposedBy === identity?.userId,
+    isOwnWeeklyLimitPending: pair?.weeklyLimitPending?.proposedBy === identity?.userId,
+    matchPolicy: groupSettings.matchPolicy,
+    matchPolicyDraft: groupSettings.matchPolicyDraft,
     pair,
     proposeGroupSettings: groupSettings.proposeGroupSettings,
+    proposeMatchPolicy: groupSettings.proposeMatchPolicy,
     refreshGroupSettings: groupSettings.refreshGroupSettings,
     respondGroupSettings: groupSettings.respondGroupSettings,
+    respondMatchPolicy: groupSettings.respondMatchPolicy,
     setQuestionsUnlimited: groupSettings.setQuestionsUnlimited,
+    updateMatchPolicyDraft: groupSettings.updateMatchPolicyDraft,
     updateWeeklyLimitDraft: groupSettings.updateWeeklyLimitDraft,
     weeklyLimitDraft: groupSettings.weeklyLimitDraft
   };

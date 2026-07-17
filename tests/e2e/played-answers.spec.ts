@@ -33,14 +33,14 @@ test("allows changing own pending answer and removes it from editable answers af
     await expect(alice.page.getByTestId("played-saved-indicator")).toBeVisible();
   });
 
-  await test.step("answer as partner and compute the maybe match", async () => {
+  await test.step("answer as partner and compute the match", async () => {
     await gotoPair(bob.page, pairId);
     await answerQuestionByText(bob.page, question, "maybe");
     await openMatches(bob.page);
     const match = bob.page
       .getByTestId("match-card")
       .filter({ has: bob.page.getByTestId("match-question-text").filter({ hasText: question }) });
-    await expect(match).toHaveAttribute("data-match-grade", "maybe");
+    await expect(match).toHaveAttribute("data-match-grade", "mutualMaybe");
   });
 
   await test.step("reopen played answers and verify the answered question is no longer editable", async () => {

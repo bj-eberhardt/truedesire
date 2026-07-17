@@ -6,39 +6,19 @@ function question(overrides: Partial<MatchQuestionInput>): MatchQuestionInput {
     id: "question-1",
     text: "Frage?",
     createdAt: 1,
-    answers: ["yes", "yes"],
+    grade: "perfect",
     ...overrides
   };
 }
 
-test("grades yes/yes answers as a perfect match", () => {
-  expect(computeMatchViews([question({ answers: ["yes", "yes"] })])).toEqual([
+test("maps matched questions without exposing raw answers", () => {
+  expect(computeMatchViews([question({})])).toEqual([
     {
       id: "question-1",
       question: "Frage?",
-      grade: "perfect",
-      answers: ["yes", "yes"]
+      grade: "perfect"
     }
   ]);
-});
-
-test("grades yes/maybe answers as a maybe match", () => {
-  expect(computeMatchViews([question({ answers: ["yes", "maybe"] })])).toEqual([
-    {
-      id: "question-1",
-      question: "Frage?",
-      grade: "maybe",
-      answers: ["yes", "maybe"]
-    }
-  ]);
-});
-
-test("excludes questions when any answer is no", () => {
-  expect(computeMatchViews([question({ answers: ["yes", "no"] })])).toEqual([]);
-});
-
-test("excludes questions with fewer than two answers", () => {
-  expect(computeMatchViews([question({ answers: ["yes"] })])).toEqual([]);
 });
 
 test("sorts matches by newest question first", () => {

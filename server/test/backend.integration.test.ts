@@ -6,7 +6,16 @@ import { closePool, query } from "../src/db/pool.js";
 import { ApiErrorCode } from "../src/errors/apiErrorCode.js";
 import { countWeeklyAnswers } from "../src/repositories/answerRepository.js";
 import { getPairAccess } from "../src/repositories/accessRepository.js";
-import { createAnswerForQuestion, upsertAnswerForQuestion } from "../src/services/answerService.js";
+import {
+  createAnswerForQuestion,
+  getMatchPolicyForPair,
+  listAnswersForPair,
+  listPrivateMatchesForPair,
+  proposeMatchPolicyForPair,
+  respondMatchPolicyForPair,
+  setMatchPolicyForPair,
+  upsertAnswerForQuestion
+} from "../src/services/answerService.js";
 import { registerAccount } from "../src/services/authService.js";
 import {
   createPairRecordForUsers,
@@ -38,6 +47,12 @@ const blob: EncryptedBlob = {
   aadB64: "YWFk",
   schemaVersion: 1
 };
+
+function tokens(
+  overrides?: Partial<{ perfect: string[]; mixedMaybe: string[]; mutualMaybe: string[] }>
+) {
+  return { perfect: [], mixedMaybe: [], mutualMaybe: [], ...(overrides ?? {}) };
+}
 
 function requestMock() {
   return { headers: {}, socket: { remoteAddress: "127.0.0.1" } } as never;
@@ -73,7 +88,7 @@ test("migrations are idempotent", async () => {
   await initializeDatabase();
   await initializeDatabase();
   const result = await query<{ count: string }>("select count(*)::text from schema_migrations");
-  expect(Number(result.rows[0].count)).toBe(2);
+  expect(Number(result.rows[0].count)).toBe(5);
 });
 
 test("system question migration seeds version 1", async () => {
@@ -247,6 +262,178 @@ test("answer create and upsert", async () => {
   expect(updated.ok).toBe(true);
   if (!updated.ok) throw new Error("answer update failed");
   expect(updated.value.updated).toBe(true);
+});
+
+test("answer lists expose only own blobs and matches use opaque token intersection", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const question = await createQuestionForPair(pair.id, alice.userId, blob);
+  expect(question.ok).toBe(true);
+  if (!question.ok) throw new Error("question create failed");
+
+  const aliceBlob = { ...blob, ciphertextB64: "YWxpY2U=" };
+  const bobBlob = { ...blob, ciphertextB64: "Ym9i" };
+  await createAnswerForQuestion(
+    question.value.id,
+    alice.userId,
+    aliceBlob,
+    tokens({ perfect: ["shared-token"] }),
+    1,
+    true
+  );
+  await createAnswerForQuestion(
+    question.value.id,
+    bob.userId,
+    bobBlob,
+    tokens({ perfect: ["shared-token"] }),
+    1,
+    true
+  );
+
+  const aliceAnswers = await listAnswersForPair(pair.id, alice.userId);
+  expect(aliceAnswers.ok).toBe(true);
+  if (!aliceAnswers.ok) throw new Error("answer list failed");
+  expect(aliceAnswers.value).toHaveLength(1);
+  expect(aliceAnswers.value[0].userId).toBe(alice.userId);
+  expect(aliceAnswers.value[0].blob).toEqual(aliceBlob);
+
+  const aliceMatches = await listPrivateMatchesForPair(pair.id, alice.userId);
+  expect(aliceMatches.ok).toBe(true);
+  if (!aliceMatches.ok) throw new Error("match list failed");
+  expect(aliceMatches.value).toEqual([
+    { questionId: question.value.id, createdAt: question.value.createdAt, grade: "perfect" }
+  ]);
+});
+
+test("opaque token mismatch prevents a private match", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const question = await createQuestionForPair(pair.id, alice.userId, blob);
+  expect(question.ok).toBe(true);
+  if (!question.ok) throw new Error("question create failed");
+
+  await createAnswerForQuestion(
+    question.value.id,
+    alice.userId,
+    blob,
+    tokens({ perfect: ["alice-token"] }),
+    1,
+    true
+  );
+  await createAnswerForQuestion(
+    question.value.id,
+    bob.userId,
+    blob,
+    tokens({ perfect: ["bob-token"] }),
+    1,
+    true
+  );
+
+  const matches = await listPrivateMatchesForPair(pair.id, alice.userId);
+  expect(matches.ok).toBe(true);
+  if (!matches.ok) throw new Error("match list failed");
+  expect(matches.value).toEqual([]);
+});
+
+test("stricter match policy prunes existing maybe tokens", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const question = await createQuestionForPair(pair.id, alice.userId, blob);
+  expect(question.ok).toBe(true);
+  if (!question.ok) throw new Error("question create failed");
+
+  await createAnswerForQuestion(
+    question.value.id,
+    alice.userId,
+    blob,
+    tokens({ mixedMaybe: ["maybe-token"] }),
+    1,
+    true
+  );
+  await createAnswerForQuestion(
+    question.value.id,
+    bob.userId,
+    blob,
+    tokens({ mixedMaybe: ["maybe-token"] }),
+    1,
+    true
+  );
+
+  const beforePolicyChange = await listPrivateMatchesForPair(pair.id, alice.userId);
+  expect(beforePolicyChange.ok).toBe(true);
+  if (!beforePolicyChange.ok) throw new Error("match list failed");
+  expect(beforePolicyChange.value[0]?.grade).toBe("maybe");
+
+  const policy = await setMatchPolicyForPair(pair.id, alice.userId, "perfectOnly");
+  expect(policy.ok).toBe(true);
+
+  const afterPolicyChange = await listPrivateMatchesForPair(pair.id, alice.userId);
+  expect(afterPolicyChange.ok).toBe(true);
+  if (!afterPolicyChange.ok) throw new Error("match list failed");
+  expect(afterPolicyChange.value).toEqual([]);
+});
+
+test("match policy proposal requires partner acceptance and applies to both users", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const question = await createQuestionForPair(pair.id, alice.userId, blob);
+  expect(question.ok).toBe(true);
+  if (!question.ok) throw new Error("question create failed");
+
+  await createAnswerForQuestion(
+    question.value.id,
+    alice.userId,
+    blob,
+    tokens({ mixedMaybe: ["maybe-token"] }),
+    1,
+    true
+  );
+  await createAnswerForQuestion(
+    question.value.id,
+    bob.userId,
+    blob,
+    tokens({ mixedMaybe: ["maybe-token"] }),
+    1,
+    true
+  );
+
+  const proposal = await proposeMatchPolicyForPair(pair.id, alice.userId, "perfectOnly");
+  expect(proposal.ok).toBe(true);
+  if (!proposal.ok) throw new Error("proposal failed");
+
+  const ownAccept = await respondMatchPolicyForPair(
+    pair.id,
+    alice.userId,
+    proposal.value.pending.id,
+    "accept"
+  );
+  expect(ownAccept.ok).toBe(false);
+  if (ownAccept.ok) throw new Error("own proposal accepted unexpectedly");
+  expect(ownAccept.error.code).toBe(ApiErrorCode.CannotRespondOwnProposal);
+
+  const accepted = await respondMatchPolicyForPair(
+    pair.id,
+    bob.userId,
+    proposal.value.pending.id,
+    "accept"
+  );
+  expect(accepted.ok).toBe(true);
+  if (!accepted.ok) throw new Error("accept failed");
+  expect(accepted.value.policy).toBe("perfectOnly");
+
+  const alicePolicy = await getMatchPolicyForPair(pair.id, alice.userId);
+  const bobPolicy = await getMatchPolicyForPair(pair.id, bob.userId);
+  expect(alicePolicy.ok && alicePolicy.value.policy).toBe("perfectOnly");
+  expect(bobPolicy.ok && bobPolicy.value.policy).toBe("perfectOnly");
+
+  const matches = await listPrivateMatchesForPair(pair.id, alice.userId);
+  expect(matches.ok).toBe(true);
+  if (!matches.ok) throw new Error("match list failed");
+  expect(matches.value).toEqual([]);
 });
 
 test("weekly limit count excludes own questions", async () => {

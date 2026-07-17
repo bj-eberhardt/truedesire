@@ -7,8 +7,8 @@ import type { MatchView } from "../../../../domain/matches/computeMatchViews";
 import { usePairMatchesModel, type PairMatchesModel } from "./usePairMatchesModel";
 
 const matches: MatchView[] = [
-  { id: "match-1", question: "A?", grade: "perfect", answers: ["yes", "yes"] },
-  { id: "match-2", question: "B?", grade: "maybe", answers: ["yes", "maybe"] }
+  { id: "match-1", question: "A?", grade: "ok" },
+  { id: "match-2", question: "B?", grade: "ok" }
 ];
 
 function matchesValue(overrides: Partial<MatchesContextValue>): MatchesContextValue {
