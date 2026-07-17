@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useFeedbackContext, usePairWorkspaceContext, useSessionContext } from "../../app/state";
 import { V3Footer } from "./components/V3Footer";
 import { V3Header } from "./components/V3Header";
-import { V3Notice } from "./components";
+import { V3Notice, V3RouteTransition } from "./components";
 import { InfoIcon } from "./components/icons/InfoIcon";
 import { AccountHomePage } from "./pages/AccountHome";
 import { AskPage } from "./pages/Ask";
@@ -22,6 +22,7 @@ export function V3Shell() {
   const route = workspace.route.route;
   const routeMode = route.mode;
   const routeOnboard = route.onboard ?? "start";
+  const routeKey = `${routeMode}:${route.pairId ?? ""}:${routeOnboard}`;
 
   useEffect(() => {
     if (feedback.inlineNotice) {
@@ -55,21 +56,23 @@ export function V3Shell() {
               hint={visibleInlineNotice}
             />
           ) : null}
-          {routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings" ? (
-            <PairPage />
-          ) : routeMode === "ask" ? (
-            <AskPage />
-          ) : routeMode === "played" ? (
-            <PlayedPage />
-          ) : routeMode === "backup" ? (
-            <BackupPage />
-          ) : routeMode === "welcome" || routeOnboard !== "start" ? (
-            <WelcomePage />
-          ) : !identity?.userId ? (
-            <HomePage />
-          ) : (
-            <AccountHomePage />
-          )}
+          <V3RouteTransition routeKey={routeKey}>
+            {routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings" ? (
+              <PairPage />
+            ) : routeMode === "ask" ? (
+              <AskPage />
+            ) : routeMode === "played" ? (
+              <PlayedPage />
+            ) : routeMode === "backup" ? (
+              <BackupPage />
+            ) : routeMode === "welcome" || routeOnboard !== "start" ? (
+              <WelcomePage />
+            ) : !identity?.userId ? (
+              <HomePage />
+            ) : (
+              <AccountHomePage />
+            )}
+          </V3RouteTransition>
         </div>
       </main>
       <V3Footer />

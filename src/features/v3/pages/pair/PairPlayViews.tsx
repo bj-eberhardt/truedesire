@@ -1,4 +1,5 @@
 export { PairPlayCard } from "./PairPlayCard";
+export { PairPlayContent } from "./PairPlayContent";
 export {
   PairPlayEmptyState,
   PairPlayIntro,
