@@ -1,10 +1,6 @@
 import { V3RevealContent } from "../../components";
 import { PairPlayCard } from "./PairPlayCard";
-import {
-  PairPlayEmptyState,
-  PairPlayIntro,
-  PairPlayLimitNotice
-} from "./PairPlayStates";
+import { PairPlayEmptyState, PairPlayIntro, PairPlayLimitNotice } from "./PairPlayStates";
 import { PairPlayToolbar } from "./PairPlayToolbar";
 import type { PairPlayModel } from "./usePairPlayModel";
 
