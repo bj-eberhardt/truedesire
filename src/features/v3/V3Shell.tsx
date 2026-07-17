@@ -1,4 +1,5 @@
 import "../../styles/v3/index.css";
+import { useEffect, useState } from "react";
 import { useFeedbackContext, usePairWorkspaceContext, useSessionContext } from "../../app/state";
 import { V3Footer } from "./components/V3Footer";
 import { V3Header } from "./components/V3Header";
@@ -15,22 +16,43 @@ import { WelcomePage } from "./pages/Welcome";
 export function V3Shell() {
   const { identity } = useSessionContext();
   const feedback = useFeedbackContext();
+  const [visibleInlineNotice, setVisibleInlineNotice] = useState<string | null>(null);
+  const [isInlineNoticeClosing, setIsInlineNoticeClosing] = useState(false);
   const workspace = usePairWorkspaceContext();
   const route = workspace.route.route;
   const routeMode = route.mode;
   const routeOnboard = route.onboard ?? "start";
+
+  useEffect(() => {
+    if (feedback.inlineNotice) {
+      setVisibleInlineNotice(feedback.inlineNotice);
+      setIsInlineNoticeClosing(false);
+      return undefined;
+    }
+
+    if (!visibleInlineNotice) return undefined;
+
+    setIsInlineNoticeClosing(true);
+    const closeTimer = window.setTimeout(() => {
+      setVisibleInlineNotice(null);
+      setIsInlineNoticeClosing(false);
+    }, 220);
+
+    return () => window.clearTimeout(closeTimer);
+  }, [feedback.inlineNotice, visibleInlineNotice]);
 
   return (
     <div className="feature-shell v3-shell">
       <V3Header />
       <main className="v3">
         <div className="v3-container">
-          {feedback.inlineNotice ? (
+          {visibleInlineNotice ? (
             <V3Notice
+              animationState={isInlineNoticeClosing ? "closing" : "open"}
               className="v3-notice-success"
               icon={<InfoIcon />}
               title="Kopiert"
-              hint={feedback.inlineNotice}
+              hint={visibleInlineNotice}
             />
           ) : null}
           {routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings" ? (

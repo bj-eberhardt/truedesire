@@ -5,13 +5,29 @@ import type { AnswerBody } from "../../schemas/apiSchemas.js";
 import { createAnswerForQuestion, upsertAnswerForQuestion } from "../../services/answerService.js";
 
 export const createAnswer: RequestHandler = async (_req, res) => {
-  const { questionId, blob } = getValidatedBody<AnswerBody>(res);
-  const result = await createAnswerForQuestion(questionId, getUserId(res), blob);
+  const { questionId, blob, matchTokens, policyVersion, maybeCountsAsMatch } =
+    getValidatedBody<AnswerBody>(res);
+  const result = await createAnswerForQuestion(
+    questionId,
+    getUserId(res),
+    blob,
+    matchTokens,
+    policyVersion,
+    maybeCountsAsMatch
+  );
   return sendServiceResult(res, result);
 };
 
 export const upsertAnswer: RequestHandler = async (_req, res) => {
-  const { questionId, blob } = getValidatedBody<AnswerBody>(res);
-  const result = await upsertAnswerForQuestion(questionId, getUserId(res), blob);
+  const { questionId, blob, matchTokens, policyVersion, maybeCountsAsMatch } =
+    getValidatedBody<AnswerBody>(res);
+  const result = await upsertAnswerForQuestion(
+    questionId,
+    getUserId(res),
+    blob,
+    matchTokens,
+    policyVersion,
+    maybeCountsAsMatch
+  );
   return sendServiceResult(res, result);
 };

@@ -1,7 +1,13 @@
 import { useCallback } from "react";
 import type { api } from "../../../../api/api";
 import type { Identity } from "../../../../state/identity";
-import type { AnswerChoice, DecryptedQuestion, PairView, QuestionView } from "../../../../types";
+import type {
+  AnswerChoice,
+  DecryptedQuestion,
+  MatchPolicy,
+  PairView,
+  QuestionView
+} from "../../../../types";
 import { useQuestionActions } from "./useQuestionActions";
 import { useQuestionList } from "./useQuestionList";
 import { useSystemQuestionSeed } from "./useSystemQuestionSeed";
@@ -28,10 +34,12 @@ export function useQuestions(opts: {
   apiClient: ApiClient | null;
   identity: Identity | null;
   pair: PairView | null;
+  matchPolicy: MatchPolicy;
   onAnswerLimitReached?: (reached: boolean) => void;
   refreshCurrentPair?: () => Promise<void>;
 }): UseQuestionsResult {
-  const { apiClient, identity, pair, onAnswerLimitReached, refreshCurrentPair } = opts;
+  const { apiClient, identity, pair, matchPolicy, onAnswerLimitReached, refreshCurrentPair } =
+    opts;
   const systemQuestions = useSystemQuestionSeed({ apiClient, identity });
   const questionList = useQuestionList({
     apiClient,
@@ -43,6 +51,7 @@ export function useQuestions(opts: {
     apiClient,
     identity,
     pair,
+    matchPolicy,
     loadQuestionsAndDecrypt: questionList.loadQuestionsAndDecrypt,
     onAnswerLimitReached,
     refreshCurrentPair

@@ -1,8 +1,13 @@
 import type { RequestHandler } from "express";
 import {
   createAnswer,
+  getMatchPolicy,
+  listAnswerStatusesByPair,
   listAnswersByPair,
   listAnswersByQuestion,
+  listMatchesByPair,
+  proposeMatchPolicy,
+  respondMatchPolicy,
   upsertAnswer
 } from "../handlers/answerHandlers.js";
 import { deleteAccount, getMe, registerUser } from "../handlers/authHandlers.js";
@@ -29,6 +34,8 @@ import type { RouteSchemas } from "../middleware/validateRequest.js";
 import {
   answerBodySchema,
   deleteQuestionBodySchema,
+  matchPolicyBodySchema,
+  matchPolicyRespondBodySchema,
   pairIdBodySchema,
   pairIdParamsSchema,
   pairingRequestBodySchema,
@@ -119,6 +126,27 @@ export const routes: RouteDefinition[] = [
   },
   {
     method: "get",
+    path: "/api/pair/match-policy/:pairId",
+    auth: "required",
+    schemas: { params: pairIdParamsSchema },
+    handler: getMatchPolicy
+  },
+  {
+    method: "post",
+    path: "/api/pair/match-policy/propose",
+    auth: "required",
+    schemas: { body: matchPolicyBodySchema },
+    handler: proposeMatchPolicy
+  },
+  {
+    method: "post",
+    path: "/api/pair/match-policy/respond",
+    auth: "required",
+    schemas: { body: matchPolicyRespondBodySchema },
+    handler: respondMatchPolicy
+  },
+  {
+    method: "get",
     path: "/api/pair/:pairId",
     auth: "required",
     schemas: { params: pairIdParamsSchema },
@@ -191,5 +219,19 @@ export const routes: RouteDefinition[] = [
     auth: "required",
     schemas: { params: pairIdParamsSchema },
     handler: listAnswersByPair
+  },
+  {
+    method: "get",
+    path: "/api/answers/status/by-pair/:pairId",
+    auth: "required",
+    schemas: { params: pairIdParamsSchema },
+    handler: listAnswerStatusesByPair
+  },
+  {
+    method: "get",
+    path: "/api/matches/:pairId",
+    auth: "required",
+    schemas: { params: pairIdParamsSchema },
+    handler: listMatchesByPair
   }
 ];

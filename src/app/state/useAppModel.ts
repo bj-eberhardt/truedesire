@@ -46,6 +46,7 @@ export function useAppModel(): AppModel {
     apiClient: sessionModel.apiClient,
     identity: sessionModel.identity,
     pair: pairSelectionModel.pairSelection.pair,
+    matchPolicy: pairSelectionModel.groupSettings.matchPolicy,
     clearGlobalError,
     setGlobalError,
     refreshCurrentPair: pairSelectionModel.pairSelection.refreshCurrentPair

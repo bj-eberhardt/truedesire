@@ -164,7 +164,11 @@ export async function findQuestionByText(page: Page, questionText: string): Prom
     if (visibleText.includes(questionText)) return;
     const next = page.getByTestId("play-next-button");
     if ((await next.count()) === 0 || !(await next.isVisible())) break;
+    const currentQuestionId = await page.getByTestId("play-card").getAttribute("data-question-id");
     await next.click();
+    await expect
+      .poll(async () => page.getByTestId("play-card").getAttribute("data-question-id"))
+      .not.toBe(currentQuestionId);
   }
   throw new Error("Question not found in play cards: " + questionText);
 }

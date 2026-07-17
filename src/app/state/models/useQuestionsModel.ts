@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { api } from "../../../api/api";
 import type { Identity } from "../../../state/identity";
-import type { AnswerChoice, PairView } from "../../../types";
+import type { AnswerChoice, MatchPolicy, PairView } from "../../../types";
 import type { QuestionsContextValue } from "../AppContexts";
 import { useQuestions } from "./questions/useQuestions";
 
@@ -11,17 +11,27 @@ type UseQuestionsModelOptions = {
   apiClient: ApiClient | null;
   identity: Identity | null;
   pair: PairView | null;
+  matchPolicy: MatchPolicy;
   clearGlobalError: () => void;
   setGlobalError: (message: string | null) => void;
   refreshCurrentPair: () => Promise<void>;
 };
 
 export function useQuestionsModel(opts: UseQuestionsModelOptions) {
-  const { apiClient, identity, pair, clearGlobalError, setGlobalError, refreshCurrentPair } = opts;
+  const {
+    apiClient,
+    identity,
+    pair,
+    matchPolicy,
+    clearGlobalError,
+    setGlobalError,
+    refreshCurrentPair
+  } = opts;
   const questionState = useQuestions({
     apiClient,
     identity,
     pair,
+    matchPolicy,
     onAnswerLimitReached: () => {},
     refreshCurrentPair
   });

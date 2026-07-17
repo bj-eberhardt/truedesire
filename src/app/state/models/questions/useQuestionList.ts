@@ -59,13 +59,17 @@ export function useQuestionList(opts: {
       setQuestions(decoded.sort((a, b) => b.createdAt - a.createdAt));
 
       const allAnswers = await apiClient.answers.listByPair(currentPair.id);
+      const answerStatuses = await apiClient.answers.statusByPair(currentPair.id);
       const answersByQuestion: Record<string, typeof allAnswers> = {};
       for (const answer of allAnswers) (answersByQuestion[answer.questionId] ??= []).push(answer);
+      const statusByQuestion = new Map(
+        answerStatuses.map((status) => [status.questionId, status] as const)
+      );
 
       const summary: AnswerSummary = {};
       for (const question of list) {
         const answers = answersByQuestion[question.id] ?? [];
-        const total = answers.length;
+        const total = statusByQuestion.get(question.id)?.total ?? answers.length;
         let mine: AnswerChoice | undefined;
         for (const answer of answers) {
           if (answer.userId !== identity.userId) continue;

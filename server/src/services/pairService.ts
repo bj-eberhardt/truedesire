@@ -32,6 +32,7 @@ type PairDetails = {
   status: PairRecord["status"];
   weeklyLimit: number;
   weeklyLimitPending: PairRecord["weeklyLimitPending"];
+  matchPolicyPending: PairRecord["matchPolicyPending"];
   seededSystemQuestionsAt: number | null;
   usage: { answeredThisWeek: number; weeklyLimit: number };
   partnerDeleted: boolean;
@@ -61,6 +62,7 @@ function createActivePair(user1: string, user2: string): PairRecord {
     weeklyLimit: DEFAULT_WEEKLY_LIMIT,
     weeklyLimitProposals: {},
     weeklyLimitPending: null,
+    matchPolicyPending: null,
     seededSystemQuestionsAt: null,
     createdAt: now,
     updatedAt: now
@@ -83,6 +85,7 @@ export function createPendingPair(userId: string): PairRecord {
     weeklyLimit: DEFAULT_WEEKLY_LIMIT,
     weeklyLimitProposals: {},
     weeklyLimitPending: null,
+    matchPolicyPending: null,
     seededSystemQuestionsAt: null,
     createdAt: now,
     updatedAt: now
@@ -233,6 +236,7 @@ export async function getPairDetails(
     status: data.pair.status,
     weeklyLimit: data.pair.weeklyLimit,
     weeklyLimitPending: data.pair.weeklyLimitPending ?? null,
+    matchPolicyPending: data.pair.matchPolicyPending ?? null,
     seededSystemQuestionsAt: data.pair.seededSystemQuestionsAt ?? null,
     usage: { answeredThisWeek, weeklyLimit: data.pair.weeklyLimit },
     partnerDeleted: isPartnerDeletedFromUsers(data.pair, userId, {

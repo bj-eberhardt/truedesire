@@ -32,7 +32,7 @@ function matchByQuestion(page: TestUser["page"], question: string) {
     .filter({ has: page.getByTestId("match-question-text").filter({ hasText: question }) });
 }
 
-test("creates a yes/yes custom question, shows a perfect match, hides it, and restores it", async ({
+test("creates a yes/yes custom question, shows a match, hides it, and restores it", async ({
   browser
 }) => {
   test.slow();
@@ -45,7 +45,7 @@ test("creates a yes/yes custom question, shows a perfect match, hides it, and re
     await answerQuestionByText(bob.page, question, "yes");
   });
 
-  await test.step("compute, hide, show hidden, and restore the perfect match", async () => {
+  await test.step("compute, hide, show hidden, and restore the match", async () => {
     await openMatches(bob.page);
     const match = matchByQuestion(bob.page, question);
     await expect(match).toHaveAttribute("data-match-grade", "perfect");
@@ -64,7 +64,7 @@ test("creates a yes/yes custom question, shows a perfect match, hides it, and re
   await bob.context.close();
 });
 
-test("creates a yes/maybe custom question and shows a maybe match", async ({ browser }) => {
+test("creates a yes/maybe custom question and shows a match", async ({ browser }) => {
   const { alice, bob, pairId } = await createPairedUsers(browser, "Maybe");
   const question = `Maybe ${uniqueName("Q")}`;
 
@@ -74,7 +74,7 @@ test("creates a yes/maybe custom question and shows a maybe match", async ({ bro
     await answerQuestionByText(bob.page, question, "maybe");
   });
 
-  await test.step("compute and assert maybe grade", async () => {
+  await test.step("compute and assert the match", async () => {
     await openMatches(bob.page);
     await expect(matchByQuestion(bob.page, question)).toHaveAttribute("data-match-grade", "maybe");
   });

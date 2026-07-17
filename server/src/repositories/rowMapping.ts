@@ -1,6 +1,7 @@
 import type {
   AnswerRecord,
   EncryptedBlob,
+  MatchTokenSet,
   PairRecord,
   PairRequestRecord,
   UserRecord
@@ -25,6 +26,7 @@ export type PairRow = {
   status: PairRecord["status"];
   weekly_limit: string | number;
   weekly_limit_pending: PairRecord["weeklyLimitPending"];
+  match_policy_pending: PairRecord["matchPolicyPending"];
   seeded_system_questions_at: string | number | null;
   created_at: string | number;
   updated_at: string | number;
@@ -55,11 +57,32 @@ export type AnswerRow = {
   created_at: string | number;
   updated_at: string | number | null;
   blob: EncryptedBlob;
+  match_tokens: unknown;
+  policy_version: string | number;
+  maybe_counts_as_match: boolean | null;
 };
 
 function toNumber(value: string | number | null): number | null {
   if (value === null) return null;
   return Number(value);
+}
+
+function mapMatchTokenSet(value: unknown): MatchTokenSet {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return { perfect: [], mixedMaybe: [], mutualMaybe: [] };
+  }
+  const record = value as Record<string, unknown>;
+  return {
+    perfect: Array.isArray(record.perfect)
+      ? record.perfect.filter((token): token is string => typeof token === "string")
+      : [],
+    mixedMaybe: Array.isArray(record.mixedMaybe)
+      ? record.mixedMaybe.filter((token): token is string => typeof token === "string")
+      : [],
+    mutualMaybe: Array.isArray(record.mutualMaybe)
+      ? record.mutualMaybe.filter((token): token is string => typeof token === "string")
+      : []
+  };
 }
 
 export function mapUser(row: UserRow): UserRecord {
@@ -85,6 +108,7 @@ export function mapPair(row: PairRow): PairRecord {
     weeklyLimit: Number(row.weekly_limit),
     weeklyLimitProposals: {},
     weeklyLimitPending: row.weekly_limit_pending ?? null,
+    matchPolicyPending: row.match_policy_pending ?? null,
     seededSystemQuestionsAt: toNumber(row.seeded_system_questions_at),
     createdAt: Number(row.created_at),
     updatedAt: Number(row.updated_at)
@@ -120,6 +144,9 @@ export function mapAnswer(row: AnswerRow): AnswerRecord {
     userId: row.user_id,
     createdAt: Number(row.created_at),
     updatedAt: row.updated_at === null ? undefined : Number(row.updated_at),
-    blob: row.blob
+    blob: row.blob,
+    matchTokens: mapMatchTokenSet(row.match_tokens),
+    policyVersion: Number(row.policy_version),
+    maybeCountsAsMatch: row.maybe_counts_as_match
   };
 }

@@ -1,4 +1,13 @@
-import type { AnswerView, EncryptedBlob, PairView, QuestionView } from "../types";
+import type {
+  AnswerStatusView,
+  AnswerView,
+  EncryptedBlob,
+  MatchPolicy,
+  MatchResultView,
+  MatchTokenSet,
+  PairView,
+  QuestionView
+} from "../types";
 import { sha256Base64, signRequest } from "../crypto/sign";
 
 type AuthMaterial = {
@@ -175,6 +184,29 @@ export function api(opts: ApiOpts) {
           method: "POST",
           body: { pairId, proposalId, action }
         }),
+      getMatchPolicy: (pairId: string) =>
+        signedFetch<{ policy: MatchPolicy }>(
+          opts,
+          `/pair/match-policy/${encodeURIComponent(pairId)}`
+        ),
+      proposeMatchPolicy: (pairId: string, policy: MatchPolicy) =>
+        signedFetch<{
+          ok: true;
+          policy: MatchPolicy;
+          pending: { id: string; proposedBy: string; policy: MatchPolicy; createdAt: number };
+        }>(opts, "/pair/match-policy/propose", {
+          method: "POST",
+          body: { pairId, policy }
+        }),
+      respondMatchPolicy: (
+        pairId: string,
+        proposalId: string,
+        action: "accept" | "reject" | "cancel"
+      ) =>
+        signedFetch<{ ok: true; policy?: MatchPolicy }>(opts, "/pair/match-policy/respond", {
+          method: "POST",
+          body: { pairId, proposalId, action }
+        }),
       get: async (pairId: string): Promise<PairView> => {
         type RawPairUser = {
           id: string;
@@ -189,6 +221,7 @@ export function api(opts: ApiOpts) {
           weeklyLimit: number;
           seededSystemQuestionsAt?: number | null;
           weeklyLimitPending?: PairView["weeklyLimitPending"] | null;
+          matchPolicyPending?: PairView["matchPolicyPending"] | null;
           usage?: PairView["usage"];
           partnerDeleted?: boolean;
           confirmA: boolean;
@@ -208,6 +241,7 @@ export function api(opts: ApiOpts) {
           weeklyLimit: raw.weeklyLimit,
           seededSystemQuestionsAt: raw.seededSystemQuestionsAt ?? null,
           weeklyLimitPending: raw.weeklyLimitPending ?? null,
+          matchPolicyPending: raw.matchPolicyPending ?? null,
           usage: raw.usage ?? undefined,
           partnerDeleted: raw.partnerDeleted ?? false,
           confirmA: raw.confirmA,
@@ -229,17 +263,37 @@ export function api(opts: ApiOpts) {
         })
     },
     answers: {
-      create: (questionId: string, blob: EncryptedBlob) =>
-        signedFetch<AnswerView>(opts, "/answers", { method: "POST", body: { questionId, blob } }),
-      upsert: (questionId: string, blob: EncryptedBlob) =>
+      create: (
+        questionId: string,
+        blob: EncryptedBlob,
+        matchData?: { matchTokens: MatchTokenSet; policyVersion: number; maybeCountsAsMatch: boolean }
+      ) =>
+        signedFetch<AnswerView>(opts, "/answers", {
+          method: "POST",
+          body: { questionId, blob, ...(matchData ?? {}) }
+        }),
+      upsert: (
+        questionId: string,
+        blob: EncryptedBlob,
+        matchData?: { matchTokens: MatchTokenSet; policyVersion: number; maybeCountsAsMatch: boolean }
+      ) =>
         signedFetch<{ ok: true; updated: boolean }>(opts, "/answers/upsert", {
           method: "POST",
-          body: { questionId, blob }
+          body: { questionId, blob, ...(matchData ?? {}) }
         }),
       list: (questionId: string) =>
         signedFetch<AnswerView[]>(opts, `/answers/${encodeURIComponent(questionId)}`),
       listByPair: (pairId: string) =>
-        signedFetch<AnswerView[]>(opts, `/answers/by-pair/${encodeURIComponent(pairId)}`)
+        signedFetch<AnswerView[]>(opts, `/answers/by-pair/${encodeURIComponent(pairId)}`),
+      statusByPair: (pairId: string) =>
+        signedFetch<AnswerStatusView[]>(
+          opts,
+          `/answers/status/by-pair/${encodeURIComponent(pairId)}`
+        )
+    },
+    matches: {
+      list: (pairId: string) =>
+        signedFetch<MatchResultView[]>(opts, `/matches/${encodeURIComponent(pairId)}`)
     }
   };
 }

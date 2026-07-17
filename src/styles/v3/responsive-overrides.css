@@ -148,10 +148,118 @@
   gap: 12px;
 }
 
+.v3-shell .settings-pending-block {
+  position: relative;
+  border-color: color-mix(in oklab, var(--accent) 26%, var(--border));
+  background: color-mix(in oklab, var(--bg) 90%, transparent);
+}
+
+.v3-shell .settings-pending-block::before {
+  content: "";
+  position: absolute;
+  inset: 12px auto 12px 0;
+  width: 3px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent) 48%, var(--border));
+}
+
+.v3-shell .settings-pending-block[data-pending-owner="partner"] {
+  border-color: color-mix(in oklab, var(--accent) 34%, var(--border));
+}
+
+.v3-shell .settings-pending-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-left: 0;
+}
+
+.v3-shell .settings-pending-title-group {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.v3-shell .settings-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid color-mix(in oklab, var(--accent) 30%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent) 8%, var(--bg));
+  color: color-mix(in oklab, var(--accent) 74%, var(--text-h));
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.v3-shell .settings-pending-title {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 400;
+}
+
 .v3-shell .settings-item-title {
   color: var(--text-h);
   font-size: 16px;
   font-weight: 500;
+  line-height: 1.25;
+}
+
+.v3-shell .settings-item-title.settings-pending-title {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.v3-shell button.action-accept {
+  border-color: color-mix(in oklab, #16a34a 52%, var(--border));
+  background: color-mix(in oklab, #16a34a 13%, var(--bg));
+  color: color-mix(in oklab, #15803d 88%, var(--text-h));
+}
+
+.v3-shell button.action-accept:hover:not(:disabled),
+.v3-shell button.action-accept:focus-visible {
+  border-color: color-mix(in oklab, #16a34a 70%, var(--border));
+  background: color-mix(in oklab, #16a34a 20%, var(--bg));
+}
+
+.v3-shell button.action-reject {
+  border-color: color-mix(in oklab, #ef4444 52%, var(--border));
+  background: color-mix(in oklab, #ef4444 12%, var(--bg));
+  color: color-mix(in oklab, #dc2626 86%, var(--text-h));
+}
+
+.v3-shell button.action-reject:hover:not(:disabled),
+.v3-shell button.action-reject:focus-visible {
+  border-color: color-mix(in oklab, #ef4444 70%, var(--border));
+  background: color-mix(in oklab, #ef4444 18%, var(--bg));
+}
+
+.v3-shell .settings-pending-block .request-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.v3-shell .settings-pending-block .settings-request-head {
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.v3-shell .settings-pending-block .request-actions {
+  margin-top: 2px;
+  gap: 10px;
+}
+
+.v3-shell .settings-pending-block .pair-card-name {
+  color: var(--text-h);
+  font-size: 14px;
+  font-weight: 400;
   line-height: 1.25;
 }
 
@@ -246,6 +354,18 @@
   color: var(--text-h);
   font-size: 14px;
   line-height: 1.2;
+}
+
+.v3-shell .settings-select {
+  width: min(100%, 420px);
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+  font-size: 14px;
+  line-height: 1.2;
+  padding: 0 12px;
 }
 
 .v3-shell .settings-toggle > span {

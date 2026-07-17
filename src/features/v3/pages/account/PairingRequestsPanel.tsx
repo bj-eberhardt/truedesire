@@ -67,7 +67,7 @@ export const PairingRequestsPanel = forwardRef<HTMLElement, PairingRequestsPanel
                 {row.incomingIds.length ? (
                   <>
                     <button
-                      className="secondary"
+                      className="secondary action-accept"
                       data-testid="pairing-request-accept-button"
                       onClick={async () => {
                         const result = await respondPairing(row.incomingIds[0], "accept");
@@ -77,7 +77,7 @@ export const PairingRequestsPanel = forwardRef<HTMLElement, PairingRequestsPanel
                       <span className="v3-action-ok">✓</span> Annehmen
                     </button>
                     <button
-                      className="secondary"
+                      className="secondary action-reject"
                       data-testid="pairing-request-reject-button"
                       onClick={() => respondPairing(row.incomingIds[0], "reject")}
                     >

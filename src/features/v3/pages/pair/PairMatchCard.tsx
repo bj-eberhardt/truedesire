@@ -52,7 +52,7 @@ function MatchGradeIcon({ grade }: { grade: MatchGrade }) {
           d="M12 21s-7-4.4-9.2-9A5.7 5.7 0 0 1 12 5.7 5.7 5.7 0 0 1 21.2 12C19 16.6 12 21 12 21Z"
           fill="currentColor"
         />
-      ) : grade === "maybe" ? (
+      ) : grade === "maybe" || grade === "mutualMaybe" ? (
         <path
           d="M12 3.5 14.7 9l6 .9-4.3 4.2 1 6-5.4-2.9-5.4 2.9 1-6L3.3 9l6-.9L12 3.5Z"
           fill="currentColor"
@@ -67,11 +67,13 @@ function MatchGradeIcon({ grade }: { grade: MatchGrade }) {
 function matchGradeKicker(grade: MatchGrade) {
   if (grade === "perfect") return "Starkes Match";
   if (grade === "maybe") return "Interessante Nähe";
+  if (grade === "mutualMaybe") return "Beidseitig offen";
   return "Guter Start";
 }
 
 function matchGradeLabel(grade: MatchGrade) {
   if (grade === "perfect") return "Perfekt";
   if (grade === "maybe") return "Vielleicht";
+  if (grade === "mutualMaybe") return "Beide vielleicht";
   return "Okay";
 }
