@@ -38,8 +38,7 @@ export function useQuestions(opts: {
   onAnswerLimitReached?: (reached: boolean) => void;
   refreshCurrentPair?: () => Promise<void>;
 }): UseQuestionsResult {
-  const { apiClient, identity, pair, matchPolicy, onAnswerLimitReached, refreshCurrentPair } =
-    opts;
+  const { apiClient, identity, pair, matchPolicy, onAnswerLimitReached, refreshCurrentPair } = opts;
   const systemQuestions = useSystemQuestionSeed({ apiClient, identity });
   const questionList = useQuestionList({
     apiClient,

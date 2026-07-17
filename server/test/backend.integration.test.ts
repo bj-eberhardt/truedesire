@@ -48,7 +48,9 @@ const blob: EncryptedBlob = {
   schemaVersion: 1
 };
 
-function tokens(overrides?: Partial<{ perfect: string[]; mixedMaybe: string[]; mutualMaybe: string[] }>) {
+function tokens(
+  overrides?: Partial<{ perfect: string[]; mixedMaybe: string[]; mutualMaybe: string[] }>
+) {
   return { perfect: [], mixedMaybe: [], mutualMaybe: [], ...(overrides ?? {}) };
 }
 

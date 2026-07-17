@@ -20,10 +20,9 @@ export function usePairPageModel() {
   const activeTab: PairPageTab =
     routeMode === "pairMatches" ? "matches" : routeMode === "pairSettings" ? "settings" : "play";
   const pendingSettingsCount = pairReady
-    ? [
-        pair.weeklyLimitPending?.proposedBy,
-        pair.matchPolicyPending?.proposedBy
-      ].filter((proposedBy) => proposedBy && proposedBy !== (identity?.userId ?? "")).length
+    ? [pair.weeklyLimitPending?.proposedBy, pair.matchPolicyPending?.proposedBy].filter(
+        (proposedBy) => proposedBy && proposedBy !== (identity?.userId ?? "")
+      ).length
     : 0;
 
   return {

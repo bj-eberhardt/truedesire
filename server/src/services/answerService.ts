@@ -102,7 +102,9 @@ export async function listPrivateMatchesForPair(
   pairId: string,
   userId: string
 ): Promise<
-  ServiceResult<Array<{ questionId: string; createdAt: number; grade: "perfect" | "maybe" | "mutualMaybe" }>>
+  ServiceResult<
+    Array<{ questionId: string; createdAt: number; grade: "perfect" | "maybe" | "mutualMaybe" }>
+  >
 > {
   const result = await listMatchesForPairIfAllowed(pairId, userId);
   if (result === "missing") return fail(ApiErrorCode.NotFound, 404);

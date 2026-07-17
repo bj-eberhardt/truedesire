@@ -312,7 +312,9 @@ export async function listMatchesForPairIfAllowed(
   pairId: string,
   userId: string
 ): Promise<
-  "missing" | "forbidden" | Array<{ questionId: string; createdAt: number; grade: "perfect" | "maybe" | "mutualMaybe" }>
+  | "missing"
+  | "forbidden"
+  | Array<{ questionId: string; createdAt: number; grade: "perfect" | "maybe" | "mutualMaybe" }>
 > {
   const pairResult = await query<PairRow>("select * from pairs where id = $1", [pairId]);
   const pair = pairResult.rows[0] ? mapPair(pairResult.rows[0]) : null;

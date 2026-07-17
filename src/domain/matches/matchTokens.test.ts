@@ -38,9 +38,7 @@ async function sharedTokens(opts: {
   const sharedSet: MatchTokenSet = {
     perfect: aliceTokens.perfect.filter((token) => bobTokens.perfect.includes(token)),
     mixedMaybe: aliceTokens.mixedMaybe.filter((token) => bobTokens.mixedMaybe.includes(token)),
-    mutualMaybe: aliceTokens.mutualMaybe.filter((token) =>
-      bobTokens.mutualMaybe.includes(token)
-    )
+    mutualMaybe: aliceTokens.mutualMaybe.filter((token) => bobTokens.mutualMaybe.includes(token))
   };
   const shared = [...sharedSet.perfect, ...sharedSet.mixedMaybe, ...sharedSet.mutualMaybe];
   return { key, shared };
@@ -58,10 +56,7 @@ test("yes/maybe requires a policy that allows mixed maybe matches", () => {
 
 test("maybe/maybe is only accepted by the mutual maybe policy", () => {
   expect(acceptedMatchCombos("maybe", "allowMixedMaybe")).toEqual(["yes-maybe"]);
-  expect(acceptedMatchCombos("maybe", "allowMutualMaybe")).toEqual([
-    "yes-maybe",
-    "maybe-maybe"
-  ]);
+  expect(acceptedMatchCombos("maybe", "allowMutualMaybe")).toEqual(["yes-maybe", "maybe-maybe"]);
 });
 
 test("no never contributes match tokens", () => {

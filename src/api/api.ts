@@ -266,7 +266,11 @@ export function api(opts: ApiOpts) {
       create: (
         questionId: string,
         blob: EncryptedBlob,
-        matchData?: { matchTokens: MatchTokenSet; policyVersion: number; maybeCountsAsMatch: boolean }
+        matchData?: {
+          matchTokens: MatchTokenSet;
+          policyVersion: number;
+          maybeCountsAsMatch: boolean;
+        }
       ) =>
         signedFetch<AnswerView>(opts, "/answers", {
           method: "POST",
@@ -275,7 +279,11 @@ export function api(opts: ApiOpts) {
       upsert: (
         questionId: string,
         blob: EncryptedBlob,
-        matchData?: { matchTokens: MatchTokenSet; policyVersion: number; maybeCountsAsMatch: boolean }
+        matchData?: {
+          matchTokens: MatchTokenSet;
+          policyVersion: number;
+          maybeCountsAsMatch: boolean;
+        }
       ) =>
         signedFetch<{ ok: true; updated: boolean }>(opts, "/answers/upsert", {
           method: "POST",

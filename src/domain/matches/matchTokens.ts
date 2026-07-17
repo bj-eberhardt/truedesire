@@ -8,10 +8,7 @@ export type MatchCombo = "maybe-maybe" | "yes-maybe" | "yes-yes";
 type MatchableAnswer = Exclude<AnswerChoice, "no">;
 type OrderedMatchCombo = `a:${MatchableAnswer}|b:${MatchableAnswer}`;
 
-export function acceptedMatchCombos(
-  answer: AnswerChoice,
-  matchPolicy: MatchPolicy
-): MatchCombo[] {
+export function acceptedMatchCombos(answer: AnswerChoice, matchPolicy: MatchPolicy): MatchCombo[] {
   if (answer === "no") return [];
   if (answer === "yes") {
     return matchPolicy === "perfectOnly" ? ["yes-yes"] : ["yes-yes", "yes-maybe"];
@@ -21,7 +18,10 @@ export function acceptedMatchCombos(
   return ["yes-maybe", "maybe-maybe"];
 }
 
-function matchablePartnerAnswers(answer: AnswerChoice, matchPolicy: MatchPolicy): MatchableAnswer[] {
+function matchablePartnerAnswers(
+  answer: AnswerChoice,
+  matchPolicy: MatchPolicy
+): MatchableAnswer[] {
   if (answer === "no") return [];
   if (answer === "yes") return matchPolicy === "perfectOnly" ? ["yes"] : ["yes", "maybe"];
   if (matchPolicy === "perfectOnly") return [];
