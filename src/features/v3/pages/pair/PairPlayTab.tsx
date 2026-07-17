@@ -15,8 +15,7 @@ export function PairPlayTab() {
   if (!model.pair) return null;
 
   return (
-    <>
-      <V3RevealContent
+    <V3RevealContent
         isLoading={model.isLoadingPairData}
         loading={<PairPlayLoading isLoading={model.isLoadingPairData} />}
       >
@@ -57,7 +56,6 @@ export function PairPlayTab() {
           onAsk={model.goAsk}
           onPlayed={model.goPlayed}
         />
-      </V3RevealContent>
-    </>
+    </V3RevealContent>
   );
 }
