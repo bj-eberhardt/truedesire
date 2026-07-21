@@ -27,8 +27,8 @@ export function OnboardingPairingStep({
     <>
       <p className="v3-onboard-question">Pairing</p>
       <p className="hint">
-          Hast du von deinem Partner schon seinen Partner-Code bekommen? Dann kannst du ihn hier eingeben
-          und Euch beide gleich verbinden.
+        Hast du von deinem Partner schon seinen Partner-Code bekommen? Dann kannst du ihn hier
+        eingeben und Euch beide gleich verbinden.
       </p>
 
       <div className="v3-onboard-form v3-onboard-pairing-form">

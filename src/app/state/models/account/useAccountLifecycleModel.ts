@@ -44,14 +44,7 @@ export function useAccountLifecycleModel({
     clearQuestions();
     setIdentity(null);
     goV3AccountDeleted();
-  }, [
-    clearGlobalError,
-    clearMatches,
-    clearQuestions,
-    resetLocalIdentity,
-    setIdentity,
-    setPair
-  ]);
+  }, [clearGlobalError, clearMatches, clearQuestions, resetLocalIdentity, setIdentity, setPair]);
 
   const deleteLocalAccount = useCallback(async () => {
     await clearLocalAccountState();

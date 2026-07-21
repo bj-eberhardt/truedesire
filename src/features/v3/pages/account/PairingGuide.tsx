@@ -20,7 +20,9 @@ export function PairingGuide(props: {
       <div className="v3-guide-code-card" data-testid="own-pairing-code-card">
         <div>
           <span className="hint">Dein Pairing-Code</span>
-          <strong className="v3-guide-code mono">{props.pairingCode ?? "Noch nicht geladen"}</strong>
+          <strong className="v3-guide-code mono">
+            {props.pairingCode ?? "Noch nicht geladen"}
+          </strong>
         </div>
         <button
           type="button"
