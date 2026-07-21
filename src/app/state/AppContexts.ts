@@ -13,6 +13,7 @@ import type {
 export type {
   AccountContextValue,
   BootstrapAccountResult,
+  BootstrapAccountStatus,
   FeedbackContextValue,
   GroupSettingsContextValue,
   MatchesContextValue,

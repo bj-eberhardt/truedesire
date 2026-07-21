@@ -19,6 +19,7 @@ function sessionValue(): SessionContextValue {
   return {
     identity: { userId: "user-1", nickname: "Ada", code: "AAA111" },
     nicknameDraft: "",
+    bootstrapAccountStatus: "ready",
     isBootstrappingAccount: false,
     updateNicknameDraft: vi.fn(),
     bootstrapAccount: vi.fn(),

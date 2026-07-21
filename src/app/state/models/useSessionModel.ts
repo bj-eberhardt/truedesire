@@ -18,6 +18,7 @@ export function useSessionModel(): SessionModel {
     identity,
     nickname,
     setNickname,
+    bootstrapAccountStatus,
     isBootstrappingAccount,
     bootstrap,
     register,
@@ -40,6 +41,7 @@ export function useSessionModel(): SessionModel {
     session: {
       identity: publicIdentity,
       nicknameDraft: nickname,
+      bootstrapAccountStatus,
       isBootstrappingAccount,
       updateNicknameDraft: setNickname,
       bootstrapAccount: bootstrap,

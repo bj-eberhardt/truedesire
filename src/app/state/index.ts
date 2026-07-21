@@ -13,6 +13,7 @@ export {
 
 export type {
   AccountContextValue,
+  BootstrapAccountStatus,
   FeedbackContextValue,
   GroupSettingsContextValue,
   MatchesContextValue,

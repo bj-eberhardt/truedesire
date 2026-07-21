@@ -1,5 +1,7 @@
 const KNOWN_ERROR_MESSAGES: Record<string, string> = {
   bad_backup: "Die Datei konnte nicht gelesen werden oder ist keine valide Backup-Datei.",
+  backup_auth_failed:
+    "Das Backup wurde gelesen, konnte aber nicht mit dem Server verknüpft werden. Bitte prüfe, ob es zum aktuellen Server gehört, und versuche es erneut.",
   nickname_required: "Bitte gib einen Nickname ein.",
   identity_not_available:
     "Dein Konto konnte lokal nicht gespeichert werden. Bitte prüfe Browser-Speicher/Privatmodus und versuche es erneut.",

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { goV3AccountDeleted } from "../../../routes";
-import { importBackup } from "../../../../state/identity";
+import { importBackup, loadIdentity } from "../../../../state/identity";
 import { idbSet } from "../../../../storage/idb";
 import type { AccountModelOptions } from "./types";
 
@@ -30,9 +30,17 @@ export function useAccountLifecycleModel({
     async (txt: string) => {
       clearGlobalError();
       await importBackup(txt);
+      const hydrated = await loadIdentity({
+        ensureRegistered: true,
+        recoverMissingAccount: true
+      });
+      if (!hydrated || typeof hydrated !== "object" || !("userId" in hydrated) || !hydrated.userId) {
+        throw new Error("backup_auth_failed");
+      }
+      setIdentity(hydrated);
       await bootstrap();
     },
-    [bootstrap, clearGlobalError]
+    [bootstrap, clearGlobalError, setIdentity]
   );
 
   const clearLocalAccountState = useCallback(async () => {

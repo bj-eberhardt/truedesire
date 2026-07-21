@@ -1,9 +1,14 @@
 import "../../styles/v3/index.css";
 import { useEffect, useState } from "react";
-import { useFeedbackContext, usePairWorkspaceContext, useSessionContext } from "../../app/state";
+import {
+  useAccountContext,
+  useFeedbackContext,
+  usePairWorkspaceContext,
+  useSessionContext
+} from "../../app/state";
 import { V3Footer } from "./components/V3Footer";
 import { V3Header } from "./components/V3Header";
-import { V3Notice, V3RouteTransition } from "./components";
+import { V3AccountBootstrapState, V3Notice, V3RouteTransition } from "./components";
 import { InfoIcon } from "./components/icons/InfoIcon";
 import { AccountHomePage } from "./pages/AccountHome";
 import { AccountDeletedPage } from "./pages/AccountDeleted";
@@ -15,7 +20,8 @@ import { PlayedPage } from "./pages/Played";
 import { WelcomePage } from "./pages/Welcome";
 
 export function V3Shell() {
-  const { identity } = useSessionContext();
+  const { bootstrapAccount, bootstrapAccountStatus, identity } = useSessionContext();
+  const account = useAccountContext();
   const feedback = useFeedbackContext();
   const [visibleInlineNotice, setVisibleInlineNotice] = useState<string | null>(null);
   const [isInlineNoticeClosing, setIsInlineNoticeClosing] = useState(false);
@@ -23,8 +29,11 @@ export function V3Shell() {
   const route = workspace.route.route;
   const routeMode = route.mode;
   const routeOnboard = route.onboard ?? "start";
+  const isBootstrappingGate = bootstrapAccountStatus !== "ready";
   const routeKey =
-    routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings"
+    isBootstrappingGate
+      ? "account-bootstrap"
+      : routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings"
       ? `pair:${route.pairId ?? ""}`
       : routeMode === "welcome" || routeOnboard !== "start"
         ? "welcome"
@@ -52,9 +61,14 @@ export function V3Shell() {
     return () => window.clearTimeout(closeTimer);
   }, [feedback.inlineNotice, visibleInlineNotice]);
 
+  async function deleteLocalAccountAndReload() {
+    await account.deleteLocalAccount();
+    if (typeof window !== "undefined") window.location.reload();
+  }
+
   return (
     <div className="feature-shell v3-shell">
-      <V3Header />
+      <V3Header hideProfileMenu={isBootstrappingGate} />
       <main className="v3">
         <div className="v3-container">
           {visibleInlineNotice ? (
@@ -67,7 +81,13 @@ export function V3Shell() {
             />
           ) : null}
           <V3RouteTransition routeKey={routeKey}>
-            {routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings" ? (
+            {isBootstrappingGate ? (
+              <V3AccountBootstrapState
+                status={bootstrapAccountStatus}
+                onDeleteLocalAccount={() => void deleteLocalAccountAndReload()}
+                onRetry={() => void bootstrapAccount()}
+              />
+            ) : routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings" ? (
               <PairPage />
             ) : routeMode === "accountDeleted" ? (
               <AccountDeletedPage />

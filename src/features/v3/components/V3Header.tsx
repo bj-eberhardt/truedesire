@@ -6,12 +6,16 @@ import { useAutoHideHeader } from "../hooks/useAutoHideHeader";
 import { HeartChecklistLogo } from "./HeartChecklistLogo";
 import { ProfileMenu } from "./ProfileMenu";
 
-export function V3Header() {
+type V3HeaderProps = {
+  hideProfileMenu?: boolean;
+};
+
+export function V3Header({ hideProfileMenu = false }: V3HeaderProps) {
   const { identity } = useSessionContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement | null>(null);
 
-  const hasAccount = !!identity?.userId;
+  const hasAccount = !!identity?.userId && !hideProfileMenu;
 
   const pairingCode = identity?.code ? String(identity.code) : null;
   const profileName = identity?.nickname ? String(identity.nickname) : "Profil";
