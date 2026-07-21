@@ -3,7 +3,17 @@ import { verifyRequestSignature } from "../crypto/auth.js";
 import { ApiErrorCode } from "../errors/apiErrorCode.js";
 import { bad } from "../http/responses.js";
 import { getRawBody } from "../http/request.js";
-import { reserveUserNonce } from "../repositories/userRepository.js";
+import { getActiveUserById, reserveUserNonce } from "../repositories/userRepository.js";
+
+const NONCE_PATTERN = /^[0-9a-f]{24}$/;
+const canonicalBase64Pattern =
+  /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+
+function isCanonicalBase64(value: string): boolean {
+  if (!value || value.length % 4 !== 0 || !canonicalBase64Pattern.test(value)) return false;
+  const decoded = Buffer.from(value, "base64");
+  return decoded.byteLength > 0 && decoded.toString("base64") === value;
+}
 
 async function requireAuth(req: Request, rawBody: Uint8Array): Promise<{ userId: string } | null> {
   const userId = String(req.headers["x-user-id"] ?? "");
@@ -13,12 +23,14 @@ async function requireAuth(req: Request, rawBody: Uint8Array): Promise<{ userId:
 
   if (!userId || !timestamp || !nonce || !signatureB64) return null;
   const ts = Number(timestamp);
-  if (!Number.isFinite(ts)) return null;
+  if (!Number.isInteger(ts)) return null;
+  if (!NONCE_PATTERN.test(nonce)) return null;
+  if (!isCanonicalBase64(signatureB64)) return null;
 
   const now = Date.now();
   if (Math.abs(now - ts) > 5 * 60 * 1000) return null;
 
-  const user = await reserveUserNonce(userId, nonce, now);
+  const user = await getActiveUserById(userId);
   if (!user) return null;
 
   const ok = await verifyRequestSignature({
@@ -31,7 +43,9 @@ async function requireAuth(req: Request, rawBody: Uint8Array): Promise<{ userId:
     signatureB64
   });
 
-  return ok ? { userId } : null;
+  if (!ok) return null;
+  const nonceReserved = await reserveUserNonce(userId, nonce, now);
+  return nonceReserved ? { userId } : null;
 }
 
 export const authenticate: RequestHandler = async (req, res, next) => {
