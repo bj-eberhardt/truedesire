@@ -36,6 +36,8 @@ export async function registerUser(page: Page, nickname: string): Promise<string
   await page.getByTestId("onboarding-new-account-button").click();
   await page.getByTestId("nickname-input").fill(nickname);
   await page.getByTestId("create-account-button").click();
+  await expect(page.getByTestId("onboarding-backup-next-button")).toBeVisible();
+  await page.getByTestId("onboarding-backup-next-button").click();
   await expect(page.getByTestId("onboarding-finish-button")).toBeVisible();
   await page.getByTestId("onboarding-finish-button").click();
   await expect(page.getByTestId("home-view")).toBeVisible();
@@ -76,6 +78,7 @@ export async function importBackupText(page: Page, backupText: string): Promise<
   await page.getByTestId("onboarding-has-backup-button").click();
   await page.getByTestId("backup-import-textarea").fill(backupText);
   await page.getByTestId("backup-import-submit-button").click();
+  await expect(page.getByTestId("backup-import-success")).toBeVisible();
   await expect(page.getByTestId("home-view")).toBeVisible();
   return await readPairingCode(page);
 }

@@ -18,11 +18,10 @@ const sessionValue: SessionContextValue = {
 
 function accountValue(exportBackupText: () => Promise<string>): AccountContextValue {
   return {
-    accountDeletedModalOpen: false,
-    setAccountDeletedModalOpen: vi.fn(),
     copyPairingCode: vi.fn(),
     exportBackupText,
     importBackupText: vi.fn(),
+    deleteLocalAccount: vi.fn(),
     deleteAccount: vi.fn()
   };
 }

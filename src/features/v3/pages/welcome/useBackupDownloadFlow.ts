@@ -4,6 +4,7 @@ import { downloadTextFile, formatJsonMaybe, safeBackupFilename } from "../../lib
 import { toUserMessage } from "../../lib/errors";
 
 const MIN_BACKUP_DOWNLOAD_FEEDBACK_MS = 2_000;
+export const ONBOARDING_HOME_SCROLL_TARGET_KEY = "truedesire:onboarding-home-scroll-target";
 
 function wait(ms: number) {
   return new Promise((resolve) => window.setTimeout(resolve, ms));
@@ -44,7 +45,7 @@ export function useBackupDownloadFlow({
     }
   }
 
-  async function finishOnboarding() {
+  async function finishOnboarding(opts: { scrollToRequests?: boolean } = {}) {
     setOnboardError(null);
     try {
       const hydrated = await bootstrapAccount();
@@ -57,6 +58,9 @@ export function useBackupDownloadFlow({
     } catch (e: unknown) {
       setOnboardError(e instanceof Error ? e.message : String(e));
       return;
+    }
+    if (opts.scrollToRequests) {
+      window.sessionStorage?.setItem(ONBOARDING_HOME_SCROLL_TARGET_KEY, "pairing-requests");
     }
     goV3();
   }

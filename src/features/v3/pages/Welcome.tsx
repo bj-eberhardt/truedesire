@@ -1,9 +1,10 @@
-import { OnboardingStepper } from "../components/OnboardingStepper";
-import { V3LoadingState, V3PageError } from "../components";
+import { V3LoadingState } from "../components";
+import { OnboardingAssistantFrame } from "./welcome/OnboardingAssistantFrame";
 import { BackupImportStep } from "./welcome/BackupImportStep";
 import { BackupSaveStep } from "./welcome/BackupSaveStep";
 import { CreateAccountStep } from "./welcome/CreateAccountStep";
 import { OnboardingStartStep } from "./welcome/OnboardingStartStep";
+import { OnboardingPairingStep } from "./welcome/OnboardingPairingStep";
 import { useWelcomeOnboardingModel } from "./welcome/useWelcomeOnboardingModel";
 
 export function WelcomePage() {
@@ -18,11 +19,41 @@ export function WelcomePage() {
   }
 
   return (
-    <section className="card v3-card v3-view" data-testid="onboarding-view">
-      <h2 className="v3-welcome-title">Willkommen</h2>
-      <OnboardingStepper steps={onboarding.steps} activeStepId={onboarding.activeStepId} />
-      <div className="divider v3-welcome-divider" />
-
+    <OnboardingAssistantFrame
+      activeStepId={onboarding.activeStepId}
+      error={onboarding.onboardError}
+      steps={onboarding.steps}
+      leftAction={
+        onboarding.onboardPath === "pairing" ? (
+          <button
+            className="secondary"
+            data-testid="onboarding-pairing-back-button"
+            onClick={onboarding.backToBackupSave}
+          >
+            Zurück
+          </button>
+        ) : null
+      }
+      rightAction={
+        onboarding.onboardPath === "backup-save" ? (
+          <button
+            className="primary"
+            data-testid="onboarding-backup-next-button"
+            onClick={onboarding.continueToPairing}
+          >
+            Weiter
+          </button>
+        ) : onboarding.onboardPath === "pairing" ? (
+          <button
+            className="primary"
+            data-testid="onboarding-finish-button"
+            onClick={() => void onboarding.finishPairingOnboarding()}
+          >
+            Weiter zur Home-Seite
+          </button>
+        ) : null
+      }
+    >
       {onboarding.onboardPath === "start" ? (
         <OnboardingStartStep
           onChooseBackup={onboarding.chooseBackupImport}
@@ -36,6 +67,7 @@ export function WelcomePage() {
           backupFileName={onboarding.backupImport.backupFileName}
           backupText={onboarding.backupImport.backupText}
           clearBackupFileSelection={onboarding.backupImport.clearBackupFileSelection}
+          importSuccessVisible={onboarding.backupImport.importSuccessVisible}
           onBack={onboarding.backToStart}
           selectBackupFile={onboarding.backupImport.selectBackupFile}
           setBackupText={onboarding.backupImport.setBackupText}
@@ -56,14 +88,23 @@ export function WelcomePage() {
       {onboarding.onboardPath === "backup-save" ? (
         <BackupSaveStep
           downloadBackup={onboarding.backupDownload.downloadBackup}
-          finishOnboarding={onboarding.backupDownload.finishOnboarding}
           isDownloadingBackup={onboarding.backupDownload.isDownloadingBackup}
         />
       ) : null}
 
-      {onboarding.onboardError ? (
-        <V3PageError testId="onboarding-error">{onboarding.onboardError}</V3PageError>
+      {onboarding.onboardPath === "pairing" ? (
+        <OnboardingPairingStep
+          clearInlineError={onboarding.clearPairingInlineError}
+          copyPairingCode={onboarding.copyPairingCode}
+          inlineError={onboarding.pairingInlineError}
+          isSendingPairRequest={onboarding.isSendingPairRequest}
+          partnerCodeInput={onboarding.partnerCodeInput}
+          pairingCode={onboarding.pairingCode}
+          requestSent={onboarding.pairRequestSent}
+          sendPairRequest={onboarding.sendPairRequest}
+          setPartnerCodeInput={onboarding.setPartnerCodeInput}
+        />
       ) : null}
-    </section>
+    </OnboardingAssistantFrame>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { goV3Backup } from "../../../app/routes";
 import { useAccountContext } from "../../../app/state";
-import { ConfirmDialog } from "../../../components/ConfirmDialog";
+import { AccountDeleteDialog } from "./AccountDeleteDialog";
 
 type ProfileMenuProps = {
   open: boolean;
@@ -13,7 +13,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
   const account = useAccountContext();
   const itemTabIndex = props.open ? 0 : -1;
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [busyAction, setBusyAction] = useState<"local" | "server" | null>(null);
 
   return (
     <>
@@ -61,9 +61,7 @@ export function ProfileMenu(props: ProfileMenuProps) {
           data-testid="profile-delete-account-button"
           role="menuitem"
           tabIndex={itemTabIndex}
-          onClick={() => {
-            setConfirmOpen(true);
-          }}
+          onClick={() => setConfirmOpen(true)}
         >
           Account löschen
         </button>
@@ -71,23 +69,28 @@ export function ProfileMenu(props: ProfileMenuProps) {
         <div className="v3-menu-hint"></div>
       </div>
 
-      <ConfirmDialog
+      <AccountDeleteDialog
         open={confirmOpen}
-        title="Account löschen?"
-        description="Das Löschen ist unwiderruflich – auch mit Backup kann der gelöschte Account nicht wiederhergestellt oder reaktiviert werden. Dein Partner sieht dich anschließend als gelöscht und Interaktion ist nicht mehr möglich. Für eine Rückkehr musst du ein neues Konto erstellen und dich erneut verknüpfen."
-        confirmLabel="Löschen"
-        cancelLabel="Abbrechen"
-        danger
-        busy={isDeleting}
+        busyAction={busyAction}
         onCancel={() => setConfirmOpen(false)}
-        onConfirm={async () => {
+        onDeleteLocal={async () => {
           try {
-            setIsDeleting(true);
+            setBusyAction("local");
+            await account.deleteLocalAccount();
+            setConfirmOpen(false);
+            props.onClose();
+          } finally {
+            setBusyAction(null);
+          }
+        }}
+        onDeleteAccount={async () => {
+          try {
+            setBusyAction("server");
             await account.deleteAccount();
             setConfirmOpen(false);
             props.onClose();
           } finally {
-            setIsDeleting(false);
+            setBusyAction(null);
           }
         }}
       />

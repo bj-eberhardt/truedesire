@@ -1,4 +1,5 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
+import { goV3AccountDeleted } from "../../../routes";
 import { importBackup } from "../../../../state/identity";
 import { idbSet } from "../../../../storage/idb";
 import type { AccountModelOptions } from "./types";
@@ -25,8 +26,6 @@ export function useAccountLifecycleModel({
   clearQuestions,
   clearGlobalError
 }: UseAccountLifecycleModelOptions) {
-  const [accountDeletedModalOpen, setAccountDeletedModalOpen] = useState(false);
-
   const importBackupText = useCallback(
     async (txt: string) => {
       clearGlobalError();
@@ -36,35 +35,33 @@ export function useAccountLifecycleModel({
     [bootstrap, clearGlobalError]
   );
 
-  const deleteAccount = useCallback(async () => {
+  const clearLocalAccountState = useCallback(async () => {
     clearGlobalError();
-    try {
-      if (apiClient) await apiClient.auth.deleteMe();
-    } catch {
-      // allow local delete even if server delete fails
-    }
     await resetLocalIdentity();
     await idbSet("ui:lastPairId", "");
     setPair(null);
     clearMatches();
     clearQuestions();
     setIdentity(null);
-    window.location.hash = "#/v3/welcome";
-    setAccountDeletedModalOpen(true);
-  }, [
-    apiClient,
-    clearGlobalError,
-    clearMatches,
-    clearQuestions,
-    resetLocalIdentity,
-    setIdentity,
-    setPair
-  ]);
+    goV3AccountDeleted();
+  }, [clearGlobalError, clearMatches, clearQuestions, resetLocalIdentity, setIdentity, setPair]);
+
+  const deleteLocalAccount = useCallback(async () => {
+    await clearLocalAccountState();
+  }, [clearLocalAccountState]);
+
+  const deleteAccount = useCallback(async () => {
+    try {
+      if (apiClient) await apiClient.auth.deleteMe();
+    } catch {
+      // allow local delete even if server delete fails
+    }
+    await clearLocalAccountState();
+  }, [apiClient, clearLocalAccountState]);
 
   return {
-    accountDeletedModalOpen,
-    setAccountDeletedModalOpen,
     importBackupText,
+    deleteLocalAccount,
     deleteAccount
   };
 }

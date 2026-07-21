@@ -37,6 +37,10 @@ test("maps backup, welcome, import and onboarding routes", () => {
     kind: "v3",
     route: { mode: "backup", pairId: null }
   });
+  expect(parseAppRoute("#/v3/account-deleted")).toEqual({
+    kind: "v3",
+    route: { mode: "accountDeleted", pairId: null }
+  });
   expect(parseAppRoute("#/v3/welcome")).toEqual({
     kind: "v3",
     route: { mode: "welcome", pairId: null }
@@ -52,6 +56,10 @@ test("maps backup, welcome, import and onboarding routes", () => {
   expect(parseAppRoute("#/v3/onboarding/backup-save")).toEqual({
     kind: "v3",
     route: { mode: "home", pairId: null, onboard: "backup-save" }
+  });
+  expect(parseAppRoute("#/v3/onboarding/pairing")).toEqual({
+    kind: "v3",
+    route: { mode: "home", pairId: null, onboard: "pairing" }
   });
 });
 

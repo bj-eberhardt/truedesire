@@ -1,6 +1,8 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { goV3 } from "../../../../app/routes";
 import { toUserMessage } from "../../lib/errors";
+
+const BACKUP_IMPORT_SUCCESS_REDIRECT_MS = 3000;
 
 type UseBackupImportDraftOptions = {
   importBackupText: (txt: string) => Promise<void>;
@@ -14,7 +16,22 @@ export function useBackupImportDraft({
   const [backupText, setBackupText] = useState("");
   const [backupFile, setBackupFile] = useState<File | null>(null);
   const [backupFileName, setBackupFileName] = useState<string | null>(null);
+  const [importSuccessVisible, setImportSuccessVisible] = useState(false);
   const backupFileInputRef = useRef<HTMLInputElement | null>(null);
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
+    };
+  }, []);
+
+  function clearImportSuccessRedirect() {
+    if (redirectTimeoutRef.current) {
+      clearTimeout(redirectTimeoutRef.current);
+      redirectTimeoutRef.current = null;
+    }
+  }
 
   function clearBackupFileSelection() {
     setBackupFile(null);
@@ -23,8 +40,10 @@ export function useBackupImportDraft({
   }
 
   function resetBackupDraft() {
+    clearImportSuccessRedirect();
     setBackupText("");
     clearBackupFileSelection();
+    setImportSuccessVisible(false);
   }
 
   function selectBackupFile(file: File | null) {
@@ -33,8 +52,18 @@ export function useBackupImportDraft({
       return;
     }
     setOnboardError(null);
+    setImportSuccessVisible(false);
     setBackupFile(file);
     setBackupFileName(file.name);
+  }
+
+  function showImportSuccessAndRedirect() {
+    clearImportSuccessRedirect();
+    setImportSuccessVisible(true);
+    redirectTimeoutRef.current = setTimeout(() => {
+      redirectTimeoutRef.current = null;
+      goV3();
+    }, BACKUP_IMPORT_SUCCESS_REDIRECT_MS);
   }
 
   async function importBackupDraft(txt: string) {
@@ -52,8 +81,9 @@ export function useBackupImportDraft({
     try {
       setOnboardError(null);
       await importBackupText(trimmed);
-      resetBackupDraft();
-      goV3();
+      setBackupText("");
+      clearBackupFileSelection();
+      showImportSuccessAndRedirect();
     } catch (e: unknown) {
       setOnboardError(toUserMessage(e));
     }
@@ -94,6 +124,7 @@ export function useBackupImportDraft({
     backupFileName,
     backupText,
     clearBackupFileSelection,
+    importSuccessVisible,
     resetBackupDraft,
     selectBackupFile,
     setBackupText,

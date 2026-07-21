@@ -16,7 +16,7 @@ type UsePairingResult = {
   clearPairingInlineError: () => void;
   refreshPairing: (identityOverride?: Identity) => Promise<void>;
   refreshPairingRequests: (identityOverride?: Identity) => Promise<void>;
-  sendPairRequest: (partnerCodeInput: string) => Promise<void>;
+  sendPairRequest: (partnerCodeInput: string) => Promise<boolean>;
   respond: (
     requestId: string,
     action: "accept" | "reject" | "cancel"

@@ -10,8 +10,8 @@ export function PairingForm(props: {
   return (
     <V3Panel
       testId="pairing-panel"
-      title="Mit Partner verknüpfen"
-      hint="Gib den Code deines Partners ein und sende die Anfrage. Sobald dein Partner sie annimmt, ist die Verknüpfung aktiv."
+      title="Partner-Code eingeben"
+      hint="Sende die Anfrage. Sobald dein Partner annimmt, könnt ihr die erste Runde starten."
     >
       <div className="row v3-pairing-form">
         <input

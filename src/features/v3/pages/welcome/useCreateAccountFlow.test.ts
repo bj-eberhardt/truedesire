@@ -9,7 +9,7 @@ async function renderCreateAccountFlow(opts: {
   bootstrapAccount: () => Promise<{ userId?: string | null } | null>;
   registerAccount: (nickname?: string) => Promise<void>;
   setOnboardError: (message: string | null) => void;
-  setOnboardingStep: (step: "start" | "backup" | "new" | "backup-save") => void;
+  setOnboardingStep: (step: "start" | "backup" | "new" | "backup-save" | "pairing") => void;
 }) {
   let current: CreateAccountFlow | null = null;
   let renderer: ReactTestRenderer | null = null;

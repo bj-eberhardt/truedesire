@@ -28,11 +28,10 @@ function sessionValue(): SessionContextValue {
 
 function accountValue(copyPairingCode = vi.fn(() => Promise.resolve())): AccountContextValue {
   return {
-    accountDeletedModalOpen: false,
-    setAccountDeletedModalOpen: vi.fn(),
     copyPairingCode,
     exportBackupText: vi.fn(),
     importBackupText: vi.fn(),
+    deleteLocalAccount: vi.fn(),
     deleteAccount: vi.fn()
   };
 }
@@ -62,7 +61,7 @@ function pairingValue(overrides: Partial<PairingContextValue> = {}): PairingCont
     inlineError: null,
     clearInlineError: vi.fn(),
     refreshRequests: vi.fn(() => Promise.resolve()),
-    sendPairRequest: vi.fn(() => Promise.resolve()),
+    sendPairRequest: vi.fn(() => Promise.resolve(true)),
     respondPairing: vi.fn(),
     ...overrides
   };
@@ -183,7 +182,7 @@ test("filters deleted partners and derives request/pair flags", async () => {
 });
 
 test("sends pair request with the current input and clears it afterwards", async () => {
-  const sendPairRequest = vi.fn(() => Promise.resolve());
+  const sendPairRequest = vi.fn(() => Promise.resolve(true));
   const hook = await renderAccountHomeModel({
     pairing: pairingValue({ sendPairRequest })
   });

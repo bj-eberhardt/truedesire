@@ -55,6 +55,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -84,7 +85,8 @@ test("rejects empty and invalid backup text before importing", async () => {
   await hook.unmount();
 });
 
-test("imports valid backup text, resets the draft, and returns home", async () => {
+test("imports valid backup text, shows success, and returns home after three seconds", async () => {
+  vi.useFakeTimers();
   const importBackupText = vi.fn(() => Promise.resolve());
   const setOnboardError = vi.fn();
   const hook = await renderBackupImportDraft({ importBackupText, setOnboardError });
@@ -97,6 +99,19 @@ test("imports valid backup text, resets the draft, and returns home", async () =
   expect(setOnboardError).toHaveBeenCalledWith(null);
   expect(importBackupText).toHaveBeenCalledWith('{ "ok": true }');
   expect(hook.current.backupText).toBe("");
+  expect(hook.current.importSuccessVisible).toBe(true);
+  expect(window.location.hash).toBe("");
+
+  await act(async () => {
+    vi.advanceTimersByTime(2999);
+  });
+
+  expect(window.location.hash).toBe("");
+
+  await act(async () => {
+    vi.advanceTimersByTime(1);
+  });
+
   expect(window.location.hash).toBe("#/v3");
   await hook.unmount();
 });

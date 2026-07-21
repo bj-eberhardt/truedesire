@@ -13,19 +13,20 @@ export function usePairingActions(opts: {
 
   const sendPairRequest = useCallback(
     async (partnerCodeInput: string) => {
-      if (!apiClient) return;
+      if (!apiClient) return false;
       setPairingInlineError(null);
       const partnerCode = partnerCodeInput.trim().toUpperCase();
-      if (!partnerCode) return;
+      if (!partnerCode) return false;
       try {
         await apiClient.pairing.request(partnerCode);
         await refreshPairing();
+        return true;
       } catch (e: unknown) {
         const msg = e instanceof Error ? e.message : String(e);
         const inlineError = pairingInlineErrorFor(msg);
         if (inlineError) {
           setPairingInlineError(inlineError);
-          return;
+          return false;
         }
         throw new Error(msg);
       }

@@ -15,12 +15,21 @@ test("builds the expanded onboarding steps for new accounts", () => {
     "choose",
     "new",
     "backup",
+    "pairing",
     "ready"
   ]);
   expect(onboardingSteps("backup-save").map((step) => step.id)).toEqual([
     "choose",
     "new",
     "backup",
+    "pairing",
+    "ready"
+  ]);
+  expect(onboardingSteps("pairing").map((step) => step.id)).toEqual([
+    "choose",
+    "new",
+    "backup",
+    "pairing",
     "ready"
   ]);
 });
@@ -30,4 +39,5 @@ test("derives the active onboarding step from the route segment", () => {
   expect(activeOnboardingStepId("backup")).toBe("setup");
   expect(activeOnboardingStepId("new")).toBe("new");
   expect(activeOnboardingStepId("backup-save")).toBe("backup");
+  expect(activeOnboardingStepId("pairing")).toBe("pairing");
 });
