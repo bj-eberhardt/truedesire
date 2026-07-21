@@ -6,8 +6,7 @@ import { getRawBody } from "../http/request.js";
 import { getActiveUserById, reserveUserNonce } from "../repositories/userRepository.js";
 
 const NONCE_PATTERN = /^[0-9a-f]{24}$/;
-const canonicalBase64Pattern =
-  /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+const canonicalBase64Pattern = /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
 
 function isCanonicalBase64(value: string): boolean {
   if (!value || value.length % 4 !== 0 || !canonicalBase64Pattern.test(value)) return false;
