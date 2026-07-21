@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
+  createRegisteredUser,
   exportBackupText,
   gotoApp,
   gotoWelcome,
@@ -130,4 +131,32 @@ test("exports a backup, rejects invalid import text, imports a valid backup, and
     await expect(page.getByTestId("delete-success-new-account-button")).toBeVisible();
     await expect(page.getByTestId("delete-success-import-backup-button")).toBeVisible();
   });
+});
+
+test("sends a pairing request from onboarding and opens home at pending requests", async ({
+  browser,
+  page
+}) => {
+  const bob = await createRegisteredUser(browser, uniqueName("OnboardBob"));
+  const aliceNickname = uniqueName("OnboardPair");
+
+  await gotoWelcome(page);
+  await page.getByTestId("onboarding-new-account-button").click();
+  await page.getByTestId("nickname-input").fill(aliceNickname);
+  await page.getByTestId("create-account-button").click();
+  await page.getByTestId("onboarding-backup-next-button").click();
+  await expect(page.getByTestId("onboarding-next-step-card")).toBeVisible();
+
+  await page.getByTestId("onboarding-partner-code-input").fill(bob.code);
+  await page.getByTestId("onboarding-send-pair-request-button").click();
+  await expect(page.getByTestId("onboarding-pair-request-sent")).toBeVisible();
+
+  await page.getByTestId("onboarding-finish-button").click();
+  await expect(page.getByTestId("home-view")).toBeVisible();
+  await expect(page.getByTestId("pairing-requests-panel")).toBeInViewport();
+  await expect(
+    page.locator(`[data-testid="pairing-request-row"][data-request-code="${bob.code}"]`)
+  ).toBeVisible();
+
+  await bob.context.close();
 });
