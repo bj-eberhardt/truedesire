@@ -358,7 +358,12 @@
 .v3-shell .v3-account-loader-rail {
   border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--border));
   background:
-    linear-gradient(90deg, transparent, color-mix(in oklab, var(--accent2) 16%, transparent), transparent),
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--accent2) 16%, transparent),
+      transparent
+    ),
     color-mix(in oklab, var(--bg) 74%, var(--accent) 8%);
 }
 
@@ -409,7 +414,7 @@
       color-mix(in oklab, var(--accent) 78%, var(--accent2)),
       color-mix(in oklab, var(--accent2) 78%, var(--accent)),
       transparent
-  );
+    );
   box-shadow: color-mix(in oklab, var(--accent) 34%, transparent) 0 0 20px;
   animation:
     v3-account-loader-run 1.55s ease-in-out infinite alternate,

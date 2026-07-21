@@ -34,7 +34,12 @@ export function useAccountLifecycleModel({
         ensureRegistered: true,
         recoverMissingAccount: true
       });
-      if (!hydrated || typeof hydrated !== "object" || !("userId" in hydrated) || !hydrated.userId) {
+      if (
+        !hydrated ||
+        typeof hydrated !== "object" ||
+        !("userId" in hydrated) ||
+        !hydrated.userId
+      ) {
         throw new Error("backup_auth_failed");
       }
       setIdentity(hydrated);

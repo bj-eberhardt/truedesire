@@ -30,10 +30,9 @@ export function V3Shell() {
   const routeMode = route.mode;
   const routeOnboard = route.onboard ?? "start";
   const isBootstrappingGate = bootstrapAccountStatus !== "ready";
-  const routeKey =
-    isBootstrappingGate
-      ? "account-bootstrap"
-      : routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings"
+  const routeKey = isBootstrappingGate
+    ? "account-bootstrap"
+    : routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings"
       ? `pair:${route.pairId ?? ""}`
       : routeMode === "welcome" || routeOnboard !== "start"
         ? "welcome"
@@ -87,7 +86,9 @@ export function V3Shell() {
                 onDeleteLocalAccount={() => void deleteLocalAccountAndReload()}
                 onRetry={() => void bootstrapAccount()}
               />
-            ) : routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings" ? (
+            ) : routeMode === "pair" ||
+              routeMode === "pairMatches" ||
+              routeMode === "pairSettings" ? (
               <PairPage />
             ) : routeMode === "accountDeleted" ? (
               <AccountDeletedPage />

@@ -187,7 +187,9 @@ test("shows unauthorized and temporary retry states", async () => {
 
   expect(unauthorizedRoot.findByProps({ "data-testid": "account-loading-view" })).toBeTruthy();
   act(() => {
-    unauthorizedRoot.findByProps({ "data-testid": "account-bootstrap-retry-button" }).props.onClick();
+    unauthorizedRoot
+      .findByProps({ "data-testid": "account-bootstrap-retry-button" })
+      .props.onClick();
   });
   expect(retryUnauthorized).toHaveBeenCalledOnce();
   await act(async () => {

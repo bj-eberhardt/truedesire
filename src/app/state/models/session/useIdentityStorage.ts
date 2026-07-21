@@ -26,9 +26,7 @@ function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-export function useIdentityStorage(
-  opts: UseIdentityStorageOptions = {}
-): UseIdentityStorageResult {
+export function useIdentityStorage(opts: UseIdentityStorageOptions = {}): UseIdentityStorageResult {
   const minLoadingMs = opts.minLoadingMs ?? ACCOUNT_BOOTSTRAP_MIN_LOADING_MS;
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [nickname, setNickname] = useState("");

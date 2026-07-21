@@ -101,7 +101,9 @@ test("boots to ready without account data", async () => {
 });
 
 test("hydrates stored account data before becoming ready", async () => {
-  vi.mocked(loadIdentity).mockResolvedValueOnce(storedIdentity).mockResolvedValueOnce(storedIdentity);
+  vi.mocked(loadIdentity)
+    .mockResolvedValueOnce(storedIdentity)
+    .mockResolvedValueOnce(storedIdentity);
 
   const hook = await renderIdentityStorage();
 
@@ -112,7 +114,9 @@ test("hydrates stored account data before becoming ready", async () => {
 });
 
 test("keeps local account state and reports unauthorized on 401", async () => {
-  vi.mocked(loadIdentity).mockResolvedValueOnce(storedIdentity).mockResolvedValueOnce(storedIdentity);
+  vi.mocked(loadIdentity)
+    .mockResolvedValueOnce(storedIdentity)
+    .mockResolvedValueOnce(storedIdentity);
   const hook = await renderIdentityStorage();
 
   vi.mocked(loadIdentity)
@@ -179,7 +183,9 @@ test("retry returns to loading and can recover to ready", async () => {
 
 test("reuses an in-flight bootstrap request", async () => {
   const pendingLoad = deferred<Identity>();
-  vi.mocked(loadIdentity).mockReturnValueOnce(pendingLoad.promise).mockResolvedValue(storedIdentity);
+  vi.mocked(loadIdentity)
+    .mockReturnValueOnce(pendingLoad.promise)
+    .mockResolvedValue(storedIdentity);
   const hook = await renderIdentityStorage();
 
   let first: Promise<Identity | null>;
