@@ -465,9 +465,9 @@ test("nonce reserve rejects replay and prunes expired entries", async () => {
 
   const now = Date.now();
   const first = await reserveUserNonce(id, "n1", now);
-  expect(first).toBeTruthy();
+  expect(first).toBe(true);
   const replay = await reserveUserNonce(id, "n1", now + 1);
-  expect(replay).toBeNull();
+  expect(replay).toBe(false);
   const afterExpiry = await reserveUserNonce(id, "n1", now + 11 * 60 * 1000);
-  expect(afterExpiry).toBeTruthy();
+  expect(afterExpiry).toBe(true);
 });

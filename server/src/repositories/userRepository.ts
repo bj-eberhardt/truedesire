@@ -20,6 +20,13 @@ export async function getUserById(userId: string): Promise<UserRecord | undefine
   return result.rows[0] ? mapUser(result.rows[0]) : undefined;
 }
 
+export async function getActiveUserById(userId: string): Promise<UserRecord | null> {
+  const result = await query<UserRow>("select * from users where id = $1 and deleted_at is null", [
+    userId
+  ]);
+  return result.rows[0] ? mapUser(result.rows[0]) : null;
+}
+
 export async function listUserCodes(): Promise<string[]> {
   const result = await query<{ code: string }>("select code from users where code <> ''");
   return result.rows.map((row) => row.code);
@@ -29,17 +36,12 @@ export async function reserveUserNonce(
   userId: string,
   nonce: string,
   now: number
-): Promise<UserRecord | null> {
+): Promise<boolean> {
   return transaction(async (client) => {
     await client.query("delete from auth_nonces where user_id = $1 and expires_at <= $2", [
       userId,
       now
     ]);
-    const userResult = await client.query<UserRow>(
-      "select * from users where id = $1 and deleted_at is null",
-      [userId]
-    );
-    if (!userResult.rows[0]) return null;
 
     try {
       await client.query(
@@ -48,7 +50,7 @@ export async function reserveUserNonce(
         [userId, nonce, now + 10 * 60 * 1000]
       );
     } catch (err) {
-      if (err instanceof Error && "code" in err && err.code === "23505") return null;
+      if (err instanceof Error && "code" in err && err.code === "23505") return false;
       throw err;
     }
 
@@ -63,7 +65,7 @@ export async function reserveUserNonce(
       [userId]
     );
 
-    return mapUser(userResult.rows[0]);
+    return true;
   });
 }
 
