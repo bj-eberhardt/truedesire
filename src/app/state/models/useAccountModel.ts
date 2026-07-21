@@ -31,11 +31,10 @@ export function useAccountModel(opts: AccountModelOptions): AccountContextValue 
   const pairingCodeCopy = usePairingCodeCopyModel({ identity, showNotice });
 
   return {
-    accountDeletedModalOpen: lifecycle.accountDeletedModalOpen,
-    setAccountDeletedModalOpen: lifecycle.setAccountDeletedModalOpen,
     copyPairingCode: pairingCodeCopy.copyPairingCode,
     exportBackupText: backup.exportBackupText,
     importBackupText: lifecycle.importBackupText,
+    deleteLocalAccount: lifecycle.deleteLocalAccount,
     deleteAccount: lifecycle.deleteAccount
   };
 }

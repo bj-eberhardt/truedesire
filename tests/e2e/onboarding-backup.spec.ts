@@ -40,6 +40,8 @@ test("validates registration, creates an account, and downloads the optional onb
   });
 
   await test.step("finish onboarding and show the home screen", async () => {
+    await page.getByTestId("onboarding-backup-next-button").click();
+    await expect(page.getByTestId("onboarding-next-step-card")).toBeVisible();
     await page.getByTestId("onboarding-finish-button").click();
     await expect(page.getByTestId("home-view")).toBeVisible();
     await expect(page.getByTestId("profile-pairing-code")).toBeVisible();
@@ -59,6 +61,7 @@ test("exports a backup, rejects invalid import text, imports a valid backup, and
     await page.getByTestId("onboarding-new-account-button").click();
     await page.getByTestId("nickname-input").fill(nickname);
     await page.getByTestId("create-account-button").click();
+    await page.getByTestId("onboarding-backup-next-button").click();
     await page.getByTestId("onboarding-finish-button").click();
     originalCode = await readPairingCode(page);
     backupText = await exportBackupText(page);
@@ -93,13 +96,38 @@ test("exports a backup, rejects invalid import text, imports a valid backup, and
     await expect(page.getByTestId("profile-pairing-code")).toHaveText(originalCode);
   });
 
-  await test.step("confirm account deletion and return to onboarding", async () => {
+  await test.step("delete only on this device and show delete success route", async () => {
     await openProfileMenu(page);
     await page.getByTestId("profile-delete-account-button").click();
+    await expect(page.getByTestId("delete-local-option")).toHaveAttribute("data-active", "true");
     await page.getByTestId("confirm-confirm-button").click();
-    await expect(page.getByTestId("info-modal")).toBeVisible();
-    await page.getByTestId("info-modal-ok-button").click();
+    await expect(page.getByTestId("account-deleted-view")).toBeVisible();
+    await expect(page).toHaveURL(/#\/v3\/account-deleted$/);
+    await expect(page.getByText("Schade")).toBeVisible();
+    await expect(page.getByTestId("delete-success-new-account-button")).toBeVisible();
+    await expect(page.getByTestId("delete-success-import-backup-button")).toBeVisible();
+  });
+
+  await test.step("restore backup for final server-side account deletion", async () => {
+    await page.getByTestId("delete-success-import-backup-button").click();
     await expect(page.getByTestId("onboarding-view")).toBeVisible();
-    await expect(page).toHaveURL(/#\/v3\/welcome$/);
+    await page.getByTestId("backup-import-textarea").fill(backupText);
+    await page.getByTestId("backup-import-submit-button").click();
+    await expect(page.getByTestId("backup-import-success")).toBeVisible();
+    await expect(page.getByTestId("home-view")).toBeVisible();
+    await expect(page.getByTestId("profile-pairing-code")).toHaveText(originalCode);
+  });
+
+  await test.step("confirm account deletion and show delete success route", async () => {
+    await openProfileMenu(page);
+    await page.getByTestId("profile-delete-account-button").click();
+    await page.getByTestId("delete-server-option").click();
+    await expect(page.getByTestId("delete-server-option")).toHaveAttribute("data-active", "true");
+    await page.getByTestId("confirm-confirm-button").click();
+    await expect(page.getByTestId("account-deleted-view")).toBeVisible();
+    await expect(page).toHaveURL(/#\/v3\/account-deleted$/);
+    await expect(page.getByText("Schade")).toBeVisible();
+    await expect(page.getByTestId("delete-success-new-account-button")).toBeVisible();
+    await expect(page.getByTestId("delete-success-import-backup-button")).toBeVisible();
   });
 });

@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 import { ErrorPanel } from "../../components/ErrorPanel";
 import { Toast } from "../../components/Toast";
-import { AccountDeletedModal } from "../components/AccountDeletedModal";
-import { useAccountContext, useFeedbackContext } from "./AppContexts";
+import { useFeedbackContext } from "./AppContexts";
 import { useAppModel } from "./useAppModel";
 import { AccountProvider } from "./providers/AccountProvider";
 import { FeedbackProvider } from "./providers/FeedbackProvider";
@@ -38,15 +37,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
 }
 
 export function AppGlobalChrome({ children }: { children: ReactNode }) {
-  const account = useAccountContext();
   const feedback = useFeedbackContext();
 
   return (
     <div className="app-shell">
-      <AccountDeletedModal
-        open={account.accountDeletedModalOpen}
-        onClose={() => account.setAccountDeletedModalOpen(false)}
-      />
       {children}
       {feedback.toast ? (
         <Toast message={feedback.toast.message} kind={feedback.toast.kind} />

@@ -5,6 +5,7 @@ export function BackupImportStep({
   backupFileName,
   backupText,
   clearBackupFileSelection,
+  importSuccessVisible,
   onBack,
   selectBackupFile,
   setBackupText,
@@ -14,6 +15,7 @@ export function BackupImportStep({
   backupFileName: string | null;
   backupText: string;
   clearBackupFileSelection: () => void;
+  importSuccessVisible: boolean;
   onBack: () => void;
   selectBackupFile: (file: File | null) => void;
   setBackupText: (value: string) => void;
@@ -77,6 +79,19 @@ export function BackupImportStep({
           <div className="hint">Kopiere dein Backup-JSON-Text in die Textbox.</div>
         </div>
       </div>
+
+      {importSuccessVisible ? (
+        <div
+          className="v3-notice v3-notice-success v3-notice-without-icon small"
+          data-testid="backup-import-success"
+          role="status"
+        >
+          <div className="v3-notice-text">
+            <strong>Backup erfolgreich eingespielt.</strong>
+            <span>Du wirst gleich zur Home-Seite weitergeleitet.</span>
+          </div>
+        </div>
+      ) : null}
 
       <div className="row">
         <button

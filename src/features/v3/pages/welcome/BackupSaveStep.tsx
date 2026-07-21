@@ -1,45 +1,29 @@
-import { V3Notice } from "../../components";
-import { InfoIcon } from "../../components/icons/InfoIcon";
+import { BackupIcon } from "../../components/icons/BackupIcon";
 
 export function BackupSaveStep({
   downloadBackup,
-  finishOnboarding,
   isDownloadingBackup
 }: {
   downloadBackup: () => Promise<void>;
-  finishOnboarding: () => Promise<void>;
   isDownloadingBackup: boolean;
 }) {
   return (
     <>
-      <V3Notice
-        className="v3-notice-success v3-onboard-success"
-        icon={<InfoIcon />}
-        title="Account angelegt"
-        hint="Dein Konto wurde erfolgreich erstellt."
-        testId="account-created-success"
-      />
-      <p className="v3-onboard-question">Backup anlegen (optional)</p>
+      <p className="v3-onboard-question">Backup sichern (optional)</p>
       <p className="hint">
-        Du kannst jetzt direkt ein Backup als Datei herunterladen. So kannst du dein Konto später
-        auf einem anderen Gerät wiederherstellen.
+        Das Backup enthält deine lokalen Schlüssel. Speichere es sicher, wenn du dein Konto später
+        auf einem anderen Gerät wiederherstellen möchtest.
       </p>
 
-      <div className="row">
+      <div className="v3-backup-save-panel">
         <button
-          className="secondary"
+          className="secondary v3-backup-download-button"
           data-testid="onboarding-download-backup-button"
           disabled={isDownloadingBackup}
           onClick={() => void downloadBackup()}
         >
-          Backup herunterladen
-        </button>
-        <button
-          className="primary"
-          data-testid="onboarding-finish-button"
-          onClick={() => void finishOnboarding()}
-        >
-          Fertigstellen
+          <span>Backup herunterladen</span>
+          <BackupIcon />
         </button>
       </div>
       {isDownloadingBackup ? (

@@ -1,10 +1,11 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   useAccountContext,
   usePairingContext,
   usePairWorkspaceContext,
   useSessionContext
 } from "../../../../app/state";
+import { ONBOARDING_HOME_SCROLL_TARGET_KEY } from "../welcome/useBackupDownloadFlow";
 import { groupPairingRequests } from "./groupPairingRequests";
 import { usePairingRequestRefresh } from "./usePairingRequestRefresh";
 
@@ -42,6 +43,16 @@ export function useAccountHomeModel() {
   const scrollToRequests = useCallback(() => {
     scrollToSection(requestsPanelRef);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.sessionStorage?.getItem(ONBOARDING_HOME_SCROLL_TARGET_KEY) !== "pairing-requests") {
+      return;
+    }
+    window.sessionStorage.removeItem(ONBOARDING_HOME_SCROLL_TARGET_KEY);
+    const timer = globalThis.setTimeout(scrollToRequests, 120);
+    return () => globalThis.clearTimeout(timer);
+  }, [scrollToRequests]);
 
   const sendPairRequest = useCallback(async () => {
     await pairing.sendPairRequest(partnerCodeInput);

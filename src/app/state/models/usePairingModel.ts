@@ -34,7 +34,7 @@ export function usePairingModel(opts: UsePairingModelOptions): PairingModel {
   const sendPairRequestAndClearError = useCallback(
     async (code: string) => {
       clearGlobalError();
-      await sendPairRequest(code);
+      return await sendPairRequest(code);
     },
     [clearGlobalError, sendPairRequest]
   );

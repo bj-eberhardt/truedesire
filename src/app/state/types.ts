@@ -55,7 +55,7 @@ export type PairingContextValue = {
   inlineError: string | null;
   clearInlineError: () => void;
   refreshRequests: () => Promise<void>;
-  sendPairRequest: (partnerCodeInput: string) => Promise<void>;
+  sendPairRequest: (partnerCodeInput: string) => Promise<boolean>;
   respondPairing: (
     requestId: string,
     action: "accept" | "reject" | "cancel"
@@ -107,11 +107,10 @@ export type GroupSettingsContextValue = {
 };
 
 export type AccountContextValue = {
-  accountDeletedModalOpen: boolean;
-  setAccountDeletedModalOpen: (open: boolean) => void;
   copyPairingCode: () => Promise<void>;
   exportBackupText: () => Promise<string>;
   importBackupText: (txt: string) => Promise<void>;
+  deleteLocalAccount: () => Promise<void>;
   deleteAccount: () => Promise<void>;
 };
 

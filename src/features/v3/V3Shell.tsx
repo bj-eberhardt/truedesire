@@ -6,6 +6,7 @@ import { V3Header } from "./components/V3Header";
 import { V3Notice, V3RouteTransition } from "./components";
 import { InfoIcon } from "./components/icons/InfoIcon";
 import { AccountHomePage } from "./pages/AccountHome";
+import { AccountDeletedPage } from "./pages/AccountDeleted";
 import { AskPage } from "./pages/Ask";
 import { BackupPage } from "./pages/Backup";
 import { HomePage } from "./pages/Home";
@@ -68,6 +69,8 @@ export function V3Shell() {
           <V3RouteTransition routeKey={routeKey}>
             {routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings" ? (
               <PairPage />
+            ) : routeMode === "accountDeleted" ? (
+              <AccountDeletedPage />
             ) : routeMode === "ask" ? (
               <AskPage />
             ) : routeMode === "played" ? (

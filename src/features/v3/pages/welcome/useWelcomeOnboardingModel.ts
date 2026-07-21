@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { goV3Onboarding, type V3Route } from "../../../../app/routes";
 import {
   useAccountContext,
+  usePairingContext,
   usePairWorkspaceContext,
   useSessionContext
 } from "../../../../app/state";
@@ -21,10 +22,14 @@ export function useWelcomeOnboardingModel() {
     registerAccount,
     bootstrapAccount
   } = useSessionContext();
-  const { importBackupText, exportBackupText } = useAccountContext();
+  const { copyPairingCode, importBackupText, exportBackupText } = useAccountContext();
+  const pairing = usePairingContext();
   const { route } = usePairWorkspaceContext();
   const onboardPath: OnboardingPath = route.route.onboard ?? "start";
   const [onboardError, setOnboardError] = useState<string | null>(null);
+  const [partnerCodeInput, setPartnerCodeInput] = useState("");
+  const [pairRequestSent, setPairRequestSent] = useState(false);
+  const [isSendingPairRequest, setIsSendingPairRequest] = useState(false);
 
   const setOnboardingStep = useCallback((step: OnboardingPath) => {
     goV3Onboarding(step);
@@ -61,19 +66,60 @@ export function useWelcomeOnboardingModel() {
     setOnboardingStep("start");
   }, [backupImport, setOnboardingStep]);
 
+  const continueToPairing = useCallback(() => {
+    setOnboardError(null);
+    pairing.clearInlineError();
+    setOnboardingStep("pairing");
+  }, [pairing, setOnboardingStep]);
+
+  const backToBackupSave = useCallback(() => {
+    setOnboardError(null);
+    pairing.clearInlineError();
+    setOnboardingStep("backup-save");
+  }, [pairing, setOnboardingStep]);
+
+  const sendPairRequest = useCallback(async () => {
+    setOnboardError(null);
+    setIsSendingPairRequest(true);
+    try {
+      const sent = await pairing.sendPairRequest(partnerCodeInput);
+      if (!sent) return;
+      setPartnerCodeInput("");
+      setPairRequestSent(true);
+    } finally {
+      setIsSendingPairRequest(false);
+    }
+  }, [pairing, partnerCodeInput]);
+
+  const finishPairingOnboarding = useCallback(async () => {
+    await backupDownload.finishOnboarding({ scrollToRequests: pairRequestSent });
+  }, [backupDownload, pairRequestSent]);
+
   return {
     activeStepId: activeOnboardingStepId(onboardPath),
     backupDownload,
     backupImport,
+    backToBackupSave,
     backToStart,
     chooseBackupImport,
     chooseNewAccount,
+    continueToPairing,
+    copyPairingCode,
     createAccount,
+    finishPairingOnboarding,
     isBootstrappingAccount,
+    isSendingPairRequest,
     nicknameDraft,
     onboardError,
     onboardPath,
+    pairRequestSent,
+    pairingInlineError: pairing.inlineError,
+    pairingCode: identity?.code,
+    partnerCodeInput,
+    sendPairRequest,
     steps: onboardingSteps(onboardPath),
+    clearPairingInlineError: pairing.clearInlineError,
+    setPartnerCodeInput,
     updateNicknameDraft
   };
 }

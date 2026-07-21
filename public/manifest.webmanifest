@@ -1,0 +1,18 @@
+{
+  "name": "TrueDesire",
+  "short_name": "TrueDesire",
+  "description": "Privates Paarspiel fuer ehrliche Fragen, private Antworten und sichtbare Matches.",
+  "start_url": "/#/v3",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fff7f8",
+  "theme_color": "#e11d48",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
