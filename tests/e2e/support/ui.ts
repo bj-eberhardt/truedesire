@@ -78,7 +78,7 @@ export async function importBackupText(page: Page, backupText: string): Promise<
   await page.getByTestId("onboarding-has-backup-button").click();
   await page.getByTestId("backup-import-textarea").fill(backupText);
   await page.getByTestId("backup-import-submit-button").click();
-  await expect(page.getByTestId("account-loading-view")).toBeVisible();
+  await expect(page.getByTestId("account-loading-bar")).toBeVisible();
   await expect(page.getByTestId("home-view")).toBeVisible();
   return await readPairingCode(page);
 }
