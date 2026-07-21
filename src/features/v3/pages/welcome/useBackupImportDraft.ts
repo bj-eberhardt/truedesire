@@ -1,15 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { goV3 } from "../../../../app/routes";
 import { toUserMessage } from "../../lib/errors";
 
-const BACKUP_IMPORT_SUCCESS_REDIRECT_MS = 3000;
-
 type UseBackupImportDraftOptions = {
+  bootstrapAccount: (opts?: { showLoadingScreen?: boolean }) => Promise<unknown>;
   importBackupText: (txt: string) => Promise<void>;
   setOnboardError: (message: string | null) => void;
 };
 
 export function useBackupImportDraft({
+  bootstrapAccount,
   importBackupText,
   setOnboardError
 }: UseBackupImportDraftOptions) {
@@ -18,20 +18,6 @@ export function useBackupImportDraft({
   const [backupFileName, setBackupFileName] = useState<string | null>(null);
   const [importSuccessVisible, setImportSuccessVisible] = useState(false);
   const backupFileInputRef = useRef<HTMLInputElement | null>(null);
-  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
-    };
-  }, []);
-
-  function clearImportSuccessRedirect() {
-    if (redirectTimeoutRef.current) {
-      clearTimeout(redirectTimeoutRef.current);
-      redirectTimeoutRef.current = null;
-    }
-  }
 
   function clearBackupFileSelection() {
     setBackupFile(null);
@@ -40,7 +26,6 @@ export function useBackupImportDraft({
   }
 
   function resetBackupDraft() {
-    clearImportSuccessRedirect();
     setBackupText("");
     clearBackupFileSelection();
     setImportSuccessVisible(false);
@@ -55,15 +40,6 @@ export function useBackupImportDraft({
     setImportSuccessVisible(false);
     setBackupFile(file);
     setBackupFileName(file.name);
-  }
-
-  function showImportSuccessAndRedirect() {
-    clearImportSuccessRedirect();
-    setImportSuccessVisible(true);
-    redirectTimeoutRef.current = setTimeout(() => {
-      redirectTimeoutRef.current = null;
-      goV3();
-    }, BACKUP_IMPORT_SUCCESS_REDIRECT_MS);
   }
 
   async function importBackupDraft(txt: string) {
@@ -83,7 +59,10 @@ export function useBackupImportDraft({
       await importBackupText(trimmed);
       setBackupText("");
       clearBackupFileSelection();
-      showImportSuccessAndRedirect();
+      setImportSuccessVisible(false);
+      const bootstrapPromise = bootstrapAccount({ showLoadingScreen: true });
+      goV3();
+      await bootstrapPromise;
     } catch (e: unknown) {
       setOnboardError(toUserMessage(e));
     }

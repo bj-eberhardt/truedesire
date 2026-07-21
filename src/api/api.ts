@@ -20,6 +20,29 @@ type ApiOpts = {
   getAuthMaterial: () => Promise<AuthMaterial>;
 };
 
+export class ApiError extends Error {
+  readonly status: number | null;
+
+  constructor(message: string, status: number | null = null) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+  }
+}
+
+export function isApiError(error: unknown): error is ApiError {
+  return error instanceof ApiError;
+}
+
+export function isUnauthorizedApiError(error: unknown): boolean {
+  return isApiError(error) && error.status === 401;
+}
+
+export function isTemporaryApiError(error: unknown): boolean {
+  if (isApiError(error)) return error.status === null || error.status >= 500;
+  return error instanceof TypeError;
+}
+
 function nonce(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(12));
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
@@ -53,25 +76,31 @@ async function signedFetch<T>(opts: ApiOpts, inputPath: string, init?: SignedIni
     bodyHashB64
   });
 
-  const res = await fetch(url.toString(), {
-    ...(init ?? {}),
-    method,
-    body: bodyText ? bodyText : undefined,
-    headers: {
-      ...(init?.headers ?? {}),
-      "content-type": "application/json",
-      "x-user-id": userId,
-      "x-timestamp": ts,
-      "x-nonce": n,
-      "x-signature": signatureB64
-    }
-  });
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), {
+      ...(init ?? {}),
+      method,
+      body: bodyText ? bodyText : undefined,
+      headers: {
+        ...(init?.headers ?? {}),
+        "content-type": "application/json",
+        "x-user-id": userId,
+        "x-timestamp": ts,
+        "x-nonce": n,
+        "x-signature": signatureB64
+      }
+    });
+  } catch (error: unknown) {
+    if (error instanceof Error) throw new ApiError(error.message || "network_error", null);
+    throw new ApiError("network_error", null);
+  }
 
   const contentType = res.headers.get("content-type") ?? "";
   const payload = contentType.includes("application/json") ? await res.json() : await res.text();
   if (!res.ok) {
     const msg = typeof payload === "string" ? payload : (payload?.error ?? "request_failed");
-    throw new Error(msg);
+    throw new ApiError(msg, res.status);
   }
   return payload as T;
 }

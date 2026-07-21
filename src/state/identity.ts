@@ -1,4 +1,4 @@
-import { api } from "../api/api";
+import { api, isUnauthorizedApiError } from "../api/api";
 import { getApiBaseUrl } from "../api/baseUrl";
 import { generateKeys, importRuntimeKeys, type KeyBundle, type RuntimeKeys } from "../crypto/keys";
 import { idbDel, idbGet, idbSet } from "../storage/idb";
@@ -31,6 +31,7 @@ async function saveStored(next: StoredIdentity): Promise<void> {
 export async function loadIdentity(opts?: {
   nickname?: string;
   ensureRegistered?: boolean;
+  recoverMissingAccount?: boolean;
 }): Promise<Identity | null> {
   const baseUrl = getApiBaseUrl();
   const stored = await loadStored();
@@ -125,7 +126,36 @@ export async function loadIdentity(opts?: {
           signPrivateKey: runtime.signPrivateKey
         })
       });
-      const me = await client.auth.me();
+      let me: { code: string; nickname: string };
+      try {
+        me = await client.auth.me();
+      } catch (error: unknown) {
+        if (!opts.recoverMissingAccount || !isUnauthorizedApiError(error)) throw error;
+
+        const recoveryClient = api({
+          baseUrl,
+          getAuthMaterial: async () => ({ userId: "", signPrivateKey: runtime.signPrivateKey })
+        });
+        const recovered = await recoveryClient.auth.register({
+          nickname: stored.nickname,
+          signPublicJwk: stored.keys.signPublicJwk,
+          ecdhPublicRawB64: stored.keys.ecdhPublicRawB64
+        });
+        stored.userId = recovered.userId;
+        stored.code = null;
+        await saveStored(stored);
+        identity.userId = recovered.userId;
+        identity.auth.userId = recovered.userId;
+
+        const recoveredClient = api({
+          baseUrl,
+          getAuthMaterial: async () => ({
+            userId: recovered.userId,
+            signPrivateKey: runtime.signPrivateKey
+          })
+        });
+        me = await recoveredClient.auth.me();
+      }
       stored.code = me.code;
       stored.nickname = me.nickname;
       await saveStored(stored);

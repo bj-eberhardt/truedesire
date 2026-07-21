@@ -7,7 +7,6 @@ export type ApiClient = ReturnType<typeof api>;
 export type AccountModelOptions = {
   apiClient: ApiClient | null;
   identity: Identity | null;
-  bootstrap: () => Promise<unknown>;
   resetLocalIdentity: () => Promise<void>;
   setIdentity: (next: Identity | null) => void;
   setPair: (next: PairView | null) => void;

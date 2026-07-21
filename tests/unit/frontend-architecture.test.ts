@@ -3,6 +3,8 @@ import path from "node:path";
 import { expect, test } from "vitest";
 
 const root = process.cwd();
+const mainPath = path.join(root, "src", "main.tsx");
+const bootstrapSplashPath = path.join(root, "src", "BootstrapSplash.tsx");
 const v3ShellPath = path.join(root, "src", "features", "v3", "V3Shell.tsx");
 const v3PagesDir = path.join(root, "src", "features", "v3", "pages");
 const pairPagePath = path.join(v3PagesDir, "Pair.tsx");
@@ -96,6 +98,35 @@ test("V3Shell stays prop-less and does not reintroduce shell prop bags", () => {
 
   expect(source).toMatch(/export function V3Shell\(\)/);
   expect(source).not.toMatch(/\bV3ShellProps\b/);
+});
+
+test("main entry stays small and defers the full app runtime", () => {
+  const source = fs.readFileSync(mainPath, "utf8");
+
+  expect(source).toContain('import("./app/AppRuntime")');
+  expect(source).not.toMatch(/from\s+["']react["']/);
+  expect(source).not.toMatch(/from\s+["']react-dom\/client["']/);
+  expect(source).not.toMatch(/from\s+["']\.\/app\/App["']/);
+  expect(source).not.toMatch(/from\s+["']\.\/features\/v3\/V3Shell["']/);
+  expect(source).not.toMatch(/from\s+["']\.\/app\/state/);
+  expect(source).not.toMatch(/\.\/index\.css/);
+  expect(source).not.toMatch(/styles\/base-ui\.css/);
+});
+
+test("bootstrap splash removes the static HTML fallback after mount", () => {
+  const source = fs.readFileSync(bootstrapSplashPath, "utf8");
+
+  expect(source).toContain('document.getElementById("boot-fallback")?.remove()');
+});
+
+test("V3Shell lazy-loads route pages instead of statically importing them", () => {
+  const source = fs.readFileSync(v3ShellPath, "utf8");
+  const staticPageImports = source.match(/import\s+\{[^}]+Page[^}]*\}\s+from\s+["']\.\/pages\//g);
+
+  expect(staticPageImports).toBeNull();
+  expect(source).toContain("lazy(() =>");
+  expect(source).toContain('import("./pages/AccountHome")');
+  expect(source).toContain('import("./pages/Pair")');
 });
 
 test("top-level V3 pages do not expose broad page prop interfaces", () => {

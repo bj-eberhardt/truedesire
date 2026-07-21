@@ -279,6 +279,255 @@
   gap: 12px;
 }
 
+.v3-shell .v3-account-bootstrap {
+  width: min(620px, 100%);
+  margin: clamp(42px, 10vh, 96px) auto 0;
+  padding: clamp(24px, 6vw, 42px) clamp(18px, 5vw, 34px);
+  display: grid;
+  gap: 24px;
+  justify-items: center;
+  text-align: center;
+  border: 1px solid color-mix(in oklab, var(--accent) 18%, var(--border));
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--accent) 9%, var(--bg)),
+      color-mix(in oklab, var(--accent2) 7%, var(--bg))
+    ),
+    color-mix(in oklab, var(--bg) 92%, transparent);
+  box-shadow:
+    rgba(0, 0, 0, 0.12) 0 18px 34px -24px,
+    color-mix(in oklab, var(--accent) 18%, transparent) 0 0 0 1px inset;
+}
+
+.v3-shell .v3-account-bootstrap-copy {
+  display: grid;
+  gap: 8px;
+  transition:
+    opacity 90ms ease,
+    transform 120ms ease;
+}
+
+.v3-shell .v3-account-bootstrap-copy[data-transition-state="leaving"] {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.v3-shell .v3-account-bootstrap-copy[data-transition-state="entering"] {
+  animation: v3-account-bootstrap-copy-in 120ms ease-out both;
+}
+
+.v3-shell .v3-account-bootstrap-kicker {
+  margin: 0;
+  font-family: "Playwrite AU SA", "Segoe Script", "Brush Script MT", cursive;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: color-mix(in oklab, var(--accent) 78%, var(--text-h));
+}
+
+.v3-shell .v3-account-bootstrap h1 {
+  margin: 0;
+  font-size: clamp(1.45rem, 4vw, 2rem);
+  line-height: 1.12;
+}
+
+.v3-shell .v3-account-bootstrap .hint {
+  max-width: 44rem;
+  margin: 0;
+}
+
+.v3-shell .v3-account-loader {
+  position: relative;
+  width: min(420px, 100%);
+  height: 34px;
+  overflow: hidden;
+  border-radius: 999px;
+}
+
+.v3-shell .v3-account-loader-rail,
+.v3-shell .v3-account-loader-fill,
+.v3-shell .v3-account-loader-vine {
+  position: absolute;
+  inset: 50% 0 auto;
+  transform: translateY(-50%);
+  height: 8px;
+  border-radius: 999px;
+}
+
+.v3-shell .v3-account-loader-rail {
+  border: 1px solid color-mix(in oklab, var(--accent) 22%, var(--border));
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--accent2) 16%, transparent),
+      transparent
+    ),
+    color-mix(in oklab, var(--bg) 74%, var(--accent) 8%);
+}
+
+.v3-shell .v3-account-loader-rail::before,
+.v3-shell .v3-account-loader-rail::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border: 2px solid color-mix(in oklab, var(--accent) 45%, transparent);
+  border-top-color: transparent;
+  border-left-color: transparent;
+  border-radius: 50%;
+}
+
+.v3-shell .v3-account-loader-rail::before {
+  left: 0;
+  transform: translate(-25%, -50%) rotate(135deg);
+}
+
+.v3-shell .v3-account-loader-rail::after {
+  right: 0;
+  transform: translate(25%, -50%) rotate(-45deg);
+}
+
+.v3-shell .v3-account-loader-fill {
+  width: 100%;
+  transform: translate(-100%, -50%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, var(--accent) 72%, var(--accent2)),
+    color-mix(in oklab, var(--accent2) 76%, var(--accent))
+  );
+  box-shadow: color-mix(in oklab, var(--accent) 24%, transparent) 0 0 18px;
+  opacity: 0.84;
+  animation: v3-account-loader-fill 1.2s linear forwards;
+}
+
+.v3-shell .v3-account-loader-vine {
+  width: 46%;
+  background:
+    radial-gradient(circle at 18% 50%, var(--accent2) 0 4px, transparent 5px),
+    radial-gradient(circle at 82% 50%, var(--accent) 0 4px, transparent 5px),
+    linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in oklab, var(--accent) 78%, var(--accent2)),
+      color-mix(in oklab, var(--accent2) 78%, var(--accent)),
+      transparent
+    );
+  box-shadow: color-mix(in oklab, var(--accent) 34%, transparent) 0 0 20px;
+  animation:
+    v3-account-loader-run 1.55s ease-in-out infinite alternate,
+    v3-account-loader-vine-fade 1.2s step-end forwards;
+}
+
+.v3-shell .v3-account-loader-vine::before,
+.v3-shell .v3-account-loader-vine::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 22px;
+  height: 22px;
+  border: 2px solid color-mix(in oklab, var(--accent2) 68%, transparent);
+  border-bottom-color: transparent;
+  border-right-color: transparent;
+  border-radius: 50%;
+}
+
+.v3-shell .v3-account-loader-vine::before {
+  left: 14%;
+  transform: translateY(-52%) rotate(-28deg);
+}
+
+.v3-shell .v3-account-loader-vine::after {
+  right: 14%;
+  transform: translateY(-48%) rotate(152deg);
+}
+
+.v3-shell .v3-account-bootstrap[data-state="unauthorized"] .v3-account-loader-vine,
+.v3-shell .v3-account-bootstrap[data-state="temporary"] .v3-account-loader-vine {
+  animation: none;
+  opacity: 0;
+}
+
+.v3-shell .v3-account-bootstrap[data-state="unauthorized"] .v3-account-loader-fill,
+.v3-shell .v3-account-bootstrap[data-state="temporary"] .v3-account-loader-fill {
+  animation: none;
+  transform: translate(0, -50%);
+  opacity: 1;
+}
+
+.v3-shell .v3-account-bootstrap-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.v3-shell .v3-account-bootstrap-actions button {
+  min-width: min(100%, 180px);
+}
+
+.v3-shell .v3-account-bootstrap-delete-local {
+  border-color: color-mix(in oklab, var(--accent) 46%, var(--border));
+  color: color-mix(in oklab, var(--accent) 74%, var(--text-h));
+}
+
+@keyframes v3-account-bootstrap-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes v3-account-loader-fill {
+  from {
+    transform: translate(-100%, -50%);
+  }
+
+  to {
+    transform: translate(0, -50%);
+  }
+}
+
+@keyframes v3-account-loader-run {
+  from {
+    transform: translate(-8%, -50%);
+  }
+
+  to {
+    transform: translate(126%, -50%);
+  }
+}
+
+@keyframes v3-account-loader-vine-fade {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .v3-shell .v3-account-loader-fill {
+    animation: none;
+    transform: translate(0, -50%);
+  }
+
+  .v3-shell .v3-account-loader-vine {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 .v3-shell .v3-panel {
   scroll-margin-top: 92px;
 }
@@ -654,6 +903,13 @@
 
 .v3-shell .v3-route-transition-page {
   width: 100%;
+}
+
+.v3-shell .v3-route-chunk-fallback {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  color: var(--text-m);
 }
 
 .v3-shell .v3-route-transition-page[data-animation-state="entering"] {

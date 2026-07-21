@@ -114,7 +114,7 @@ test("exports a backup, rejects invalid import text, imports a valid backup, and
     await expect(page.getByTestId("onboarding-view")).toBeVisible();
     await page.getByTestId("backup-import-textarea").fill(backupText);
     await page.getByTestId("backup-import-submit-button").click();
-    await expect(page.getByTestId("backup-import-success")).toBeVisible();
+    await expect(page.getByTestId("account-loading-bar")).toBeVisible();
     await expect(page.getByTestId("home-view")).toBeVisible();
     await expect(page.getByTestId("profile-pairing-code")).toHaveText(originalCode);
   });

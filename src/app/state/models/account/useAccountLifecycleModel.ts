@@ -1,13 +1,12 @@
 import { useCallback } from "react";
 import { goV3AccountDeleted } from "../../../routes";
-import { importBackup } from "../../../../state/identity";
+import { importBackup, loadIdentity } from "../../../../state/identity";
 import { idbSet } from "../../../../storage/idb";
 import type { AccountModelOptions } from "./types";
 
 type UseAccountLifecycleModelOptions = Pick<
   AccountModelOptions,
   | "apiClient"
-  | "bootstrap"
   | "resetLocalIdentity"
   | "setIdentity"
   | "setPair"
@@ -18,7 +17,6 @@ type UseAccountLifecycleModelOptions = Pick<
 
 export function useAccountLifecycleModel({
   apiClient,
-  bootstrap,
   resetLocalIdentity,
   setIdentity,
   setPair,
@@ -30,9 +28,21 @@ export function useAccountLifecycleModel({
     async (txt: string) => {
       clearGlobalError();
       await importBackup(txt);
-      await bootstrap();
+      const hydrated = await loadIdentity({
+        ensureRegistered: true,
+        recoverMissingAccount: true
+      });
+      if (
+        !hydrated ||
+        typeof hydrated !== "object" ||
+        !("userId" in hydrated) ||
+        !hydrated.userId
+      ) {
+        throw new Error("backup_auth_failed");
+      }
+      setIdentity(hydrated);
     },
-    [bootstrap, clearGlobalError]
+    [clearGlobalError, setIdentity]
   );
 
   const clearLocalAccountState = useCallback(async () => {

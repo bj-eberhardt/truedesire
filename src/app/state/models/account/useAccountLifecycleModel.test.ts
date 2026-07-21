@@ -2,6 +2,7 @@ import React from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { goV3AccountDeleted } from "../../../routes";
+import { importBackup, loadIdentity } from "../../../../state/identity";
 import { idbSet } from "../../../../storage/idb";
 import { useAccountLifecycleModel } from "./useAccountLifecycleModel";
 import type { AccountModelOptions } from "./types";
@@ -11,7 +12,8 @@ vi.mock("../../../routes", () => ({
 }));
 
 vi.mock("../../../../state/identity", () => ({
-  importBackup: vi.fn()
+  importBackup: vi.fn(),
+  loadIdentity: vi.fn()
 }));
 
 vi.mock("../../../../storage/idb", () => ({
@@ -23,7 +25,6 @@ type LifecycleModel = ReturnType<typeof useAccountLifecycleModel>;
 function baseOptions(overrides: Partial<AccountModelOptions> = {}): AccountModelOptions {
   return {
     apiClient: null,
-    bootstrap: vi.fn(() => Promise.resolve()),
     clearGlobalError: vi.fn(),
     clearMatches: vi.fn(),
     clearQuestions: vi.fn(),
@@ -99,6 +100,39 @@ test("deletes only local account state and navigates to the account deleted rout
   expect(options.clearQuestions).toHaveBeenCalledOnce();
   expect(options.setIdentity).toHaveBeenCalledWith(null);
   expect(goV3AccountDeleted).toHaveBeenCalledOnce();
+  await hook.unmount();
+});
+
+test("imports backup text and requires account hydration", async () => {
+  const hydrated = { userId: "user-1" };
+  vi.mocked(loadIdentity).mockResolvedValue(hydrated as Awaited<ReturnType<typeof loadIdentity>>);
+  const options = baseOptions();
+  const hook = await renderLifecycleModel(options);
+
+  await act(async () => {
+    await hook.current.importBackupText('{"backup":true}');
+  });
+
+  expect(options.clearGlobalError).toHaveBeenCalledOnce();
+  expect(importBackup).toHaveBeenCalledWith('{"backup":true}');
+  expect(loadIdentity).toHaveBeenCalledWith({
+    ensureRegistered: true,
+    recoverMissingAccount: true
+  });
+  expect(options.setIdentity).toHaveBeenCalledWith(hydrated);
+  await hook.unmount();
+});
+
+test("rejects imported backup when hydration does not return an account", async () => {
+  vi.mocked(loadIdentity).mockResolvedValue(null);
+  const options = baseOptions();
+  const hook = await renderLifecycleModel(options);
+
+  await expect(hook.current.importBackupText('{"backup":true}')).rejects.toThrow(
+    "backup_auth_failed"
+  );
+
+  expect(importBackup).toHaveBeenCalledWith('{"backup":true}');
   await hook.unmount();
 });
 

@@ -6,6 +6,9 @@ test("maps known error codes to user-facing messages", () => {
   expect(mapKnownErrorCodes("bad_backup")).toBe(
     "Die Datei konnte nicht gelesen werden oder ist keine valide Backup-Datei."
   );
+  expect(mapKnownErrorCodes("backup_auth_failed")).toBe(
+    "Das Backup wurde gelesen, konnte aber nicht mit dem Server verknüpft werden. Bitte prüfe, ob es zum aktuellen Server gehört, und versuche es erneut."
+  );
 });
 
 test("keeps unknown error codes unchanged", () => {

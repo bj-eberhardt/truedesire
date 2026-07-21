@@ -1,37 +1,81 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { isTemporaryApiError, isUnauthorizedApiError } from "../../../../api/api";
 import { loadIdentity, resetIdentity, type Identity } from "../../../../state/identity";
+import type { BootstrapAccountOptions, BootstrapAccountStatus } from "../../types";
 
 type UseIdentityStorageResult = {
   identity: Identity | null;
   nickname: string;
   setNickname: (next: string) => void;
+  bootstrapAccountStatus: BootstrapAccountStatus;
   isBootstrappingAccount: boolean;
   setIdentity: (next: Identity | null) => void;
-  bootstrap: () => Promise<Identity | null>;
+  bootstrap: (opts?: BootstrapAccountOptions) => Promise<Identity | null>;
   register: (nicknameOverride?: string) => Promise<Identity>;
   resetLocalIdentity: () => Promise<void>;
 };
 
-export function useIdentityStorage(): UseIdentityStorageResult {
+type UseIdentityStorageOptions = {
+  minLoadingMs?: number;
+};
+
+export const ACCOUNT_BOOTSTRAP_MIN_LOADING_MS = 1_200;
+
+function wait(ms: number): Promise<void> {
+  if (ms <= 0) return Promise.resolve();
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+export function useIdentityStorage(opts: UseIdentityStorageOptions = {}): UseIdentityStorageResult {
+  const minLoadingMs = opts.minLoadingMs ?? ACCOUNT_BOOTSTRAP_MIN_LOADING_MS;
   const [identity, setIdentity] = useState<Identity | null>(null);
   const [nickname, setNickname] = useState("");
-  const [isBootstrappingAccount, setIsBootstrappingAccount] = useState(true);
+  const [bootstrapAccountStatus, setBootstrapAccountStatus] =
+    useState<BootstrapAccountStatus>("loading");
+  const bootstrapPromiseRef = useRef<Promise<Identity | null> | null>(null);
 
-  const bootstrap = useCallback(async (): Promise<Identity | null> => {
-    setIsBootstrappingAccount(true);
-    try {
-      const id = await loadIdentity();
-      const hydrated = id?.userId ? await loadIdentity({ ensureRegistered: true }) : id;
-      setIdentity(hydrated);
-      setNickname(hydrated?.nickname ?? "");
-      return hydrated;
-    } finally {
-      setIsBootstrappingAccount(false);
-    }
-  }, []);
+  const bootstrap = useCallback(
+    (opts: BootstrapAccountOptions = {}): Promise<Identity | null> => {
+      if (bootstrapPromiseRef.current) return bootstrapPromiseRef.current;
+
+      const nextBootstrap = (async () => {
+        const startedAt = Date.now();
+        if (opts.showLoadingScreen) {
+          setBootstrapAccountStatus("loading");
+        }
+        try {
+          const id = await loadIdentity();
+          const hydrated = id?.userId ? await loadIdentity({ ensureRegistered: true }) : id;
+          setIdentity(hydrated);
+          setNickname(hydrated?.nickname ?? "");
+          await wait(minLoadingMs - (Date.now() - startedAt));
+          setBootstrapAccountStatus("ready");
+          return hydrated;
+        } catch (error: unknown) {
+          await wait(minLoadingMs - (Date.now() - startedAt));
+          if (isUnauthorizedApiError(error)) {
+            setBootstrapAccountStatus("unauthorized");
+            return null;
+          }
+          if (isTemporaryApiError(error)) {
+            setBootstrapAccountStatus("temporary");
+            return null;
+          }
+          setBootstrapAccountStatus("temporary");
+          return null;
+        } finally {
+          bootstrapPromiseRef.current = null;
+        }
+      })();
+
+      bootstrapPromiseRef.current = nextBootstrap;
+      return nextBootstrap;
+    },
+    [minLoadingMs]
+  );
 
   useEffect(() => {
-    void bootstrap();
+    void bootstrap({ showLoadingScreen: true });
   }, [bootstrap]);
 
   const register = useCallback(
@@ -61,7 +105,8 @@ export function useIdentityStorage(): UseIdentityStorageResult {
     identity,
     nickname,
     setNickname,
-    isBootstrappingAccount,
+    bootstrapAccountStatus,
+    isBootstrappingAccount: bootstrapAccountStatus === "loading",
     setIdentity,
     bootstrap,
     register,

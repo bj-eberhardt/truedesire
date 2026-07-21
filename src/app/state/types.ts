@@ -17,6 +17,10 @@ export type PublicIdentity = {
 };
 
 export type BootstrapAccountResult = Identity | null;
+export type BootstrapAccountStatus = "loading" | "ready" | "unauthorized" | "temporary";
+export type BootstrapAccountOptions = {
+  showLoadingScreen?: boolean;
+};
 
 export type PairingIncoming = Array<{
   id: string;
@@ -42,9 +46,10 @@ export type MyPairs = Array<{
 export type SessionContextValue = {
   identity: PublicIdentity | null;
   nicknameDraft: string;
+  bootstrapAccountStatus: BootstrapAccountStatus;
   isBootstrappingAccount: boolean;
   updateNicknameDraft: (next: string) => void;
-  bootstrapAccount: () => Promise<BootstrapAccountResult>;
+  bootstrapAccount: (opts?: BootstrapAccountOptions) => Promise<BootstrapAccountResult>;
   registerAccount: (nickname?: string) => Promise<void>;
 };
 

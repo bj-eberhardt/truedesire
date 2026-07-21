@@ -10,6 +10,7 @@ type BackupExportViewModel = ReturnType<typeof useBackupExportViewModel>;
 const sessionValue: SessionContextValue = {
   identity: { userId: "user-1", nickname: "Ada", code: "ABC123" },
   nicknameDraft: "",
+  bootstrapAccountStatus: "ready",
   isBootstrappingAccount: false,
   updateNicknameDraft: vi.fn(),
   bootstrapAccount: vi.fn(),
