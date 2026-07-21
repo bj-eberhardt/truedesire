@@ -3,7 +3,7 @@ import type { V3Route } from "../../../../app/routes";
 import { toUserMessage } from "../../lib/errors";
 
 type UseCreateAccountFlowOptions = {
-  bootstrapAccount: () => Promise<{ userId?: string | null } | null>;
+  bootstrapAccount: (opts?: { showLoadingScreen?: boolean }) => Promise<{ userId?: string | null } | null>;
   registerAccount: (nickname?: string) => Promise<void>;
   setOnboardingStep: (step: NonNullable<V3Route["onboard"]>) => void;
   setOnboardError: (message: string | null) => void;

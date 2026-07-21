@@ -905,6 +905,13 @@
   width: 100%;
 }
 
+.v3-shell .v3-route-chunk-fallback {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  color: var(--text-m);
+}
+
 .v3-shell .v3-route-transition-page[data-animation-state="entering"] {
   animation: v3-route-enter-right 240ms cubic-bezier(0.2, 0, 0, 1) both;
 }

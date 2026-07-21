@@ -166,7 +166,7 @@ test("retry returns to loading and can recover to ready", async () => {
 
   let retry: Promise<Identity | null>;
   act(() => {
-    retry = hook.current.bootstrap();
+    retry = hook.current.bootstrap({ showLoadingScreen: true });
   });
 
   expect(hook.current.bootstrapAccountStatus).toBe("loading");
@@ -174,6 +174,23 @@ test("retry returns to loading and can recover to ready", async () => {
   await act(async () => {
     pendingLoad.resolve(storedIdentity);
     await retry;
+  });
+
+  expect(hook.current.bootstrapAccountStatus).toBe("ready");
+  expect(hook.current.identity?.userId).toBe("user-1");
+  await hook.unmount();
+});
+
+test("manual hydration can run without showing the loading gate", async () => {
+  vi.mocked(loadIdentity).mockResolvedValue(anonymousIdentity);
+  const hook = await renderIdentityStorage();
+
+  vi.mocked(loadIdentity)
+    .mockResolvedValueOnce(storedIdentity)
+    .mockResolvedValueOnce(storedIdentity);
+
+  await act(async () => {
+    await hook.current.bootstrap();
   });
 
   expect(hook.current.bootstrapAccountStatus).toBe("ready");

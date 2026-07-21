@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { isTemporaryApiError, isUnauthorizedApiError } from "../../../../api/api";
 import { loadIdentity, resetIdentity, type Identity } from "../../../../state/identity";
-import type { BootstrapAccountStatus } from "../../types";
+import type { BootstrapAccountOptions, BootstrapAccountStatus } from "../../types";
 
 type UseIdentityStorageResult = {
   identity: Identity | null;
@@ -10,7 +10,7 @@ type UseIdentityStorageResult = {
   bootstrapAccountStatus: BootstrapAccountStatus;
   isBootstrappingAccount: boolean;
   setIdentity: (next: Identity | null) => void;
-  bootstrap: () => Promise<Identity | null>;
+  bootstrap: (opts?: BootstrapAccountOptions) => Promise<Identity | null>;
   register: (nicknameOverride?: string) => Promise<Identity>;
   resetLocalIdentity: () => Promise<void>;
 };
@@ -34,12 +34,14 @@ export function useIdentityStorage(opts: UseIdentityStorageOptions = {}): UseIde
     useState<BootstrapAccountStatus>("loading");
   const bootstrapPromiseRef = useRef<Promise<Identity | null> | null>(null);
 
-  const bootstrap = useCallback((): Promise<Identity | null> => {
+  const bootstrap = useCallback((opts: BootstrapAccountOptions = {}): Promise<Identity | null> => {
     if (bootstrapPromiseRef.current) return bootstrapPromiseRef.current;
 
     const nextBootstrap = (async () => {
       const startedAt = Date.now();
-      setBootstrapAccountStatus("loading");
+      if (opts.showLoadingScreen) {
+        setBootstrapAccountStatus("loading");
+      }
       try {
         const id = await loadIdentity();
         const hydrated = id?.userId ? await loadIdentity({ ensureRegistered: true }) : id;
@@ -70,7 +72,7 @@ export function useIdentityStorage(opts: UseIdentityStorageOptions = {}): UseIde
   }, [minLoadingMs]);
 
   useEffect(() => {
-    void bootstrap();
+    void bootstrap({ showLoadingScreen: true });
   }, [bootstrap]);
 
   const register = useCallback(

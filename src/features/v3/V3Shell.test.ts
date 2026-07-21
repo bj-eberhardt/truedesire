@@ -90,10 +90,13 @@ function sessionValue(overrides: Partial<SessionContextValue> = {}): SessionCont
   };
 }
 
-function renderShell(session: SessionContextValue, account: AccountContextValue = accountValue()) {
+async function renderShell(
+  session: SessionContextValue,
+  account: AccountContextValue = accountValue()
+) {
   let renderer: ReactTestRenderer | null = null;
 
-  act(() => {
+  await act(async () => {
     renderer = create(
       React.createElement(
         FeedbackContext.Provider,
@@ -143,8 +146,8 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-test("shows header without profile menu and loading bar while bootstrapping", () => {
-  const root = renderShell(
+test("shows header without profile menu and loading bar while bootstrapping", async () => {
+  const root = await renderShell(
     sessionValue({
       identity: { userId: "user-1", nickname: "Ada", code: "AAA111" },
       bootstrapAccountStatus: "loading",
@@ -158,14 +161,14 @@ test("shows header without profile menu and loading bar while bootstrapping", ()
   expect(root.findByProps({ "data-testid": "account-loading-bar" })).toBeTruthy();
 });
 
-test("routes to welcome home after ready bootstrap without account", () => {
-  const root = renderShell(sessionValue());
+test("routes to welcome home after ready bootstrap without account", async () => {
+  const root = await renderShell(sessionValue());
 
   expect(root.findByProps({ "data-testid": "welcome-home-view" })).toBeTruthy();
 });
 
-test("routes to account home after ready bootstrap with account", () => {
-  const root = renderShell(
+test("routes to account home after ready bootstrap with account", async () => {
+  const root = await renderShell(
     sessionValue({
       identity: { userId: "user-1", nickname: "Ada", code: "AAA111" }
     })
@@ -177,7 +180,7 @@ test("routes to account home after ready bootstrap with account", () => {
 test("shows unauthorized and temporary retry states", async () => {
   const retryUnauthorized = vi.fn();
   const deleteLocalAccount = vi.fn(() => Promise.resolve());
-  const unauthorizedRoot = renderShell(
+  const unauthorizedRoot = await renderShell(
     sessionValue({
       bootstrapAccountStatus: "unauthorized",
       bootstrapAccount: retryUnauthorized
@@ -200,7 +203,7 @@ test("shows unauthorized and temporary retry states", async () => {
   expect(deleteLocalAccount).toHaveBeenCalledOnce();
   expect(window.location.reload).toHaveBeenCalledOnce();
 
-  const temporaryRoot = renderShell(
+  const temporaryRoot = await renderShell(
     sessionValue({
       bootstrapAccountStatus: "temporary"
     })

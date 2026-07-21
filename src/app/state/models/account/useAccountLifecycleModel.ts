@@ -7,7 +7,6 @@ import type { AccountModelOptions } from "./types";
 type UseAccountLifecycleModelOptions = Pick<
   AccountModelOptions,
   | "apiClient"
-  | "bootstrap"
   | "resetLocalIdentity"
   | "setIdentity"
   | "setPair"
@@ -18,7 +17,6 @@ type UseAccountLifecycleModelOptions = Pick<
 
 export function useAccountLifecycleModel({
   apiClient,
-  bootstrap,
   resetLocalIdentity,
   setIdentity,
   setPair,
@@ -43,9 +41,8 @@ export function useAccountLifecycleModel({
         throw new Error("backup_auth_failed");
       }
       setIdentity(hydrated);
-      await bootstrap();
     },
-    [bootstrap, clearGlobalError, setIdentity]
+    [clearGlobalError, setIdentity]
   );
 
   const clearLocalAccountState = useCallback(async () => {

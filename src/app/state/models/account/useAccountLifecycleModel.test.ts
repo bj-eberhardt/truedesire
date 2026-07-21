@@ -25,7 +25,6 @@ type LifecycleModel = ReturnType<typeof useAccountLifecycleModel>;
 function baseOptions(overrides: Partial<AccountModelOptions> = {}): AccountModelOptions {
   return {
     apiClient: null,
-    bootstrap: vi.fn(() => Promise.resolve()),
     clearGlobalError: vi.fn(),
     clearMatches: vi.fn(),
     clearQuestions: vi.fn(),
@@ -107,8 +106,7 @@ test("deletes only local account state and navigates to the account deleted rout
 test("imports backup text and requires account hydration", async () => {
   const hydrated = { userId: "user-1" };
   vi.mocked(loadIdentity).mockResolvedValue(hydrated as Awaited<ReturnType<typeof loadIdentity>>);
-  const bootstrap = vi.fn(() => Promise.resolve(hydrated));
-  const options = baseOptions({ bootstrap });
+  const options = baseOptions();
   const hook = await renderLifecycleModel(options);
 
   await act(async () => {
@@ -122,15 +120,12 @@ test("imports backup text and requires account hydration", async () => {
     recoverMissingAccount: true
   });
   expect(options.setIdentity).toHaveBeenCalledWith(hydrated);
-  expect(bootstrap).toHaveBeenCalledOnce();
   await hook.unmount();
 });
 
 test("rejects imported backup when hydration does not return an account", async () => {
   vi.mocked(loadIdentity).mockResolvedValue(null);
-  const options = baseOptions({
-    bootstrap: vi.fn(() => Promise.resolve(null))
-  });
+  const options = baseOptions();
   const hook = await renderLifecycleModel(options);
 
   await expect(hook.current.importBackupText('{"backup":true}')).rejects.toThrow(
@@ -138,7 +133,6 @@ test("rejects imported backup when hydration does not return an account", async 
   );
 
   expect(importBackup).toHaveBeenCalledWith('{"backup":true}');
-  expect(options.bootstrap).not.toHaveBeenCalled();
   await hook.unmount();
 });
 

@@ -35,7 +35,7 @@ export function useWelcomeOnboardingModel() {
     goV3Onboarding(step);
   }, []);
 
-  const backupImport = useBackupImportDraft({ importBackupText, setOnboardError });
+  const backupImport = useBackupImportDraft({ bootstrapAccount, importBackupText, setOnboardError });
   const createAccount = useCreateAccountFlow({
     bootstrapAccount,
     registerAccount,

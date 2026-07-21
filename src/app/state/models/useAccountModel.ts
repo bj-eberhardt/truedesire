@@ -8,7 +8,6 @@ export function useAccountModel(opts: AccountModelOptions): AccountContextValue 
   const {
     apiClient,
     identity,
-    bootstrap,
     resetLocalIdentity,
     setIdentity,
     setPair,
@@ -20,7 +19,6 @@ export function useAccountModel(opts: AccountModelOptions): AccountContextValue 
   const backup = useAccountBackupModel();
   const lifecycle = useAccountLifecycleModel({
     apiClient,
-    bootstrap,
     resetLocalIdentity,
     setIdentity,
     setPair,

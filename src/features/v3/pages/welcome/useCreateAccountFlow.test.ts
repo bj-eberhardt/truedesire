@@ -6,7 +6,9 @@ import { useCreateAccountFlow } from "./useCreateAccountFlow";
 type CreateAccountFlow = ReturnType<typeof useCreateAccountFlow>;
 
 async function renderCreateAccountFlow(opts: {
-  bootstrapAccount: () => Promise<{ userId?: string | null } | null>;
+  bootstrapAccount: (opts?: { showLoadingScreen?: boolean }) => Promise<{
+    userId?: string | null;
+  } | null>;
   registerAccount: (nickname?: string) => Promise<void>;
   setOnboardError: (message: string | null) => void;
   setOnboardingStep: (step: "start" | "backup" | "new" | "backup-save" | "pairing") => void;
@@ -77,10 +79,11 @@ test("requires a nickname before registering an account", async () => {
 
 test("registers with trimmed nickname and advances to backup save after hydration", async () => {
   const registerAccount = vi.fn(() => Promise.resolve());
+  const bootstrapAccount = vi.fn(() => Promise.resolve({ userId: "user-1" }));
   const setOnboardError = vi.fn();
   const setOnboardingStep = vi.fn();
   const hook = await renderCreateAccountFlow({
-    bootstrapAccount: vi.fn(() => Promise.resolve({ userId: "user-1" })),
+    bootstrapAccount,
     registerAccount,
     setOnboardError,
     setOnboardingStep
@@ -91,6 +94,7 @@ test("registers with trimmed nickname and advances to backup save after hydratio
   });
 
   expect(registerAccount).toHaveBeenCalledWith("Ada");
+  expect(bootstrapAccount).toHaveBeenCalledWith();
   expect(setOnboardError).toHaveBeenCalledWith(null);
   expect(setOnboardingStep).toHaveBeenCalledWith("backup-save");
   expect(hook.current.isRegistering).toBe(false);

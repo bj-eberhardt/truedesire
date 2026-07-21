@@ -68,7 +68,6 @@ export function useAppModel(): AppModel {
   const account = useAccountModel({
     apiClient: sessionModel.apiClient,
     identity: sessionModel.identity,
-    bootstrap: sessionModel.session.bootstrapAccount,
     resetLocalIdentity: sessionModel.resetLocalIdentity,
     setIdentity: sessionModel.setIdentity,
     setPair: pairSelectionModel.pairSelection.setPair,

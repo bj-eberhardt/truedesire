@@ -6,6 +6,7 @@ import { useBackupImportDraft } from "./useBackupImportDraft";
 type BackupImportDraft = ReturnType<typeof useBackupImportDraft>;
 
 async function renderBackupImportDraft(opts: {
+  bootstrapAccount: (opts?: { showLoadingScreen?: boolean }) => Promise<unknown>;
   importBackupText: (txt: string) => Promise<void>;
   setOnboardError: (message: string | null) => void;
 }) {
@@ -55,20 +56,25 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
 test("rejects empty and invalid backup text before importing", async () => {
   const importBackupText = vi.fn();
+  const bootstrapAccount = vi.fn();
   const setOnboardError = vi.fn();
-  const hook = await renderBackupImportDraft({ importBackupText, setOnboardError });
+  const hook = await renderBackupImportDraft({
+    bootstrapAccount,
+    importBackupText,
+    setOnboardError
+  });
 
   await act(async () => {
     await hook.current.submitBackupImport();
   });
 
   expect(importBackupText).not.toHaveBeenCalled();
+  expect(bootstrapAccount).not.toHaveBeenCalled();
   expect(setOnboardError).toHaveBeenCalledWith(
     "Bitte lade eine Backup-Datei hoch oder füge dein Backup-JSON ein."
   );
@@ -79,45 +85,52 @@ test("rejects empty and invalid backup text before importing", async () => {
   });
 
   expect(importBackupText).not.toHaveBeenCalled();
+  expect(bootstrapAccount).not.toHaveBeenCalled();
   expect(setOnboardError).toHaveBeenLastCalledWith(
     "Der eingefügte Text ist kein valides Backup (ungültiges JSON)."
   );
   await hook.unmount();
 });
 
-test("imports valid backup text, shows success, and returns home after three seconds", async () => {
-  vi.useFakeTimers();
+test("imports valid backup text, starts the account loader, and routes home immediately", async () => {
+  let resolveBootstrap!: () => void;
+  const bootstrapPromise = new Promise<void>((resolve) => {
+    resolveBootstrap = resolve;
+  });
   const importBackupText = vi.fn(() => Promise.resolve());
+  const bootstrapAccount = vi.fn(() => bootstrapPromise);
   const setOnboardError = vi.fn();
-  const hook = await renderBackupImportDraft({ importBackupText, setOnboardError });
+  const hook = await renderBackupImportDraft({
+    bootstrapAccount,
+    importBackupText,
+    setOnboardError
+  });
 
   act(() => hook.current.setBackupText(' { "ok": true } '));
+
+  let submitPromise!: Promise<void>;
   await act(async () => {
-    await hook.current.submitBackupImport();
+    submitPromise = hook.current.submitBackupImport();
   });
 
   expect(setOnboardError).toHaveBeenCalledWith(null);
   expect(importBackupText).toHaveBeenCalledWith('{ "ok": true }');
-  expect(hook.current.backupText).toBe("");
-  expect(hook.current.importSuccessVisible).toBe(true);
-  expect(window.location.hash).toBe("");
-
-  await act(async () => {
-    vi.advanceTimersByTime(2999);
-  });
-
-  expect(window.location.hash).toBe("");
-
-  await act(async () => {
-    vi.advanceTimersByTime(1);
-  });
-
+  expect(bootstrapAccount).toHaveBeenCalledWith({ showLoadingScreen: true });
   expect(window.location.hash).toBe("#/v3");
+  expect(hook.current.backupText).toBe("");
+  expect(hook.current.importSuccessVisible).toBe(false);
+
+  await act(async () => {
+    resolveBootstrap();
+    await submitPromise;
+  });
+
   await hook.unmount();
 });
 
 test("stores and clears selected backup file metadata", async () => {
   const hook = await renderBackupImportDraft({
+    bootstrapAccount: vi.fn(),
     importBackupText: vi.fn(),
     setOnboardError: vi.fn()
   });
