@@ -59,7 +59,7 @@ test("wires text input, submit, back, and selected-file clearing", () => {
 
   act(() => {
     root.findByProps({ "data-testid": "backup-import-textarea" }).props.onChange({
-      target: { value: "{ \"ok\": true }" }
+      target: { value: '{ "ok": true }' }
     });
     root.findByProps({ "data-testid": "backup-import-submit-button" }).props.onClick();
     root.findByProps({ "data-testid": "backup-import-back-button" }).props.onClick();
