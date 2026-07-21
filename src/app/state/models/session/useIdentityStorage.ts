@@ -34,42 +34,45 @@ export function useIdentityStorage(opts: UseIdentityStorageOptions = {}): UseIde
     useState<BootstrapAccountStatus>("loading");
   const bootstrapPromiseRef = useRef<Promise<Identity | null> | null>(null);
 
-  const bootstrap = useCallback((opts: BootstrapAccountOptions = {}): Promise<Identity | null> => {
-    if (bootstrapPromiseRef.current) return bootstrapPromiseRef.current;
+  const bootstrap = useCallback(
+    (opts: BootstrapAccountOptions = {}): Promise<Identity | null> => {
+      if (bootstrapPromiseRef.current) return bootstrapPromiseRef.current;
 
-    const nextBootstrap = (async () => {
-      const startedAt = Date.now();
-      if (opts.showLoadingScreen) {
-        setBootstrapAccountStatus("loading");
-      }
-      try {
-        const id = await loadIdentity();
-        const hydrated = id?.userId ? await loadIdentity({ ensureRegistered: true }) : id;
-        setIdentity(hydrated);
-        setNickname(hydrated?.nickname ?? "");
-        await wait(minLoadingMs - (Date.now() - startedAt));
-        setBootstrapAccountStatus("ready");
-        return hydrated;
-      } catch (error: unknown) {
-        await wait(minLoadingMs - (Date.now() - startedAt));
-        if (isUnauthorizedApiError(error)) {
-          setBootstrapAccountStatus("unauthorized");
-          return null;
+      const nextBootstrap = (async () => {
+        const startedAt = Date.now();
+        if (opts.showLoadingScreen) {
+          setBootstrapAccountStatus("loading");
         }
-        if (isTemporaryApiError(error)) {
+        try {
+          const id = await loadIdentity();
+          const hydrated = id?.userId ? await loadIdentity({ ensureRegistered: true }) : id;
+          setIdentity(hydrated);
+          setNickname(hydrated?.nickname ?? "");
+          await wait(minLoadingMs - (Date.now() - startedAt));
+          setBootstrapAccountStatus("ready");
+          return hydrated;
+        } catch (error: unknown) {
+          await wait(minLoadingMs - (Date.now() - startedAt));
+          if (isUnauthorizedApiError(error)) {
+            setBootstrapAccountStatus("unauthorized");
+            return null;
+          }
+          if (isTemporaryApiError(error)) {
+            setBootstrapAccountStatus("temporary");
+            return null;
+          }
           setBootstrapAccountStatus("temporary");
           return null;
+        } finally {
+          bootstrapPromiseRef.current = null;
         }
-        setBootstrapAccountStatus("temporary");
-        return null;
-      } finally {
-        bootstrapPromiseRef.current = null;
-      }
-    })();
+      })();
 
-    bootstrapPromiseRef.current = nextBootstrap;
-    return nextBootstrap;
-  }, [minLoadingMs]);
+      bootstrapPromiseRef.current = nextBootstrap;
+      return nextBootstrap;
+    },
+    [minLoadingMs]
+  );
 
   useEffect(() => {
     void bootstrap({ showLoadingScreen: true });
