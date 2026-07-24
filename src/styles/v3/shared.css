@@ -912,6 +912,54 @@
   color: var(--text-m);
 }
 
+@media (max-width: 400px) {
+  .v3-shell .v3-account-bootstrap {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    margin-top: clamp(24px, 8vh, 52px);
+    padding: 20px 14px;
+    gap: 18px;
+    border-radius: 14px;
+  }
+
+  .v3-shell .v3-account-bootstrap-copy {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .v3-shell .v3-account-bootstrap h1 {
+    font-size: 1.45rem;
+    overflow-wrap: anywhere;
+  }
+
+  .v3-shell .v3-account-bootstrap .hint {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .v3-shell .v3-account-loader {
+    width: 100%;
+  }
+
+  .v3-shell .v3-account-bootstrap-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .v3-shell .v3-account-bootstrap-actions button {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .v3-shell .v3-route-chunk-fallback {
+    padding: 12px;
+    text-align: center;
+    overflow-wrap: anywhere;
+  }
+}
+
 .v3-shell .v3-route-transition-page[data-animation-state="entering"] {
   animation: v3-route-enter-right 240ms cubic-bezier(0.2, 0, 0, 1) both;
 }

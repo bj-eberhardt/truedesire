@@ -198,3 +198,78 @@
   flex-wrap: wrap;
   padding-top: 4px;
 }
+
+@media (max-width: 400px) {
+  .v3-shell .confirm-overlay,
+  .confirm-overlay,
+  .v3-shell .modal-overlay,
+  .modal-overlay {
+    padding: 10px;
+    place-items: center stretch;
+  }
+
+  .v3-shell .confirm-dialog,
+  .confirm-dialog,
+  .v3-shell .modal-dialog,
+  .modal-dialog {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    max-height: calc(100dvh - 20px);
+    overflow: auto;
+    padding: 12px;
+    border-radius: 14px;
+  }
+
+  .v3-shell .confirm-title,
+  .confirm-title,
+  .v3-shell .modal-title,
+  .modal-title {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .v3-shell .confirm-desc,
+  .confirm-desc,
+  .v3-shell .modal-desc,
+  .modal-desc {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .v3-shell .confirm-actions,
+  .confirm-actions,
+  .v3-shell .modal-actions,
+  .modal-actions,
+  .v3-shell .account-delete-actions,
+  .account-delete-actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .v3-shell .confirm-actions button,
+  .confirm-actions button,
+  .v3-shell .modal-actions button,
+  .modal-actions button,
+  .v3-shell .account-delete-actions button,
+  .account-delete-actions button {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .v3-shell .account-delete-option,
+  .account-delete-option {
+    min-width: 0;
+    padding: 9px;
+    grid-template-columns: 16px minmax(0, 1fr);
+  }
+
+  .v3-shell .account-delete-option-copy strong,
+  .account-delete-option-copy strong,
+  .v3-shell .account-delete-option-copy span,
+  .account-delete-option-copy span {
+    overflow-wrap: anywhere;
+  }
+}
