@@ -152,11 +152,13 @@
 }
 
 .v3-shell .v3-play-card {
+  position: relative;
   display: grid;
   gap: 18px;
   min-height: 250px;
   margin-top: 0;
   padding: 22px;
+  overflow: hidden;
   border-color: color-mix(in oklab, var(--accent) 16%, var(--border));
   border-radius: 22px;
   background: color-mix(in oklab, var(--bg) 92%, transparent);
@@ -165,9 +167,26 @@
     color-mix(in oklab, var(--accent) 10%, transparent) 0 0 0 1px;
 }
 
+.v3-shell .v3-play-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  border-radius: 22px 0 0 22px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--accent) 72%, var(--accent2)),
+    color-mix(in oklab, var(--accent2) 72%, var(--accent))
+  );
+}
+
 .v3-shell .v3-play-card[data-saved="true"] {
   border-color: color-mix(in oklab, #16a34a 42%, var(--border));
   background: color-mix(in oklab, #16a34a 8%, var(--bg));
+}
+
+.v3-shell .v3-play-card[data-saved="true"]::before {
+  background: linear-gradient(180deg, #16a34a, #4ade80);
 }
 
 .v3-shell .v3-play-card-top {
@@ -189,10 +208,49 @@
 }
 
 .v3-shell .v3-choice-row .choice {
+  position: relative;
   min-width: 128px;
   min-height: 46px;
+  padding-left: 20px;
+  overflow: hidden;
   border-radius: 999px;
   font-weight: 650;
+}
+
+.v3-shell .v3-choice-row .choice::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  border-radius: 999px 0 0 999px;
+  background: linear-gradient(
+    180deg,
+    var(--choice-color, var(--accent)),
+    color-mix(in oklab, var(--choice-color, var(--accent)) 72%, #ffffff)
+  );
+  opacity: 0.7;
+}
+
+.v3-shell .v3-choice-row .choice.active {
+  border-color: color-mix(in oklab, var(--choice-color, var(--accent)) 46%, var(--border));
+  background: color-mix(in oklab, var(--choice-color, var(--accent)) 12%, var(--bg));
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--choice-color, var(--accent)) 18%, transparent);
+}
+
+.v3-shell .v3-choice-row .choice.active::before {
+  opacity: 1;
+}
+
+.v3-shell .v3-choice-row .choice.yes {
+  --choice-color: #16a34a;
+}
+
+.v3-shell .v3-choice-row .choice.maybe {
+  --choice-color: #f59e0b;
+}
+
+.v3-shell .v3-choice-row .choice.no {
+  --choice-color: #ef4444;
 }
 
 .v3-shell .v3-choice-row .choice.yes:hover,
@@ -211,6 +269,12 @@
 .v3-shell .v3-choice-row .choice.no:focus-visible {
   border-color: color-mix(in oklab, #ef4444 38%, var(--border));
   background: color-mix(in oklab, #ef4444 9%, var(--bg));
+}
+
+.v3-shell .v3-choice-row .choice:hover,
+.v3-shell .v3-choice-row .choice:focus-visible,
+.v3-shell .v3-choice-row .choice.active {
+  border-color: color-mix(in oklab, var(--choice-color, var(--accent)) 42%, var(--border));
 }
 
 .v3-shell .v3-played-choice-row {
@@ -307,12 +371,18 @@
     flex: 1 1 100%;
   }
 
+  .v3-shell .v3-played-choice-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
   .v3-shell .v3-played-choice-row .choice {
+    width: 100%;
     min-width: 76px;
-    min-height: 28px;
-    height: 28px;
-    padding: 2px 10px;
-    font-size: 0.82rem;
+    min-height: 38px;
+    height: auto;
+    padding: 7px 14px 7px 20px;
+    font-size: 0.9rem;
   }
 }
 

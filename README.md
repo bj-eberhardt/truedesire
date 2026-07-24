@@ -1,5 +1,7 @@
 ﻿# TrueDesire
 
+![truedesire](docs/true-desire-small.png)
+
 **Wahre Wünsche. Ehrliche Antworten.**
 
 Privacy-first „Fragen-Spiel“ für Paare:

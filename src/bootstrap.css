@@ -205,3 +205,51 @@
     opacity: 0;
   }
 }
+
+@media (max-width: 400px) {
+  .boot-header {
+    padding: 10px 12px;
+  }
+
+  .boot-brand {
+    min-width: 0;
+  }
+
+  .boot-brand-text {
+    min-width: 0;
+  }
+
+  .boot-brand-title,
+  .boot-brand-subtitle {
+    overflow-wrap: anywhere;
+  }
+
+  .boot-main {
+    padding: 12px;
+    place-items: start stretch;
+  }
+
+  .boot-card {
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    margin-top: clamp(24px, 8vh, 52px);
+    padding: 20px 14px;
+    gap: 18px;
+    border-radius: 14px;
+  }
+
+  .boot-card h1 {
+    font-size: 1.45rem;
+    overflow-wrap: anywhere;
+  }
+
+  .boot-card p {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .boot-loader {
+    width: 100%;
+  }
+}
