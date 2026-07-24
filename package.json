@@ -35,14 +35,14 @@
     "test:e2e:docker:ui": "docker compose -f docker-compose.e2e.yml --profile ui up --build playwright-e2e-ui"
   },
   "dependencies": {
-    "react": "19.2.7",
+    "react": "19.2.8",
     "react-dom": "19.2.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.57.0",
     "@types/node": "^24.12.0",
-    "@types/react": "^19.2.14",
+    "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
     "@types/react-test-renderer": "^19.1.0",
     "@vitejs/plugin-react": "^6.0.4",
