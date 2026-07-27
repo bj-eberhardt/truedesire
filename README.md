@@ -12,6 +12,8 @@ Privacy-first „Fragen-Spiel“ für Paare:
 - Auswertung: nur Optionen ohne „Nein“ werden als Match gezeigt
 - Wochenlimit pro Pair (nur aktiv, wenn beide zustimmen)
 
+Weitere Liebesspiele gibt es auf: https://love-games.app/
+
 ## Regeln und Ablauf
 
 TrueDesire ist ein privates Frage- und Matching-Spiel für zwei Personen oder mehrere einzelne
@@ -61,6 +63,14 @@ Sobald beide geantwortet haben, ist die Frage abgeschlossen. Das Wochenlimit beg
 sodass auch noch nach einigen Wochen die Spannung nach neuen Matches aussteht.
 
 ## Nutzung
+
+### Hosted
+
+Kostenlos nutzbare Version gehostet unter: [https://truedesire.love-games.app/](https://truedesire.love-games.app/).
+
+
+### Docker compose
+
 
 Via Docker Compose:
 
