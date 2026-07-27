@@ -68,9 +68,7 @@ sodass auch noch nach einigen Wochen die Spannung nach neuen Matches aussteht.
 
 Kostenlos nutzbare Version gehostet unter: [https://truedesire.love-games.app/](https://truedesire.love-games.app/).
 
-
 ### Docker compose
-
 
 Via Docker Compose:
 
