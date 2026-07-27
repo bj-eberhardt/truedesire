@@ -38,7 +38,8 @@ export function usePairWelcomePanelState(opts: {
         if (!cancelled) setWelcomeAckState({ key: welcomeAckKey, loaded: true, acknowledged });
       })
       .catch(() => {
-        if (!cancelled) setWelcomeAckState({ key: welcomeAckKey, loaded: true, acknowledged: false });
+        if (!cancelled)
+          setWelcomeAckState({ key: welcomeAckKey, loaded: true, acknowledged: false });
       });
 
     return () => {
