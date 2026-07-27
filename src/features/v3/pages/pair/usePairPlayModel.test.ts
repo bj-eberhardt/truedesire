@@ -1,6 +1,10 @@
 import { expect, test } from "vitest";
 import type { DecryptedQuestion, PairView } from "../../../../types";
-import { buildPairPlayState, nextWeeklyResetDateText } from "./pairPlayState";
+import {
+  buildPairPlayState,
+  buildPartnerWeeklyProgressMessage,
+  nextWeeklyResetDateText
+} from "./pairPlayState";
 
 function localDate(year: number, month: number, day: number): Date {
   return new Date(year, month - 1, day, 12, 0, 0, 0);
@@ -64,6 +68,250 @@ test("builds ordered playable questions and navigation state", () => {
   expect(state.canNext).toBe(true);
   expect(state.canPrev).toBe(false);
   expect(state.canAnswerNew).toBe(true);
+  expect(state.partnerWeeklyProgressMessage).toEqual({
+    count: null,
+    leadingText:
+      "Dein Partner hat noch nichts geantwortet. Deine Chance, der Erste zu sein und Fragen zu beantworten.",
+    trailingText: ""
+  });
+});
+
+test("builds partner weekly progress message variants", () => {
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 0,
+      isUnlimited: false,
+      partnerAnsweredThisWeek: 0,
+      weeklyLimit: 6
+    })
+  ).toEqual({
+    count: null,
+    leadingText:
+      "Dein Partner hat noch nichts geantwortet. Deine Chance, der Erste zu sein und Fragen zu beantworten.",
+    trailingText: ""
+  });
+
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 0,
+      isUnlimited: false,
+      partnerAnsweredThisWeek: 1,
+      weeklyLimit: 6
+    })
+  ).toEqual({
+    count: 1,
+    leadingText: "Du musst noch mindestens",
+    trailingText:
+      "Frage beantworten, damit du gleich viele Fragen wie dein Partner beantwortet hast."
+  });
+
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 1,
+      isUnlimited: false,
+      partnerAnsweredThisWeek: 1,
+      weeklyLimit: 6
+    })
+  ).toEqual({
+    count: null,
+    leadingText:
+      "Ihr seid gleichauf. Wenn du noch mindestens eine Frage beantwortest, bist du besser als dein Partner.",
+    trailingText: ""
+  });
+
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 4,
+      isUnlimited: false,
+      partnerAnsweredThisWeek: 2,
+      weeklyLimit: 6
+    })
+  ).toEqual({
+    count: 2,
+    leadingText: "Dein Partner hat diese Woche",
+    trailingText: "Fragen beantwortet."
+  });
+
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 6,
+      isUnlimited: false,
+      partnerAnsweredThisWeek: 4,
+      weeklyLimit: 6
+    })
+  ).toEqual({
+    count: null,
+    leadingText:
+      "Du hast alle Wochenfragen beantwortet, dein Partner aber nicht. Lass ihn es wissen und ermuntere ihn, auch Fragen zu beantworten.",
+    trailingText: ""
+  });
+
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 2,
+      isUnlimited: false,
+      partnerAnsweredThisWeek: 4,
+      weeklyLimit: 6
+    })
+  ).toEqual({
+    count: 2,
+    leadingText: "Du musst noch mindestens",
+    trailingText:
+      "Fragen beantworten, damit du gleich viele Fragen wie dein Partner beantwortet hast."
+  });
+
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 4,
+      isUnlimited: false,
+      partnerAnsweredThisWeek: 4,
+      weeklyLimit: 6
+    })
+  ).toEqual({
+    count: null,
+    leadingText:
+      "Ihr seid gleichauf. Wenn du noch mindestens eine Frage beantwortest, bist du besser als dein Partner.",
+    trailingText: ""
+  });
+
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 6,
+      isUnlimited: false,
+      partnerAnsweredThisWeek: 6,
+      weeklyLimit: 6
+    })
+  ).toEqual({
+    count: null,
+    leadingText: "Ihr seid gleichauf.",
+    trailingText: ""
+  });
+
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 0,
+      isUnlimited: false,
+      partnerAnsweredThisWeek: 5,
+      weeklyLimit: 6
+    })
+  ).toEqual({
+    count: null,
+    leadingText:
+      "Du musst dich ranhalten, dein Partner hat schon fast alle Wochenfragen beantwortet.",
+    trailingText: ""
+  });
+
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 0,
+      isUnlimited: false,
+      partnerAnsweredThisWeek: 6,
+      weeklyLimit: 6
+    })
+  ).toEqual({
+    count: null,
+    leadingText: "Du musst dich ranhalten, dein Partner hat bereits alle Wochenfragen beantwortet.",
+    trailingText: ""
+  });
+
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 2,
+      isUnlimited: true,
+      partnerAnsweredThisWeek: 5,
+      weeklyLimit: 0
+    })
+  ).toEqual({
+    count: 3,
+    leadingText: "Du musst noch mindestens",
+    trailingText:
+      "Fragen beantworten, damit du gleich viele Fragen wie dein Partner beantwortet hast."
+  });
+
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 5,
+      isUnlimited: true,
+      partnerAnsweredThisWeek: 5,
+      weeklyLimit: 0
+    })
+  ).toEqual({
+    count: null,
+    leadingText: "Ihr seid gleichauf.",
+    trailingText: ""
+  });
+
+  expect(
+    buildPartnerWeeklyProgressMessage({
+      answeredThisWeek: 8,
+      isUnlimited: true,
+      partnerAnsweredThisWeek: 5,
+      weeklyLimit: 0
+    })
+  ).toEqual({
+    count: 5,
+    leadingText: "Dein Partner hat diese Woche",
+    trailingText: "Fragen beantwortet."
+  });
+});
+
+test("exposes partner weekly progress message from pair usage", () => {
+  const base = {
+    answerSummary: {},
+    cardIndex: 0,
+    flash: { savedId: null, savedText: null, showSaved: false },
+    identityUserId: "user-1",
+    pairId: "pair-1",
+    questions: []
+  };
+
+  expect(
+    buildPairPlayState({
+      ...base,
+      pair: pair({ usage: { answeredThisWeek: 0, partnerAnsweredThisWeek: 1, weeklyLimit: 6 } })
+    }).partnerWeeklyProgressMessage
+  ).toEqual({
+    count: 1,
+    leadingText: "Du musst noch mindestens",
+    trailingText: "Frage beantworten, damit du gleich viele Fragen wie dein Partner beantwortet hast."
+  });
+
+  expect(
+    buildPairPlayState({
+      ...base,
+      pair: pair({ usage: { answeredThisWeek: 6, partnerAnsweredThisWeek: 4, weeklyLimit: 6 } })
+    }).partnerWeeklyProgressMessage
+  ).toEqual({
+    count: null,
+    leadingText:
+      "Du hast alle Wochenfragen beantwortet, dein Partner aber nicht. Lass ihn es wissen und ermuntere ihn, auch Fragen zu beantworten.",
+    trailingText: ""
+  });
+
+  expect(
+    buildPairPlayState({
+      ...base,
+      pair: pair({ usage: { answeredThisWeek: 0, partnerAnsweredThisWeek: 6, weeklyLimit: 6 } })
+    }).partnerWeeklyProgressMessage
+  ).toEqual({
+    count: null,
+    leadingText: "Du musst dich ranhalten, dein Partner hat bereits alle Wochenfragen beantwortet.",
+    trailingText: ""
+  });
+
+  expect(
+    buildPairPlayState({
+      ...base,
+      pair: pair({
+        weeklyLimit: 0,
+        usage: { answeredThisWeek: 12, partnerAnsweredThisWeek: 8, weeklyLimit: 0 }
+      })
+    }).partnerWeeklyProgressMessage
+  ).toEqual({
+    count: 8,
+    leadingText: "Dein Partner hat diese Woche",
+    trailingText: "Fragen beantwortet."
+  });
 });
 
 test("hides partner questions when weekly limit is reached but keeps own questions answerable", () => {

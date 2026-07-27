@@ -4,211 +4,263 @@
   "questions": [
     {
       "id": "q_threesome",
-      "text": "Möchtest du gerne einen Dreier ausprobieren?"
+      "text": "Möchtest du gerne einen Dreier ausprobieren?",
+      "intensityLevel": 5
     },
     {
       "id": "q_roleplay",
-      "text": "Möchtest du mal ein Rollenspiel ausprobieren?"
+      "text": "Möchtest du mal ein Rollenspiel ausprobieren?",
+      "intensityLevel": 4
     },
     {
       "id": "q_talk",
-      "text": "Möchtest du über Fantasien offener sprechen, z.B. einmal pro Woche 10 Minuten?"
+      "text": "Möchtest du über Fantasien offener sprechen, z.B. einmal pro Woche 10 Minuten?",
+      "intensityLevel": 3
     },
     {
       "id": "q_surprise",
-      "text": "Hättest du Lust auf ein Überraschungs-Date, das wir abwechselnd planen?"
+      "text": "Hättest du Lust auf ein Überraschungs-Date, das wir abwechselnd planen?",
+      "intensityLevel": 1
     },
     {
       "id": "q_rules",
-      "text": "Sollen wir unsere Grenzen und No-Gos einmal gemeinsam festhalten?"
+      "text": "Sollen wir unsere Grenzen und No-Gos einmal gemeinsam festhalten?",
+      "intensityLevel": 1
     },
     {
       "id": "q_checkin",
-      "text": "Wollen wir einen regelmäßigen Beziehungs-Check-in machen, z.B. sonntags 10 Minuten?"
+      "text": "Wollen wir einen regelmäßigen Beziehungs-Check-in machen, z.B. sonntags 10 Minuten?",
+      "intensityLevel": 1
     },
     {
       "id": "q_conflict_style",
-      "text": "Möchtest du nach einem Streit erst kurz Abstand nehmen und später weiterreden?"
+      "text": "Möchtest du nach einem Streit erst kurz Abstand nehmen und später weiterreden?",
+      "intensityLevel": 1
     },
     {
       "id": "q_boundaries_phone",
-      "text": "Sollen wir Handys bei Dates öfter weglegen?"
+      "text": "Sollen wir Handys bei Dates öfter weglegen?",
+      "intensityLevel": 1
     },
     {
       "id": "q_sleep_separate",
-      "text": "Wollen wir häufiger in getrennten Betten schlafen?"
+      "text": "Wollen wir häufiger in getrennten Betten schlafen?",
+      "intensityLevel": 2
     },
     {
       "id": "q_public_affection",
-      "text": "Magst du Zuneigung in der Öffentlichkeit, z.B. Händchen halten oder Küssen?"
+      "text": "Magst du Zuneigung in der Öffentlichkeit, z.B. Händchen halten oder Küssen?",
+      "intensityLevel": 2
     },
     {
       "id": "q_initiative",
-      "text": "Wünschst du dir, dass wir beide öfter Initiative bei Dates, Sex und Nähe zeigen?"
+      "text": "Wünschst du dir, dass wir beide öfter Initiative bei Dates, Sex und Nähe zeigen?",
+      "intensityLevel": 2
     },
     {
       "id": "q_aftercare",
-      "text": "Ist dir Aftercare wichtig, z.B. Kuscheln, Reden oder Nähe nach Sex?"
+      "text": "Ist dir Aftercare wichtig, z.B. Kuscheln, Reden oder Nähe nach Sex?",
+      "intensityLevel": 3
     },
     {
       "id": "q_kinks_list",
-      "text": "Wollen wir gemeinsam eine Kink-/Fantasie-Liste mit Neugierig, Vielleicht und Nein machen?"
+      "text": "Wollen wir gemeinsam eine Kink-/Fantasie-Liste mit Neugierig, Vielleicht und Nein machen?",
+      "intensityLevel": 4
     },
     {
       "id": "q_safeword",
-      "text": "Sollen wir ein Safeword vereinbaren, falls etwas zu viel wird?"
+      "text": "Sollen wir ein Safeword vereinbaren, falls etwas zu viel wird?",
+      "intensityLevel": 4
     },
     {
       "id": "q_toys",
-      "text": "Hättest du Lust, zusammen ein Sex Toy auszusuchen?"
+      "text": "Hättest du Lust, zusammen ein Sex Toy auszusuchen?",
+      "intensityLevel": 3
     },
     {
       "id": "q_porn",
-      "text": "Hättest du Lust, gemeinsam Pornos oder erotische Inhalte anzuschauen?"
+      "text": "Hättest du Lust, gemeinsam Pornos oder erotische Inhalte anzuschauen?",
+      "intensityLevel": 3
     },
     {
       "id": "q_flirting_others",
-      "text": "Erlauben wir Flirts mit anderen Personen?"
+      "text": "Erlauben wir Flirts mit anderen Personen?",
+      "intensityLevel": 5
     },
     {
       "id": "q_exes_contact",
-      "text": "Möchtest du gemeinsam Regeln für Kontakt zu Ex-Partnern festlegen?"
+      "text": "Möchtest du gemeinsam Regeln für Kontakt zu Ex-Partnern festlegen?",
+      "intensityLevel": 1
     },
     {
       "id": "q_sex_recording",
-      "text": "Wollen wir uns beim Sex aufnehmen oder filmen?"
+      "text": "Wollen wir uns beim Sex aufnehmen oder filmen?",
+      "intensityLevel": 5
     },
     {
       "id": "q_erotic_photos",
-      "text": "Wollen wir uns gegenseitig erotische Bilder schicken?"
+      "text": "Wollen wir uns gegenseitig erotische Bilder schicken?",
+      "intensityLevel": 3
     },
     {
       "id": "q_bondage",
-      "text": "Möchtest du Bondage ausprobieren?"
+      "text": "Möchtest du Bondage ausprobieren?",
+      "intensityLevel": 4
     },
     {
       "id": "q_sm_apartment_weekend",
-      "text": "Möchtest du ein Wochenende in einem SM-Apartment verbringen?"
+      "text": "Möchtest du ein Wochenende in einem SM-Apartment verbringen?",
+      "intensityLevel": 5
     },
     {
       "id": "q_blindfold",
-      "text": "Möchtest du Augenbinden beim Sex ausprobieren?"
+      "text": "Möchtest du Augenbinden beim Sex ausprobieren?",
+      "intensityLevel": 4
     },
     {
       "id": "q_spanking",
-      "text": "Möchtest du Spanking ausprobieren, also einvernehmliche Klapse auf Po oder Oberschenkel?"
+      "text": "Möchtest du Spanking ausprobieren, also einvernehmliche Klapse auf Po oder Oberschenkel?",
+      "intensityLevel": 4
     },
     {
       "id": "q_temperature_play",
-      "text": "Möchtest du Temperaturspiele mit Eis oder Wärme ausprobieren?"
+      "text": "Möchtest du Temperaturspiele mit Eis oder Wärme ausprobieren?",
+      "intensityLevel": 4
     },
     {
       "id": "q_wax_play",
-      "text": "Möchtest du Wachs-Spiele mit sicherem Massagewachs ausprobieren?"
+      "text": "Möchtest du Wachs-Spiele mit sicherem Massagewachs ausprobieren?",
+      "intensityLevel": 4
     },
     {
       "id": "q_dirty_talk",
-      "text": "Möchtest du Dirty Talk ausprobieren?"
+      "text": "Möchtest du Dirty Talk ausprobieren?",
+      "intensityLevel": 3
     },
     {
       "id": "q_sex_commands",
-      "text": "Möchtest du beim Sex klare Kommandos geben oder bekommen?"
+      "text": "Möchtest du beim Sex klare Kommandos geben oder bekommen?",
+      "intensityLevel": 4
     },
     {
       "id": "q_private_unusual_place",
-      "text": "Möchtest du Sex an einem ungewöhnlichen, aber privaten Ort ausprobieren?"
+      "text": "Möchtest du Sex an einem ungewöhnlichen, aber privaten Ort ausprobieren?",
+      "intensityLevel": 4
     },
     {
       "id": "q_discreet_outdoor_sex",
-      "text": "Möchtest du Outdoor-Sex an einem diskreten Ort ausprobieren?"
+      "text": "Möchtest du Outdoor-Sex an einem diskreten Ort ausprobieren?",
+      "intensityLevel": 5
     },
     {
       "id": "q_erotic_club",
-      "text": "Möchtest du gemeinsam einen Erotikclub besuchen?"
+      "text": "Möchtest du gemeinsam einen Erotikclub besuchen?",
+      "intensityLevel": 5
     },
     {
       "id": "q_swingerclub_visit",
-      "text": "Möchtest du einen Swingerclub besuchen, ohne direkt etwas machen zu müssen?"
+      "text": "Möchtest du einen Swingerclub besuchen, ohne direkt etwas machen zu müssen?",
+      "intensityLevel": 5
     },
     {
       "id": "q_remote_toy",
-      "text": "Möchtest du Sexspielzeug mit Fernsteuerung ausprobieren?"
+      "text": "Möchtest du Sexspielzeug mit Fernsteuerung ausprobieren?",
+      "intensityLevel": 4
     },
     {
       "id": "q_anal_play",
-      "text": "Möchtest du Analspiele ausprobieren?"
+      "text": "Möchtest du Analspiele ausprobieren?",
+      "intensityLevel": 5
     },
     {
       "id": "q_fetish_materials",
-      "text": "Möchtest du Latex, Leder oder Lack ausprobieren?"
+      "text": "Möchtest du Latex, Leder oder Lack ausprobieren?",
+      "intensityLevel": 4
     },
     {
       "id": "q_daytime_erotic_messages",
-      "text": "Möchtest du tagsüber erotische Nachrichten bekommen?"
+      "text": "Möchtest du tagsüber erotische Nachrichten bekommen?",
+      "intensityLevel": 4
     },
     {
       "id": "q_one_leads_evening",
-      "text": "Möchtest du einen Abend planen, an dem eine Person komplett die Führung übernimmt?"
+      "text": "Möchtest du einen Abend planen, an dem eine Person komplett die Führung übernimmt?",
+      "intensityLevel": 4
     },
     {
       "id": "q_sexual_needs_missing",
-      "text": "Möchtest du ehrlich besprechen, ob uns sexuell etwas fehlt?"
+      "text": "Möchtest du ehrlich besprechen, ob uns sexuell etwas fehlt?",
+      "intensityLevel": 3
     },
     {
       "id": "q_two_week_abstinence_date",
-      "text": "Wollen wir ausprobieren, zwei Wochen keinen Sex zu haben und uns dann auf einen festen Termin zu freuen?"
+      "text": "Wollen wir ausprobieren, zwei Wochen keinen Sex zu haben und uns dann auf einen festen Termin zu freuen?",
+      "intensityLevel": 3
     },
     {
       "id": "q_sex_without_orgasm_goal",
-      "text": "Möchtest du ausprobieren, Sex ohne das Ziel eines Orgasmus zu haben?"
+      "text": "Möchtest du ausprobieren, Sex ohne das Ziel eines Orgasmus zu haben?",
+      "intensityLevel": 3
     },
     {
       "id": "q_oral_sex",
-      "text": "Hättest du Lust auf Oralsex?"
+      "text": "Hättest du Lust auf Oralsex?",
+      "intensityLevel": 3
     },
     {
       "id": "q_kamasutra_positions",
-      "text": "Hättest du Lust, gemeinsam neue Kamasutra-Stellungen auszuprobieren?"
+      "text": "Hättest du Lust, gemeinsam neue Kamasutra-Stellungen auszuprobieren?",
+      "intensityLevel": 3
     },
     {
       "id": "q_mutual_masturbation",
-      "text": "Möchtest du ausprobieren, dass wir gemeinsam masturbieren?"
+      "text": "Möchtest du ausprobieren, dass wir gemeinsam masturbieren?",
+      "intensityLevel": 3
     },
     {
       "id": "q_say_what_you_want",
-      "text": "Möchtest du beim Sex bewusster sagen, was du dir gerade wünschst?"
+      "text": "Möchtest du beim Sex bewusster sagen, was du dir gerade wünschst?",
+      "intensityLevel": 3
     },
     {
       "id": "q_erotic_story_reading",
-      "text": "Hättest du Lust, gemeinsam eine erotische Geschichte zu lesen?"
+      "text": "Hättest du Lust, gemeinsam eine erotische Geschichte zu lesen?",
+      "intensityLevel": 3
     },
     {
       "id": "q_shower_or_bath_together",
-      "text": "Hättest du Lust, gemeinsam zu duschen oder zu baden, ohne dass daraus automatisch Sex entstehen muss?"
+      "text": "Hättest du Lust, gemeinsam zu duschen oder zu baden, ohne dass daraus automatisch Sex entstehen muss?",
+      "intensityLevel": 2
     },
     {
       "id": "q_fkk",
-      "text": "Hättest du Lust, gemeinsam an einen FKK-Strand oder Badesee zu gehen?"
+      "text": "Hättest du Lust, gemeinsam an einen FKK-Strand oder Badesee zu gehen?",
+      "intensityLevel": 2
     },
     {
       "id": "q_food_play_whipped_cream",
-      "text": "Wollen wir uns gegenseitig z.B. mit Sahne einschmieren und abschlecken?"
+      "text": "Wollen wir uns gegenseitig z.B. mit Sahne einschmieren und abschlecken?",
+      "intensityLevel": 4
     },
     {
       "id": "q_genital_plaster_casting",
-      "text": "Wollen wir unsere Genitalien in Gips gießen?"
+      "text": "Wollen wir unsere Genitalien in Gips gießen?",
+      "intensityLevel": 4
     },
     {
       "id": "q_textile_free_sauna",
-      "text": "Hättest du Lust, gemeinsam eine Sauna oder Therme mit textilfreiem Bereich zu besuchen?"
+      "text": "Hättest du Lust, gemeinsam eine Sauna oder Therme mit textilfreiem Bereich zu besuchen?",
+      "intensityLevel": 2
     },
     {
       "id": "q_sleep_naked_together",
-      "text": "Möchtest du ausprobieren, nackt nebeneinander zu schlafen?"
+      "text": "Möchtest du ausprobieren, nackt nebeneinander zu schlafen?",
+      "intensityLevel": 2
     },
     {
       "id": "q_sex_with_lights_on",
-      "text": "Möchtest du ausprobieren, Sex bei Licht zu haben?"
+      "text": "Möchtest du ausprobieren, Sex bei Licht zu haben?",
+      "intensityLevel": 3
     }
   ]
 }

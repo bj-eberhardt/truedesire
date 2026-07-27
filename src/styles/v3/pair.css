@@ -110,7 +110,7 @@
 }
 
 .v3-shell .v3-play-intro .hint {
-  max-width: 74ch;
+  max-width: none;
   margin: 0;
   line-height: 1.45;
 }
@@ -391,8 +391,21 @@
 }
 
 .v3-shell .v3-weekly-hint {
-  display: inline;
-  margin-left: 4px;
+  display: grid;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.v3-shell .v3-weekly-hint-line {
+  display: block;
+}
+
+.v3-shell .v3-weekly-partner-line {
+  color: var(--text);
+}
+
+.v3-shell .v3-weekly-reset-date {
+  white-space: nowrap;
 }
 
 .v3-shell .v3-weekly-calendar-icon {
@@ -420,6 +433,12 @@
   border-color: color-mix(in oklab, #f59e0b 46%, var(--border));
   background: color-mix(in oklab, #f59e0b 14%, var(--bg));
   color: color-mix(in oklab, #f59e0b 92%, var(--text-h));
+}
+
+.v3-shell .v3-partner-count-pill {
+  border-color: color-mix(in oklab, var(--accent) 42%, var(--border));
+  background: color-mix(in oklab, var(--accent) 12%, var(--bg));
+  color: color-mix(in oklab, var(--accent) 84%, var(--text-h));
 }
 
 .v3-shell .v3-play-toolbar {

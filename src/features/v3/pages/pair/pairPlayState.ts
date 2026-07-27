@@ -27,12 +27,95 @@ export function nextWeeklyResetDateText(now = new Date()): string {
   return d.toLocaleDateString();
 }
 
+export type PartnerWeeklyProgressMessage = {
+  count: number | null;
+  leadingText: string;
+  trailingText: string;
+};
+
+export function buildPartnerWeeklyProgressMessage(input: {
+  answeredThisWeek: number;
+  isUnlimited: boolean;
+  partnerAnsweredThisWeek: number;
+  weeklyLimit: number;
+}): PartnerWeeklyProgressMessage {
+  const { answeredThisWeek, isUnlimited, partnerAnsweredThisWeek, weeklyLimit } = input;
+  if (!isUnlimited && answeredThisWeek >= weeklyLimit && partnerAnsweredThisWeek < weeklyLimit) {
+    return {
+      count: null,
+      leadingText:
+        "Du hast alle Wochenfragen beantwortet, dein Partner aber nicht. Lass ihn es wissen und ermuntere ihn, auch Fragen zu beantworten.",
+      trailingText: ""
+    };
+  }
+  if (partnerAnsweredThisWeek === 0) {
+    return {
+      count: null,
+      leadingText:
+        "Dein Partner hat noch nichts geantwortet. Deine Chance, der Erste zu sein und Fragen zu beantworten.",
+      trailingText: ""
+    };
+  }
+  if (answeredThisWeek === partnerAnsweredThisWeek) {
+    return {
+      count: null,
+      leadingText:
+        !isUnlimited && answeredThisWeek < weeklyLimit
+          ? "Ihr seid gleichauf. Wenn du noch mindestens eine Frage beantwortest, bist du besser als dein Partner."
+          : "Ihr seid gleichauf.",
+      trailingText: ""
+    };
+  }
+  if (!isUnlimited && partnerAnsweredThisWeek >= weeklyLimit) {
+    return {
+      count: null,
+      leadingText: "Du musst dich ranhalten, dein Partner hat bereits alle Wochenfragen beantwortet.",
+      trailingText: ""
+    };
+  }
+  if (!isUnlimited && partnerAnsweredThisWeek === weeklyLimit - 1) {
+    return {
+      count: null,
+      leadingText:
+        "Du musst dich ranhalten, dein Partner hat schon fast alle Wochenfragen beantwortet.",
+      trailingText: ""
+    };
+  }
+
+  const answerDelta = partnerAnsweredThisWeek - answeredThisWeek;
+  if (answerDelta > 0) {
+    return {
+      count: answerDelta,
+      leadingText: "Du musst noch mindestens",
+      trailingText:
+        answerDelta === 1
+          ? "Frage beantworten, damit du gleich viele Fragen wie dein Partner beantwortet hast."
+          : "Fragen beantworten, damit du gleich viele Fragen wie dein Partner beantwortet hast."
+    };
+  }
+
+  if (partnerAnsweredThisWeek === 1) {
+    return {
+      count: 1,
+      leadingText: "Dein Partner hat diese Woche",
+      trailingText: "Frage beantwortet."
+    };
+  }
+
+  return {
+    count: partnerAnsweredThisWeek,
+    leadingText: "Dein Partner hat diese Woche",
+    trailingText: "Fragen beantwortet."
+  };
+}
+
 export function buildPairPlayState(input: PairPlayStateInput) {
   const { answerSummary, cardIndex, flash, identityUserId, pair, pairId, questions } = input;
   const pairReady = !!pair && pair.id === pairId;
   const weeklyLimit = pairReady ? (pair.usage?.weeklyLimit ?? pair.weeklyLimit) : 0;
   const isUnlimited = weeklyLimit === 0;
   const answeredThisWeek = pairReady ? (pair.usage?.answeredThisWeek ?? 0) : 0;
+  const partnerAnsweredThisWeek = pairReady ? (pair.usage?.partnerAnsweredThisWeek ?? 0) : 0;
   const remainingNew = isUnlimited
     ? Number.POSITIVE_INFINITY
     : Math.max(0, weeklyLimit - answeredThisWeek);
@@ -83,6 +166,14 @@ export function buildPairPlayState(input: PairPlayStateInput) {
     limitNoticeText,
     ordered,
     pairReady,
+    partnerWeeklyProgressMessage: pairReady
+      ? buildPartnerWeeklyProgressMessage({
+          answeredThisWeek,
+          isUnlimited,
+          partnerAnsweredThisWeek,
+          weeklyLimit
+        })
+      : null,
     playedPending,
     remainingNew,
     safeIndex,

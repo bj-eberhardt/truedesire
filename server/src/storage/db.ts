@@ -59,6 +59,10 @@ export type QuestionRecord = {
   createdBy: string;
   createdAt: number;
   blob: EncryptedBlob;
+  systemQuestionId?: string | null;
+  systemCatalogVersion?: number | null;
+  systemWeekStart?: number | null;
+  intensityLevel?: number | null;
 };
 
 export type AnswerRecord = {

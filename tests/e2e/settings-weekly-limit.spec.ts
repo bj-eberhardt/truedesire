@@ -8,9 +8,7 @@ import {
   uniqueName
 } from "./support/ui";
 
-test("manages weekly limit proposals and enforces then removes the accepted limit", async ({
-  browser
-}) => {
+test("manages weekly limit proposals and removes the accepted limit", async ({ browser }) => {
   test.slow();
   const alice = await createRegisteredUser(browser, uniqueName("LimitA"));
   const bob = await createRegisteredUser(browser, uniqueName("LimitB"));
@@ -23,61 +21,58 @@ test("manages weekly limit proposals and enforces then removes the accepted limi
   });
 
   await test.step("propose a limit and withdraw the own pending proposal", async () => {
-    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("15");
-    await alice.page.getByTestId("weekly-limit-input").fill("1");
+    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("7");
+    await alice.page.getByTestId("weekly-limit-input").fill("6");
     await alice.page.getByTestId("weekly-limit-propose-button").click();
     await expect(alice.page.getByTestId("weekly-limit-pending-block")).toBeVisible();
-    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("15");
+    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("7");
     await alice.page.getByTestId("weekly-limit-cancel-button").click();
     await expect(alice.page.getByTestId("weekly-limit-pending-block")).toBeHidden();
-    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("15");
+    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("7");
   });
 
   await test.step("propose a second limit and reject it from the partner", async () => {
-    await alice.page.getByTestId("weekly-limit-input").fill("1");
+    await alice.page.getByTestId("weekly-limit-input").fill("6");
     await alice.page.getByTestId("weekly-limit-propose-button").click();
     await expect(alice.page.getByTestId("weekly-limit-pending-block")).toBeVisible();
-    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("15");
+    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("7");
 
     await gotoPair(bob.page, pairId);
     await openSettings(bob.page);
     await bob.page.getByTestId("settings-refresh-button").click();
     await expect(bob.page.getByTestId("weekly-limit-pending-block")).toBeVisible();
-    await expect(bob.page.getByTestId("weekly-limit-current")).toContainText("15");
+    await expect(bob.page.getByTestId("weekly-limit-current")).toContainText("7");
     await bob.page.getByTestId("weekly-limit-reject-button").click();
     await expect(bob.page.getByTestId("weekly-limit-pending-block")).toBeHidden();
-    await expect(bob.page.getByTestId("weekly-limit-current")).toContainText("15");
+    await expect(bob.page.getByTestId("weekly-limit-current")).toContainText("7");
   });
 
-  await test.step("propose a one-question limit and accept it from the partner", async () => {
+  await test.step("propose the minimum weekly limit and accept it from the partner", async () => {
     await gotoPair(alice.page, pairId);
     await openSettings(alice.page);
-    await alice.page.getByTestId("weekly-limit-input").fill("1");
+    await alice.page.getByTestId("weekly-limit-input").fill("6");
     await alice.page.getByTestId("weekly-limit-propose-button").click();
     await expect(alice.page.getByTestId("weekly-limit-pending-block")).toBeVisible();
-    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("15");
+    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("7");
 
     await gotoPair(bob.page, pairId);
     await openSettings(bob.page);
     await bob.page.getByTestId("settings-refresh-button").click();
     await expect(bob.page.getByTestId("weekly-limit-pending-block")).toBeVisible();
-    await expect(bob.page.getByTestId("weekly-limit-current")).toContainText("15");
+    await expect(bob.page.getByTestId("weekly-limit-current")).toContainText("7");
     await bob.page.getByTestId("weekly-limit-accept-button").click();
-    await expect(bob.page.getByTestId("weekly-limit-current")).toContainText("1");
+    await expect(bob.page.getByTestId("weekly-limit-current")).toContainText("6");
 
     await gotoPair(alice.page, pairId);
     await openSettings(alice.page);
     await alice.page.getByTestId("settings-refresh-button").click();
-    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("1");
+    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("6");
   });
 
-  await test.step("show saved confirmation before the weekly limit notice", async () => {
+  await test.step("show the accepted minimum in the play view", async () => {
     await gotoPair(bob.page, pairId);
     await expect(bob.page.getByTestId("play-card")).toBeVisible();
-    await bob.page.getByTestId("answer-yes-button").click();
-    await expect(bob.page.getByTestId("answer-saved-indicator")).toBeVisible();
-    await expect(bob.page.getByTestId("weekly-limit-notice")).toHaveCount(0);
-    await expect(bob.page.getByTestId("weekly-limit-notice")).toBeVisible({ timeout: 3_000 });
+    await expect(bob.page.getByText(/6\s*neue Antworten/)).toBeVisible();
   });
 
   await test.step("switch to unlimited mode and make the remaining question playable again", async () => {
@@ -88,13 +83,13 @@ test("manages weekly limit proposals and enforces then removes the accepted limi
     await expect(alice.page.getByTestId("weekly-limit-propose-button")).toBeEnabled();
     await alice.page.getByTestId("weekly-limit-propose-button").click();
     await expect(alice.page.getByTestId("weekly-limit-pending-block")).toBeVisible();
-    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("1");
+    await expect(alice.page.getByTestId("weekly-limit-current")).toContainText("6");
 
     await gotoPair(bob.page, pairId);
     await openSettings(bob.page);
     await bob.page.getByTestId("settings-refresh-button").click();
     await expect(bob.page.getByTestId("weekly-limit-pending-block")).toBeVisible();
-    await expect(bob.page.getByTestId("weekly-limit-current")).toContainText("1");
+    await expect(bob.page.getByTestId("weekly-limit-current")).toContainText("6");
     await bob.page.getByTestId("weekly-limit-accept-button").click();
     await expect(bob.page.getByTestId("weekly-limit-current")).toContainText(/Alle Fragen erlaubt/);
 

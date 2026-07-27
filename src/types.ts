@@ -33,7 +33,7 @@ export type PairView = {
     createdAt: number;
   } | null;
   seededSystemQuestionsAt?: number | null;
-  usage?: { answeredThisWeek: number; weeklyLimit: number };
+  usage?: { answeredThisWeek: number; partnerAnsweredThisWeek?: number; weeklyLimit: number };
   partnerDeleted?: boolean;
   confirmA: boolean;
   confirmB: boolean;
@@ -47,6 +47,10 @@ export type QuestionView = {
   createdBy: string;
   createdAt: number;
   blob: EncryptedBlob;
+  systemQuestionId?: string | null;
+  systemCatalogVersion?: number | null;
+  systemWeekStart?: number | null;
+  intensityLevel?: number | null;
 };
 
 export type AnswerView = {

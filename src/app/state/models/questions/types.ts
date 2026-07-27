@@ -9,4 +9,11 @@ export type SystemQuestionCatalogItem = {
   id: string;
   version: number;
   sha256B64: string;
+  intensityLevel: number;
+};
+
+export type WeeklyQuestionAccess = {
+  weekStart: number;
+  systemQuestionIds: string[];
+  ownQuestionIds: string[];
 };

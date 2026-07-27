@@ -3,7 +3,13 @@ import { getUserId, getValidatedBody } from "../../http/request.js";
 import { json } from "../../http/responses.js";
 import { sendServiceResult } from "../../http/serviceResponse.js";
 import type { PairIdBody, SeedSystemQuestionsBody } from "../../schemas/apiSchemas.js";
-import { listPairsForUser, removePair, seedQuestionsForPair } from "../../services/pairService.js";
+import type { SeedWeeklySystemQuestionsBody } from "../../schemas/apiSchemas.js";
+import {
+  listPairsForUser,
+  removePair,
+  seedQuestionsForPair,
+  seedWeeklyQuestionsForPair
+} from "../../services/pairService.js";
 
 export const listPairs: RequestHandler = async (_req, res) => {
   const pairs = await listPairsForUser(getUserId(res));
@@ -13,6 +19,12 @@ export const listPairs: RequestHandler = async (_req, res) => {
 export const seedSystemQuestions: RequestHandler = async (_req, res) => {
   const { pairId, items } = getValidatedBody<SeedSystemQuestionsBody>(res);
   const result = await seedQuestionsForPair(pairId, getUserId(res), items);
+  return sendServiceResult(res, result);
+};
+
+export const seedWeeklySystemQuestions: RequestHandler = async (_req, res) => {
+  const { pairId, weekStart, items } = getValidatedBody<SeedWeeklySystemQuestionsBody>(res);
+  const result = await seedWeeklyQuestionsForPair(pairId, getUserId(res), weekStart, items);
   return sendServiceResult(res, result);
 };
 

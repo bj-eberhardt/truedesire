@@ -1,4 +1,4 @@
-import { V3RevealContent } from "../../components";
+import { V3LoadingText, V3RevealContent } from "../../components";
 import { PairPlayCard } from "./PairPlayCard";
 import { PairPlayEmptyState, PairPlayIntro, PairPlayLimitNotice } from "./PairPlayStates";
 import { PairPlayToolbar } from "./PairPlayToolbar";
@@ -12,7 +12,7 @@ export function PairPlayContent({ model }: { model: PairPlayModel }) {
       isLoading={model.isLoadingPairData}
       loading={
         <div className="hint" data-testid="pair-loading-indicator">
-          Fragen werden geladen...
+          <V3LoadingText>Fragen werden geladen...</V3LoadingText>
         </div>
       }
     >
@@ -20,6 +20,7 @@ export function PairPlayContent({ model }: { model: PairPlayModel }) {
         showLimitNotice={model.showLimitNotice}
         isUnlimited={model.isUnlimited}
         remainingNew={model.remainingNew}
+        partnerWeeklyProgressMessage={model.partnerWeeklyProgressMessage}
       />
       <PairPlayLimitNotice
         showLimitNotice={model.showLimitNotice}
@@ -31,6 +32,8 @@ export function PairPlayContent({ model }: { model: PairPlayModel }) {
         allCurrentAnswered={model.allCurrentAnswered}
       />
       <PairPlayCard
+        animationDirection={model.animationDirection}
+        animationState={model.animationState}
         orderedCount={model.ordered.length}
         showSavedOnlyCard={model.showSavedOnlyCard}
         visibleQuestionId={model.visibleQuestionId}
@@ -40,6 +43,7 @@ export function PairPlayContent({ model }: { model: PairPlayModel }) {
         canAnswerNew={model.canAnswerNew}
         canPrev={model.canPrev}
         canNext={model.canNext}
+        answerError={model.answerError}
         flash={model.flash}
         swipe={model.swipe}
         onAnswerQuestion={model.answerQuestion}

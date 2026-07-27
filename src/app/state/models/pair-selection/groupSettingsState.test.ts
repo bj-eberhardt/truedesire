@@ -43,9 +43,17 @@ test("validates weekly limit drafts", () => {
     ok: true,
     limit: 10
   });
+  expect(validateWeeklyLimitDraft({ allowAllQuestions: false, weeklyLimitDraft: "6" })).toEqual({
+    ok: true,
+    limit: 6
+  });
   expect(validateWeeklyLimitDraft({ allowAllQuestions: false, weeklyLimitDraft: "abc" })).toEqual({
     ok: false,
     reason: "not_a_number"
+  });
+  expect(validateWeeklyLimitDraft({ allowAllQuestions: false, weeklyLimitDraft: "5" })).toEqual({
+    ok: false,
+    reason: "out_of_range"
   });
   expect(validateWeeklyLimitDraft({ allowAllQuestions: false, weeklyLimitDraft: "51" })).toEqual({
     ok: false,

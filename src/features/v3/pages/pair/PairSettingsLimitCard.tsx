@@ -1,4 +1,8 @@
 import type { PairView } from "../../../../types";
+import {
+  MAX_WEEKLY_LIMIT,
+  MIN_WEEKLY_LIMIT
+} from "../../../../app/state/models/pair-selection/groupSettingsState";
 
 type GroupSettingsAction = "accept" | "reject" | "cancel";
 
@@ -45,8 +49,8 @@ export function PairSettingsLimitCard(props: PairSettingsLimitCardProps) {
                   data-testid="weekly-limit-input"
                   type="number"
                   inputMode="numeric"
-                  min="0"
-                  max="50"
+                  min={MIN_WEEKLY_LIMIT}
+                  max={MAX_WEEKLY_LIMIT}
                   step="1"
                   aria-label="Fragen pro Woche"
                   value={props.weeklyLimitDraft}

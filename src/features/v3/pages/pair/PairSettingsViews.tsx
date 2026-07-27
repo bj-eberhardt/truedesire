@@ -1,6 +1,6 @@
 import { RefreshButton } from "../../../../components/RefreshButton";
 import type { MatchPolicy, PairView } from "../../../../types";
-import { V3SectionHeader } from "../../components";
+import { V3LoadingText, V3SectionHeader } from "../../components";
 import { PairSettingsLimitCard } from "./PairSettingsLimitCard";
 import { PairSettingsMatchPolicyCard } from "./PairSettingsMatchPolicyCard";
 
@@ -52,7 +52,11 @@ export function PairSettingsHeader({ onRefresh }: PairSettingsHeaderProps) {
 export function PairSettingsLoading({ isLoading }: PairSettingsLoadingProps) {
   if (!isLoading) return null;
 
-  return <div className="hint">Gruppen-Einstellungen werden geladen...</div>;
+  return (
+    <div className="hint">
+      <V3LoadingText>Gruppen-Einstellungen werden geladen...</V3LoadingText>
+    </div>
+  );
 }
 
 export function PairSettingsPanel(props: PairSettingsPanelProps) {

@@ -63,6 +63,30 @@ export function useQuestionsModel(opts: UseQuestionsModelOptions) {
     [clearGlobalError, questionState]
   );
 
+  const ensureSystemQuestionsSeeded = useCallback(
+    async (targetPair: PairView) => {
+      try {
+        await questionState.ensureSystemQuestionsSeeded(targetPair);
+      } catch (e: unknown) {
+        setGlobalError(e instanceof Error ? e.message : String(e));
+        throw e;
+      }
+    },
+    [questionState, setGlobalError]
+  );
+
+  const loadQuestionsAndDecrypt = useCallback(
+    async (pairOverride?: PairView) => {
+      try {
+        await questionState.loadQuestionsAndDecrypt(pairOverride);
+      } catch (e: unknown) {
+        setGlobalError(e instanceof Error ? e.message : String(e));
+        throw e;
+      }
+    },
+    [questionState, setGlobalError]
+  );
+
   const questions: QuestionsContextValue = {
     questions: questionState.questions,
     answerSummary: questionState.answerSummary,
@@ -73,8 +97,8 @@ export function useQuestionsModel(opts: UseQuestionsModelOptions) {
   return {
     questionActions: {
       refreshSystemQuestionHashes: questionState.refreshSystemQuestionHashes,
-      ensureSystemQuestionsSeeded: questionState.ensureSystemQuestionsSeeded,
-      loadQuestionsAndDecrypt: questionState.loadQuestionsAndDecrypt,
+      ensureSystemQuestionsSeeded,
+      loadQuestionsAndDecrypt,
       clearQuestions: questionState.clearQuestions
     },
     questions

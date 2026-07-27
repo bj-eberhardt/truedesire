@@ -2,11 +2,11 @@
 
 This project supports simple runtime configuration for weekly limits.
 
-## Weekly Limit (Default = 15)
+## Weekly Limit (Default = 7)
 
 - Server default weekly limit is controlled by environment variable:
   - `WEEKLY_LIMIT_DEFAULT`
-- If not set, the fallback default is `15`.
+- If not set, the fallback default is `7`.
 - Applied when new pair links are created on the server.
 
 Example:
@@ -37,7 +37,7 @@ npm --prefix server run system-questions:publish -- server/data/system-question-
 
 ## Notes
 
-- The client-side weekly limit input now defaults to `15` as well.
+- The client-side weekly limit input now defaults to `7` as well.
 - Existing pairs keep their stored weekly limit unless changed via the weekly limit proposal flow.
 
 ## Pairing Rate Limits (`/pairing/request`)
@@ -72,7 +72,7 @@ Backend-ENV:
 - `DB_SSL` (`true`/`false`; default: `false`)
 - `DB_MIGRATIONS_LOCK_TIMEOUT_MS` (default: `10000`)
 - `STATIC_DIR` (wenn gesetzt, liefert das Backend die gebaute Vite-App aus)
-- `WEEKLY_LIMIT_DEFAULT` (default: `15`)
+- `WEEKLY_LIMIT_DEFAULT` (default: `7`)
 - `PAIRING_LIMIT_USER_PER_MIN` (default: `10`)
 - `PAIRING_LIMIT_USER_PER_HOUR` (default: `50`)
 - `PAIRING_LIMIT_IP_PER_MIN` (default: `30`)

@@ -24,9 +24,12 @@ export function usePairPlayModel() {
   });
   const flash = answerFlow.flash;
   const {
+    animationDirection,
+    animationState,
     cardIndex,
     goNext: setNextCardIndex,
-    goPrev: setPrevCardIndex
+    goPrev: setPrevCardIndex,
+    isAnimating
   } = usePairPlayNavigation(pairId);
   const [stablePlayState, setStablePlayState] = useState<{
     pair: PairView;
@@ -79,7 +82,7 @@ export function usePairPlayModel() {
 
   const swipe = useSwipeNav({
     enabled: playState.pairReady,
-    blocked: flash.isSaving || flash.showSaved,
+    blocked: flash.isSaving || flash.showSaved || isAnimating,
     canPrev: playState.canPrev,
     canNext: playState.canNext,
     onPrev: goPrev,
@@ -88,6 +91,9 @@ export function usePairPlayModel() {
 
   return {
     allCurrentAnswered: playState.allCurrentAnswered,
+    animationDirection,
+    animationState,
+    answerError: answerFlow.answerError,
     answerQuestion: answerFlow.answerQuestion,
     canAnswerNew: playState.canAnswerNew,
     canNext: playState.canNext,
@@ -104,6 +110,7 @@ export function usePairPlayModel() {
     ordered: playState.ordered,
     pair,
     pairReady: playState.pairReady,
+    partnerWeeklyProgressMessage: playState.partnerWeeklyProgressMessage,
     playedPending: playState.playedPending,
     remainingNew: playState.remainingNew,
     safeIndex: playState.safeIndex,

@@ -4,6 +4,7 @@ import {
   usePairWorkspaceContext,
   useSessionContext
 } from "../../../../app/state";
+import { validateWeeklyLimitDraft } from "../../../../app/state/models/pair-selection/groupSettingsState";
 
 export function usePairSettingsModel() {
   const { identity } = useSessionContext();
@@ -14,10 +15,13 @@ export function usePairSettingsModel() {
     if (!pair) return false;
     if (pair.weeklyLimitPending) return false;
     if (groupSettings.isLoadingGroupSettings) return false;
-    const nextLimit = groupSettings.allowAllQuestions ? 0 : Number(groupSettings.weeklyLimitDraft);
-    if (!Number.isFinite(nextLimit) || nextLimit < 0 || nextLimit > 50) return false;
+    const validation = validateWeeklyLimitDraft({
+      allowAllQuestions: groupSettings.allowAllQuestions,
+      weeklyLimitDraft: groupSettings.weeklyLimitDraft
+    });
+    if (!validation.ok) return false;
     const currentLimit = pair.usage?.weeklyLimit ?? pair.weeklyLimit;
-    return nextLimit !== currentLimit;
+    return validation.limit !== currentLimit;
   }, [
     groupSettings.allowAllQuestions,
     groupSettings.isLoadingGroupSettings,

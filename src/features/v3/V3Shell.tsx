@@ -8,7 +8,7 @@ import {
 } from "../../app/state";
 import { V3Footer } from "./components/V3Footer";
 import { V3Header } from "./components/V3Header";
-import { V3AccountBootstrapState, V3Notice, V3RouteTransition } from "./components";
+import { V3AccountBootstrapState, V3LoadingText, V3Notice, V3RouteTransition } from "./components";
 import { InfoIcon } from "./components/icons/InfoIcon";
 
 const AccountHomePage = lazy(() =>
@@ -135,7 +135,7 @@ export function V3Shell() {
 function V3RouteChunkFallback() {
   return (
     <div className="v3-route-chunk-fallback" data-testid="route-chunk-loading-view">
-      Ansicht wird geladen...
+      <V3LoadingText>Ansicht wird geladen...</V3LoadingText>
     </div>
   );
 }
