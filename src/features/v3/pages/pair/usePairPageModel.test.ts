@@ -14,7 +14,13 @@ import type {
   SessionContextValue
 } from "../../../../app/state";
 import type { PairView } from "../../../../types";
+import { acknowledgePairWelcome, hasAcknowledgedPairWelcome } from "./pairWelcomePersistence";
 import { usePairPageModel, type PairPageModel } from "./usePairPageModel";
+
+vi.mock("./pairWelcomePersistence", () => ({
+  acknowledgePairWelcome: vi.fn(() => Promise.resolve()),
+  hasAcknowledgedPairWelcome: vi.fn(() => Promise.resolve(false))
+}));
 
 const pair: PairView = {
   id: "pair-1",
@@ -141,6 +147,8 @@ async function renderPairPageModel(opts: {
 }
 
 beforeEach(() => {
+  vi.mocked(hasAcknowledgedPairWelcome).mockResolvedValue(false);
+  vi.mocked(acknowledgePairWelcome).mockResolvedValue(undefined);
   const originalConsoleError = console.error;
   vi.spyOn(console, "error").mockImplementation((message?: unknown, ...args: unknown[]) => {
     if (typeof message === "string" && message.includes("react-test-renderer is deprecated")) {
@@ -223,6 +231,24 @@ test("counts partner match policy proposals as pending settings", async () => {
 
   expect(hook.current.pendingSettingsCount).toBe(1);
   await hook.unmount();
+});
+
+test("shows the welcome panel until the user acknowledged it", async () => {
+  const newPairHook = await renderPairPageModel({ workspace: workspaceValue("pair") });
+  expect(newPairHook.current.showWelcomePanel).toBe(true);
+  expect(newPairHook.current.matchPolicy).toBe("allowMutualMaybe");
+
+  act(() => newPairHook.current.acknowledgeWelcomePanel());
+  expect(newPairHook.current.showWelcomePanel).toBe(false);
+  expect(acknowledgePairWelcome).toHaveBeenCalledWith("user-1", "pair-1");
+  await newPairHook.unmount();
+
+  vi.mocked(hasAcknowledgedPairWelcome).mockResolvedValue(true);
+  const answeredHook = await renderPairPageModel({
+    workspace: workspaceValue("pair")
+  });
+  expect(answeredHook.current.showWelcomePanel).toBe(false);
+  await answeredHook.unmount();
 });
 
 test("tab actions change routes and trigger related refresh actions", async () => {

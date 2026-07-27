@@ -5,6 +5,7 @@ import { SettingsIcon } from "../components/icons/SettingsIcon";
 import { PairMatchesTab } from "./pair/PairMatchesTab";
 import { PairPlayTab } from "./pair/PairPlayTab";
 import { PairSettingsTab } from "./pair/PairSettingsTab";
+import { PairWelcomePanel } from "./pair/PairWelcomePanel";
 import { usePairPageModel } from "./pair/usePairPageModel";
 
 export function PairPage() {
@@ -83,6 +84,18 @@ export function PairPage() {
 
       {pair.partnerDeleted ? (
         <div className="notice">Partner ist gelöscht. Keine weitere Interaktion möglich.</div>
+      ) : null}
+
+      {model.showWelcomePanel ? (
+        <PairWelcomePanel
+          matchPolicy={model.matchPolicy}
+          partnerName={pair.partner?.nickname ?? "deinem Match"}
+          weeklyLimit={pair.usage?.weeklyLimit ?? pair.weeklyLimit}
+          onAcknowledge={model.acknowledgeWelcomePanel}
+          onOpenMatches={model.switchToMatches}
+          onOpenPlay={model.switchToPlay}
+          onOpenSettings={model.switchToSettings}
+        />
       ) : null}
 
       <div className="v3-pair-tabs" role="tablist" aria-label="Bereiche">
