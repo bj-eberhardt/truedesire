@@ -15,9 +15,9 @@ Privacy-first „Fragen-Spiel“ für Paare:
 ## Regeln und Ablauf
 
 TrueDesire ist ein privates Frage- und Matching-Spiel für zwei Personen oder mehrere einzelne
-Paare, die auf spannende Weise herausbekommen wollen, was sich beide schon immer gewünscht haben. 
+Paare, die auf spannende Weise herausbekommen wollen, was sich beide schon immer gewünscht haben.
 
-Ziel ist es auf voreingestellte aber auch eigene Fragen per "Ja/Nein/Vielleicht"  💌 zu antworten. 
+Ziel ist es auf voreingestellte aber auch eigene Fragen per "Ja/Nein/Vielleicht" 💌 zu antworten.
 Wenn beide einer Meinung sind oder sich darauf einlassen wollen, gibt es ein Match, und das Paar
 kann über die gemeinsame Umsetzung nachdenken.
 
@@ -59,7 +59,6 @@ werden nur Matches, bei denen niemand **Nein** gesagt hat:
 Du kannst deine Antwort ändern, solange dein Partner dieselbe Frage noch nicht beantwortet hat.
 Sobald beide geantwortet haben, ist die Frage abgeschlossen. Das Wochenlimit begrenzt neue Antworten,
 sodass auch noch nach einigen Wochen die Spannung nach neuen Matches aussteht.
-
 
 ## Nutzung
 
@@ -121,7 +120,8 @@ services:
     volumes:
       - truedesire_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-truedesire} -d ${POSTGRES_DB:-truedesire}"]
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-truedesire} -d ${POSTGRES_DB:-truedesire}"]
       interval: 10s
       timeout: 5s
       retries: 10
