@@ -13,6 +13,7 @@ import {
   setWeeklyLimitProposal
 } from "../repositories/pairMutationRepository.js";
 import { getPairWithUsers, listPairsWithUsersForUser } from "../repositories/pairRepository.js";
+import { seedWeeklySystemQuestionsForPair } from "../repositories/weeklyQuestionSetRepository.js";
 import type { EncryptedBlob, PairRecord, QuestionRecord, UserRecord } from "../storage/db.js";
 import { isoWeekBounds } from "../utils/week.js";
 import { isPairMember, isPartnerDeletedFromUsers } from "./database.js";
@@ -34,7 +35,7 @@ type PairDetails = {
   weeklyLimitPending: PairRecord["weeklyLimitPending"];
   matchPolicyPending: PairRecord["matchPolicyPending"];
   seededSystemQuestionsAt: number | null;
-  usage: { answeredThisWeek: number; weeklyLimit: number };
+  usage: { answeredThisWeek: number; partnerAnsweredThisWeek: number; weeklyLimit: number };
   partnerDeleted: boolean;
   confirmA: boolean;
   confirmB: boolean;
@@ -151,6 +152,42 @@ export async function seedQuestionsForPair(
   return ok({ ok: true, alreadySeeded: result.alreadySeeded });
 }
 
+export async function seedWeeklyQuestionsForPair(
+  pairId: string,
+  userId: string,
+  weekStart: number,
+  items: Array<{
+    systemId: string;
+    systemVersion: number;
+    intensityLevel: number;
+    blob: EncryptedBlob;
+  }>
+): Promise<ServiceResult<{ ok: true; alreadySeeded: boolean }>> {
+  const result = await seedWeeklySystemQuestionsForPair(
+    pairId,
+    userId,
+    weekStart,
+    items,
+    Date.now()
+  );
+  switch (result.kind) {
+    case "ok":
+      return ok({ ok: true, alreadySeeded: result.alreadySeeded });
+    case "missing":
+      return fail(ApiErrorCode.NotFound, 404);
+    case "forbidden":
+      return fail(ApiErrorCode.Forbidden, 403);
+    case "pair_not_active":
+      return fail(ApiErrorCode.PairNotActive, 409);
+    case "partner_deleted":
+      return fail(ApiErrorCode.PartnerDeleted, 409);
+    case "bad_system_questions":
+      return fail(ApiErrorCode.BadSystemQuestions, 400);
+    case "system_questions_unavailable":
+      return fail(ApiErrorCode.SystemQuestionsUnavailable, 500);
+  }
+}
+
 export async function removePair(
   pairId: string,
   userId: string
@@ -199,6 +236,9 @@ export async function proposeWeeklyLimitForPair(
     pending: NonNullable<PairRecord["weeklyLimitPending"]>;
   }>
 > {
+  if (!Number.isInteger(limit) || limit < 0 || limit > 50 || (limit > 0 && limit < 6)) {
+    return fail(ApiErrorCode.BadRequest, 400);
+  }
   const pending = { id: newId(), proposedBy: userId, limit, createdAt: Date.now() };
   const result = await setWeeklyLimitProposal(pairId, userId, pending);
   if (result === "missing") return fail(ApiErrorCode.NotFound, 404);
@@ -230,7 +270,11 @@ export async function getPairDetails(
   if (!data) return fail(ApiErrorCode.NotFound, 404);
   if (!isPairMember(data.pair, userId)) return fail(ApiErrorCode.Forbidden, 403);
   const week = isoWeekBounds(Date.now());
+  const partnerUserId = data.pair.userA === userId ? data.pair.userB : data.pair.userA;
   const answeredThisWeek = await countWeeklyAnswers(data.pair.id, userId, week.start, week.end);
+  const partnerAnsweredThisWeek = partnerUserId
+    ? await countWeeklyAnswers(data.pair.id, partnerUserId, week.start, week.end)
+    : 0;
   return ok({
     id: data.pair.id,
     status: data.pair.status,
@@ -238,7 +282,7 @@ export async function getPairDetails(
     weeklyLimitPending: data.pair.weeklyLimitPending ?? null,
     matchPolicyPending: data.pair.matchPolicyPending ?? null,
     seededSystemQuestionsAt: data.pair.seededSystemQuestionsAt ?? null,
-    usage: { answeredThisWeek, weeklyLimit: data.pair.weeklyLimit },
+    usage: { answeredThisWeek, partnerAnsweredThisWeek, weeklyLimit: data.pair.weeklyLimit },
     partnerDeleted: isPartnerDeletedFromUsers(data.pair, userId, {
       userA: data.userA,
       userB: data.userB

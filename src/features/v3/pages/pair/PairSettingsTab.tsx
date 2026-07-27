@@ -1,4 +1,4 @@
-import { V3RevealContent } from "../../components";
+import { V3LoadingText, V3RevealContent } from "../../components";
 import { PairSettingsHeader, PairSettingsPanel } from "./PairSettingsViews";
 import { usePairSettingsModel } from "./usePairSettingsModel";
 
@@ -13,7 +13,11 @@ export function PairSettingsTab() {
       <PairSettingsHeader onRefresh={model.refreshGroupSettings} />
       <V3RevealContent
         isLoading={model.isLoadingGroupSettings}
-        loading={<div className="hint">Gruppen-Einstellungen werden geladen...</div>}
+        loading={
+          <div className="hint">
+            <V3LoadingText>Gruppen-Einstellungen werden geladen...</V3LoadingText>
+          </div>
+        }
       >
         <PairSettingsPanel
           allowAllQuestions={model.allowAllQuestions}

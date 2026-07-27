@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import {
+  answerCurrentQuestion,
   answerQuestionByText,
-  askQuestion,
   createRegisteredUser,
   gotoPair,
   openMatches,
@@ -16,12 +16,14 @@ test("allows changing own pending answer and removes it from editable answers af
   const alice = await createRegisteredUser(browser, uniqueName("PlayedA"));
   const bob = await createRegisteredUser(browser, uniqueName("PlayedB"));
   let pairId = "";
-  const question = `Editable ${uniqueName("Q")}`;
+  let question = "";
 
-  await test.step("pair users and create a pending self-answered question", async () => {
+  await test.step("pair users and answer a weekly question", async () => {
     pairId = await pairUsers(alice, bob);
     await openPair(alice.page, bob.nickname);
-    await askQuestion(alice.page, question, "yes");
+    await expect(alice.page.getByTestId("play-question-text")).toBeVisible();
+    question = await alice.page.getByTestId("play-question-text").innerText();
+    await answerCurrentQuestion(alice.page, "yes");
     await expect(alice.page.getByTestId("played-answers-button")).toBeVisible();
   });
 

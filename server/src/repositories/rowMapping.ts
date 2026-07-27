@@ -47,6 +47,10 @@ export type QuestionRow = {
   created_by: string;
   created_at: string | number;
   blob: EncryptedBlob;
+  system_question_id?: string | null;
+  system_catalog_version?: string | number | null;
+  system_week_start?: string | number | null;
+  intensity_level?: string | number | null;
 };
 
 export type AnswerRow = {
@@ -132,7 +136,11 @@ export function mapQuestion(row: QuestionRow) {
     pairId: row.pair_id,
     createdBy: row.created_by,
     createdAt: Number(row.created_at),
-    blob: row.blob
+    blob: row.blob,
+    systemQuestionId: row.system_question_id ?? null,
+    systemCatalogVersion: toNumber(row.system_catalog_version ?? null),
+    systemWeekStart: toNumber(row.system_week_start ?? null),
+    intensityLevel: toNumber(row.intensity_level ?? null)
   };
 }
 

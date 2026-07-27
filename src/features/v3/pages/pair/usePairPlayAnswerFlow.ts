@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import type { AnswerChoice } from "../../../../types";
 import { ANSWER_SAVED_FLASH_TIMEOUT_MS, useSavedFlash } from "../../hooks/useSavedFlash";
 
@@ -8,20 +8,23 @@ type UsePairPlayAnswerFlowOptions = {
 
 export function usePairPlayAnswerFlow({ answerQuestion }: UsePairPlayAnswerFlowOptions) {
   const flash = useSavedFlash({ timeoutMs: ANSWER_SAVED_FLASH_TIMEOUT_MS });
+  const [answerError, setAnswerError] = useState<string | null>(null);
 
   const answerCurrentQuestion = useCallback(
     async (questionId: string, choice: AnswerChoice, questionText: string) => {
       if (flash.isSaving) return;
       try {
+        setAnswerError(null);
         flash.begin(questionId, questionText);
         await answerQuestion(questionId, choice);
         flash.success();
       } catch {
         flash.fail();
+        setAnswerError("Es ist ein Fehler aufgetreten. Bitte versuche es später erneut.");
       }
     },
     [answerQuestion, flash]
   );
 
-  return { answerQuestion: answerCurrentQuestion, flash };
+  return { answerError, answerQuestion: answerCurrentQuestion, flash };
 }

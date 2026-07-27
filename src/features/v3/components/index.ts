@@ -2,7 +2,7 @@ export { AnswerChoiceGroup } from "./AnswerChoiceGroup";
 export { PairStatusBadge } from "./PairStatusBadge";
 export { V3AccountBootstrapState } from "./V3AccountBootstrapState";
 export { V3Notice } from "./V3Notice";
-export { V3LoadingState, V3PageError } from "./V3PageState";
+export { V3LoadingState, V3LoadingText, V3PageError } from "./V3PageState";
 export { V3Panel } from "./V3Panel";
 export { V3RevealContent } from "./V3RevealContent";
 export { V3RouteTransition } from "./V3RouteTransition";

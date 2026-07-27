@@ -175,15 +175,63 @@ export function api(opts: ApiOpts) {
         signedFetch<{ ok: true; alreadySeeded: boolean }>(opts, "/pairs/seed-system-questions", {
           method: "POST",
           body: { pairId, items }
-        })
+        }),
+      seedWeeklySystemQuestions: (
+        pairId: string,
+        weekStart: number,
+        items: Array<{
+          systemId: string;
+          systemVersion: number;
+          intensityLevel: number;
+          blob: EncryptedBlob;
+        }>
+      ) =>
+        signedFetch<{ ok: true; alreadySeeded: boolean }>(
+          opts,
+          "/pairs/seed-weekly-system-questions",
+          {
+            method: "POST",
+            body: { pairId, weekStart, items }
+          }
+        )
     },
     system: {
       questions: () =>
         signedFetch<{
           catalogVersion: number;
-          questions: Array<{ id: string; version: number; text: string; sha256B64: string }>;
-          verificationCatalog: Array<{ id: string; version: number; sha256B64: string }>;
-        }>(opts, "/system/questions")
+          questions: Array<{
+            id: string;
+            version: number;
+            text: string;
+            sha256B64: string;
+            intensityLevel: number;
+          }>;
+          verificationCatalog: Array<{
+            id: string;
+            version: number;
+            sha256B64: string;
+            intensityLevel: number;
+          }>;
+        }>(opts, "/system/questions"),
+      weeklyQuestions: (pairId: string) =>
+        signedFetch<{
+          weekStart: number;
+          catalogVersion: number;
+          questions: Array<{
+            id: string;
+            version: number;
+            text: string;
+            sha256B64: string;
+            intensityLevel: number;
+          }>;
+          ownQuestionIds: string[];
+          verificationCatalog: Array<{
+            id: string;
+            version: number;
+            sha256B64: string;
+            intensityLevel: number;
+          }>;
+        }>(opts, `/system/questions/weekly/${encodeURIComponent(pairId)}`)
     },
     pair: {
       create: () =>

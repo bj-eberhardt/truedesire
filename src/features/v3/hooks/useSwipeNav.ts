@@ -1,5 +1,5 @@
 import type { PointerEvent as ReactPointerEvent } from "react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 function canSwipeTarget(el: EventTarget | null): boolean {
   const node = el as HTMLElement | null;
@@ -19,6 +19,8 @@ export function useSwipeNav(opts: {
   canPrev: boolean;
   canNext: boolean;
 }) {
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const swipeRef = useRef<{
     pointerId: number | null;
     startX: number;
@@ -40,6 +42,8 @@ export function useSwipeNav(opts: {
     swipeRef.current.startX = e.clientX;
     swipeRef.current.startY = e.clientY;
     swipeRef.current.moved = false;
+    setDragX(0);
+    setIsDragging(true);
     try {
       e.currentTarget.setPointerCapture(e.pointerId);
     } catch {
@@ -50,11 +54,18 @@ export function useSwipeNav(opts: {
   function onPointerMove(e: ReactPointerEvent<HTMLDivElement>) {
     if (swipeRef.current.pointerId !== e.pointerId) return;
     swipeRef.current.moved = true;
+    const dx = e.clientX - swipeRef.current.startX;
+    const dy = e.clientY - swipeRef.current.startY;
+    if (Math.abs(dx) > Math.abs(dy)) {
+      setDragX(Math.max(-72, Math.min(72, dx * 0.55)));
+    }
   }
 
   function onPointerEnd(e: ReactPointerEvent<HTMLDivElement>) {
     if (swipeRef.current.pointerId !== e.pointerId) return;
     swipeRef.current.pointerId = null;
+    setDragX(0);
+    setIsDragging(false);
     if (!swipeRef.current.moved) return;
 
     const dx = e.clientX - swipeRef.current.startX;
@@ -73,5 +84,12 @@ export function useSwipeNav(opts: {
     }
   }
 
-  return { onPointerDown, onPointerMove, onPointerUp: onPointerEnd, onPointerCancel: onPointerEnd };
+  return {
+    dragX,
+    isDragging,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp: onPointerEnd,
+    onPointerCancel: onPointerEnd
+  };
 }

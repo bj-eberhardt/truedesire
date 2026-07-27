@@ -31,6 +31,7 @@ const mojibakePattern = new RegExp(
   ].join("|"),
   "u"
 );
+const questionMarkInsideWordPattern = /[A-Za-zÄÖÜäöüß]\?[A-Za-zÄÖÜäöüß]/u;
 
 function listFiles(dir: string): string[] {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -62,6 +63,30 @@ test("project source text does not contain common mojibake markers", () => {
     lines.forEach((line, index) => {
       if (mojibakePattern.test(line)) failures.push(`${relative}:${index + 1}`);
     });
+  }
+
+  expect(failures).toEqual([]);
+});
+
+test("system question catalogs do not contain replacement question marks inside words", () => {
+  const failures: string[] = [];
+  const catalogsDir = path.join(root, "server", "data", "system-question-catalogs");
+  const catalogFiles = fs
+    .readdirSync(catalogsDir)
+    .filter((file) => file.endsWith(".json"))
+    .map((file) => path.join(catalogsDir, file));
+
+  for (const file of catalogFiles) {
+    const relative = path.relative(root, file);
+    const catalog = JSON.parse(fs.readFileSync(file, "utf8")) as {
+      questions?: Array<{ id?: string; text?: string }>;
+    };
+
+    for (const question of catalog.questions ?? []) {
+      if (question.text && questionMarkInsideWordPattern.test(question.text)) {
+        failures.push(`${relative}:${question.id ?? "<missing id>"}`);
+      }
+    }
   }
 
   expect(failures).toEqual([]);

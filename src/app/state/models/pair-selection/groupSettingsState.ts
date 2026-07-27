@@ -3,6 +3,9 @@ import type { PairView } from "../../../../types";
 export type WeeklyLimitValidation =
   { ok: true; limit: number } | { ok: false; reason: "not_a_number" | "out_of_range" };
 
+export const MIN_WEEKLY_LIMIT = 6;
+export const MAX_WEEKLY_LIMIT = 50;
+
 export function getEffectiveWeeklyLimit(pair: PairView): number {
   return pair.usage?.weeklyLimit ?? pair.weeklyLimit;
 }
@@ -28,6 +31,8 @@ export function validateWeeklyLimitDraft(opts: {
   if (opts.allowAllQuestions) return { ok: true, limit: 0 };
   const limit = Number(opts.weeklyLimitDraft);
   if (!Number.isFinite(limit)) return { ok: false, reason: "not_a_number" };
-  if (limit < 0 || limit > 50) return { ok: false, reason: "out_of_range" };
+  if (limit < MIN_WEEKLY_LIMIT || limit > MAX_WEEKLY_LIMIT) {
+    return { ok: false, reason: "out_of_range" };
+  }
   return { ok: true, limit };
 }

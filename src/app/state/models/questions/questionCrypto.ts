@@ -18,6 +18,8 @@ export async function decryptQuestionPayload(blob: EncryptedBlob, aes: CryptoKey
     systemId?: unknown;
     systemVersion?: unknown;
     systemHash?: unknown;
+    weekStart?: unknown;
+    intensityLevel?: unknown;
   }>(aes, blob);
 }
 

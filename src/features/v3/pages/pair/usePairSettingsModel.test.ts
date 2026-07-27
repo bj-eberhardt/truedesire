@@ -17,7 +17,7 @@ import { usePairSettingsModel, type PairSettingsModel } from "./usePairSettingsM
 const basePair: PairView = {
   id: "pair-1",
   status: "active",
-  weeklyLimit: 5,
+  weeklyLimit: 15,
   weeklyLimitPending: null,
   confirmA: true,
   confirmB: true,
@@ -52,7 +52,7 @@ function groupSettingsValue(
   overrides: Partial<GroupSettingsContextValue>
 ): GroupSettingsContextValue {
   return {
-    weeklyLimitDraft: "5",
+    weeklyLimitDraft: "15",
     allowAllQuestions: false,
     matchPolicy: "allowMutualMaybe",
     matchPolicyDraft: "allowMutualMaybe",
@@ -136,13 +136,13 @@ afterEach(() => {
 
 test("enables proposing settings only for a valid changed weekly limit", async () => {
   const unchanged = await renderPairSettingsModel({
-    groupSettings: groupSettingsValue({ weeklyLimitDraft: "5" })
+    groupSettings: groupSettingsValue({ weeklyLimitDraft: "15" })
   });
   expect(unchanged.current.canProposeWeeklyLimit).toBe(false);
   await unchanged.unmount();
 
   const changed = await renderPairSettingsModel({
-    groupSettings: groupSettingsValue({ weeklyLimitDraft: "3" })
+    groupSettings: groupSettingsValue({ weeklyLimitDraft: "6" })
   });
   expect(changed.current.canProposeWeeklyLimit).toBe(true);
   await changed.unmount();
@@ -150,13 +150,13 @@ test("enables proposing settings only for a valid changed weekly limit", async (
 
 test("disables proposing settings while loading, pending, or invalid", async () => {
   const loading = await renderPairSettingsModel({
-    groupSettings: groupSettingsValue({ weeklyLimitDraft: "3", isLoadingGroupSettings: true })
+    groupSettings: groupSettingsValue({ weeklyLimitDraft: "6", isLoadingGroupSettings: true })
   });
   expect(loading.current.canProposeWeeklyLimit).toBe(false);
   await loading.unmount();
 
   const invalid = await renderPairSettingsModel({
-    groupSettings: groupSettingsValue({ weeklyLimitDraft: "99" })
+    groupSettings: groupSettingsValue({ weeklyLimitDraft: "5" })
   });
   expect(invalid.current.canProposeWeeklyLimit).toBe(false);
   await invalid.unmount();
@@ -164,9 +164,9 @@ test("disables proposing settings while loading, pending, or invalid", async () 
   const pending = await renderPairSettingsModel({
     pair: {
       ...basePair,
-      weeklyLimitPending: { id: "pending-1", proposedBy: "user-2", limit: 3, createdAt: 1 }
+      weeklyLimitPending: { id: "pending-1", proposedBy: "user-2", limit: 6, createdAt: 1 }
     },
-    groupSettings: groupSettingsValue({ weeklyLimitDraft: "3" })
+    groupSettings: groupSettingsValue({ weeklyLimitDraft: "6" })
   });
   expect(pending.current.canProposeWeeklyLimit).toBe(false);
   await pending.unmount();
@@ -176,7 +176,7 @@ test("detects whether the pending request belongs to the current user", async ()
   const ownPending = await renderPairSettingsModel({
     pair: {
       ...basePair,
-      weeklyLimitPending: { id: "pending-1", proposedBy: "user-1", limit: 3, createdAt: 1 }
+      weeklyLimitPending: { id: "pending-1", proposedBy: "user-1", limit: 6, createdAt: 1 }
     },
     groupSettings: groupSettingsValue({})
   });
@@ -186,7 +186,7 @@ test("detects whether the pending request belongs to the current user", async ()
   const partnerPending = await renderPairSettingsModel({
     pair: {
       ...basePair,
-      weeklyLimitPending: { id: "pending-1", proposedBy: "user-2", limit: 3, createdAt: 1 }
+      weeklyLimitPending: { id: "pending-1", proposedBy: "user-2", limit: 6, createdAt: 1 }
     },
     groupSettings: groupSettingsValue({})
   });
