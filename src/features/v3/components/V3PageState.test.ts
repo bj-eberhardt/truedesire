@@ -44,14 +44,13 @@ test("loading text reuses animated dots instead of static ellipsis", () => {
 
 test("loading state applies animated dots to framed title and body", () => {
   const root = render(
-    React.createElement(
-      V3LoadingState,
-      { children: "Daten werden geladen...", title: "Konto wird geladen...", framed: true }
-    )
+    React.createElement(V3LoadingState, {
+      children: "Daten werden geladen...",
+      title: "Konto wird geladen...",
+      framed: true
+    })
   );
 
   expect(root.findAllByProps({ className: "v3-loading-dots" })).toHaveLength(2);
-  expect(root.findByType("h2").findAllByType("span")[1].children).toEqual([
-    "Konto wird geladen"
-  ]);
+  expect(root.findByType("h2").findAllByType("span")[1].children).toEqual(["Konto wird geladen"]);
 });

@@ -273,7 +273,8 @@ test("exposes partner weekly progress message from pair usage", () => {
   ).toEqual({
     count: 1,
     leadingText: "Du musst noch mindestens",
-    trailingText: "Frage beantworten, damit du gleich viele Fragen wie dein Partner beantwortet hast."
+    trailingText:
+      "Frage beantworten, damit du gleich viele Fragen wie dein Partner beantwortet hast."
   });
 
   expect(

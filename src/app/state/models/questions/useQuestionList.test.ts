@@ -34,7 +34,10 @@ test("shows current weekly system questions", () => {
 
 test("shows allowed own weekly questions", () => {
   expect(
-    isQuestionVisibleForWeeklyAccess(question({ id: "manual-current", createdBy: "user-1" }), weeklyAccess)
+    isQuestionVisibleForWeeklyAccess(
+      question({ id: "manual-current", createdBy: "user-1" }),
+      weeklyAccess
+    )
   ).toBe(true);
 });
 

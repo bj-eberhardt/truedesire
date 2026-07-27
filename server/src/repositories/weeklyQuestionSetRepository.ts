@@ -422,10 +422,8 @@ export async function getQuestionWeeklyAllowanceInClient(
      where question_id = $1`,
     [question.id, userId]
   );
-  return (
-    Number(catchup.rows[0]?.partner_answered ?? 0) > 0 &&
+  return Number(catchup.rows[0]?.partner_answered ?? 0) > 0 &&
     Number(catchup.rows[0]?.mine_answered ?? 0) === 0
-  )
     ? { kind: "catchup" }
     : question.createdBy === userId
       ? { kind: "own_authored" }

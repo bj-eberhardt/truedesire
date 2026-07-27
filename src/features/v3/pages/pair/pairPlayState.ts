@@ -69,7 +69,8 @@ export function buildPartnerWeeklyProgressMessage(input: {
   if (!isUnlimited && partnerAnsweredThisWeek >= weeklyLimit) {
     return {
       count: null,
-      leadingText: "Du musst dich ranhalten, dein Partner hat bereits alle Wochenfragen beantwortet.",
+      leadingText:
+        "Du musst dich ranhalten, dein Partner hat bereits alle Wochenfragen beantwortet.",
       trailingText: ""
     };
   }
