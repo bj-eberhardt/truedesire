@@ -12,6 +12,10 @@ type QuestionAccessRow = PairAccessRow & {
   created_by: string;
   q_created_at: string | number;
   q_blob: EncryptedBlob;
+  system_question_id: string | null;
+  system_catalog_version: string | number | null;
+  system_week_start: string | number | null;
+  intensity_level: string | number | null;
 };
 
 export type PairAccess =
@@ -55,6 +59,7 @@ export async function getQuestionAccess(
   const result = await clientQuery<QuestionAccessRow>(
     `select
        q.id as q_id, q.pair_id, q.created_by, q.created_at as q_created_at, q.blob as q_blob,
+       q.system_question_id, q.system_catalog_version, q.system_week_start, q.intensity_level,
        p.*,
        partner.deleted_at as partner_deleted_at
      from questions q
@@ -72,7 +77,11 @@ export async function getQuestionAccess(
     pair_id: row.pair_id,
     created_by: row.created_by,
     created_at: row.q_created_at,
-    blob: row.q_blob
+    blob: row.q_blob,
+    system_question_id: row.system_question_id,
+    system_catalog_version: row.system_catalog_version,
+    system_week_start: row.system_week_start,
+    intensity_level: row.intensity_level
   });
   if (![pair.userA, pair.userB].includes(userId)) {
     return { kind: "forbidden", pair, question };

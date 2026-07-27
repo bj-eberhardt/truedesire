@@ -16,14 +16,19 @@ export function PairMatchCard({ match, onHide, onRestore, showHiddenMatches }: P
       data-match-id={match.id}
       data-match-grade={match.grade}
     >
-      <div className="match-head">
+      <div className="match-card-sprinkles" aria-hidden="true" />
+      <div className="match-card-hero">
         <div className={`badge ${match.grade}`}>
           <MatchGradeIcon grade={match.grade} />
-          <span className="match-grade-copy">
-            <span className="match-grade-kicker">{matchGradeKicker(match.grade)}</span>
-            <span className="match-grade-label">{matchGradeLabel(match.grade)}</span>
-          </span>
         </div>
+        <div className="match-hero-title">Match</div>
+        <div className="match-grade-copy">
+          <span className="match-grade-kicker">{matchGradeKicker(match.grade)}</span>
+          <span className="match-grade-label">{matchGradeLabel(match.grade)}</span>
+        </div>
+      </div>
+      <div className="match-card-divider" />
+      <div className="match-card-body">
         <div className="match-title" data-testid="match-question-text">
           {match.question}
         </div>
@@ -65,15 +70,15 @@ function MatchGradeIcon({ grade }: { grade: MatchGrade }) {
 }
 
 function matchGradeKicker(grade: MatchGrade) {
-  if (grade === "perfect") return "Starkes Match";
-  if (grade === "maybe") return "Interessante Nähe";
+  if (grade === "perfect") return "Ihr seid euch einig.";
+  if (grade === "maybe") return "Eine Person ist sicher.";
   if (grade === "mutualMaybe") return "Beidseitig offen";
   return "Guter Start";
 }
 
 function matchGradeLabel(grade: MatchGrade) {
-  if (grade === "perfect") return "Perfekt";
-  if (grade === "maybe") return "Vielleicht";
-  if (grade === "mutualMaybe") return "Beide vielleicht";
-  return "Okay";
+  if (grade === "perfect") return "Das bleibt zwischen euch.";
+  if (grade === "maybe") return "Vielleicht ist genug fuer ein Gespraech.";
+  if (grade === "mutualMaybe") return "Ihr seid beide neugierig.";
+  return "Sprecht darueber, wenn es passt.";
 }

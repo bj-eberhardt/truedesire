@@ -9,6 +9,7 @@ import type {
 } from "../storage/db.js";
 import { getPairAccess, getQuestionAccess } from "./accessRepository.js";
 import { mapAnswer, mapPair, type AnswerRow, type PairRow } from "./rowMapping.js";
+import { getQuestionWeeklyAllowanceInClient } from "./weeklyQuestionSetRepository.js";
 
 type AnswerWriteMode = "create" | "upsert";
 
@@ -17,7 +18,8 @@ type AnswerWriteResult =
   | { kind: ActivePairFailure }
   | { kind: "already_answered" }
   | { kind: "partner_answered" }
-  | { kind: "weekly_limit" };
+  | { kind: "weekly_limit" }
+  | { kind: "weekly_question_not_allowed" };
 
 const DEFAULT_MATCH_POLICY: MatchPolicy = "allowMutualMaybe";
 
@@ -89,7 +91,17 @@ export async function countWeeklyAnswers(
        and a.user_id = $2
        and a.created_at >= $3
        and a.created_at < $4
-       and (q.created_by is null or q.created_by <> $2)`,
+       and (
+         q.created_by is null
+         or q.created_by <> $2
+         or exists (
+           select 1
+           from answers partner
+           where partner.question_id = a.question_id
+             and partner.user_id <> $2
+             and partner.created_at <= a.created_at
+         )
+       )`,
     [pairId, userId, weekStart, weekEnd]
   );
   return Number(result.rows[0]?.count ?? 0);
@@ -111,6 +123,7 @@ export async function createAnswerIfAllowed(
   | { kind: ActivePairFailure }
   | { kind: "already_answered" }
   | { kind: "weekly_limit" }
+  | { kind: "weekly_question_not_allowed" }
 > {
   const result = await writeAnswer({
     mode: "create",
@@ -127,7 +140,10 @@ export async function createAnswerIfAllowed(
   });
   if (result.kind === "ok" && result.answer) return { kind: "ok", answer: result.answer };
   return result as
-    { kind: ActivePairFailure } | { kind: "already_answered" } | { kind: "weekly_limit" };
+    | { kind: ActivePairFailure }
+    | { kind: "already_answered" }
+    | { kind: "weekly_limit" }
+    | { kind: "weekly_question_not_allowed" };
 }
 
 export async function upsertAnswerIfAllowed(
@@ -146,6 +162,7 @@ export async function upsertAnswerIfAllowed(
   | { kind: ActivePairFailure }
   | { kind: "partner_answered" }
   | { kind: "weekly_limit" }
+  | { kind: "weekly_question_not_allowed" }
 > {
   const result = await writeAnswer({
     mode: "upsert",
@@ -162,7 +179,10 @@ export async function upsertAnswerIfAllowed(
   });
   if (result.kind === "ok") return { kind: "ok", updated: !!result.updated };
   return result as
-    { kind: ActivePairFailure } | { kind: "partner_answered" } | { kind: "weekly_limit" };
+    | { kind: ActivePairFailure }
+    | { kind: "partner_answered" }
+    | { kind: "weekly_limit" }
+    | { kind: "weekly_question_not_allowed" };
 }
 
 async function writeAnswer(opts: {
@@ -184,8 +204,6 @@ async function writeAnswer(opts: {
     if (data.kind === "forbidden") return { kind: "forbidden" };
     if (data.partnerDeleted) return { kind: "partner_deleted" };
     if (data.pair.status !== "active") return { kind: "pair_not_active" };
-    const policy = await getMatchPolicyInClient(client, data.pair.id, opts.userId);
-    const allowedMatchTokens = filterTokensByPolicy(opts.matchTokens, policy);
 
     const existing = await client.query<AnswerRow>(
       "select * from answers where question_id = $1 and user_id = $2",
@@ -198,6 +216,9 @@ async function writeAnswer(opts: {
         [opts.questionId, opts.userId]
       );
       if (partnerAnswer.rows[0]) return { kind: "partner_answered" };
+
+      const policy = await getMatchPolicyInClient(client, data.pair.id, opts.userId);
+      const allowedMatchTokens = filterTokensByPolicy(opts.matchTokens, policy);
       await client.query(
         `update answers
          set blob = $3,
@@ -219,6 +240,16 @@ async function writeAnswer(opts: {
       return { kind: "ok", updated: true };
     }
 
+    const weeklyAllowance = await getQuestionWeeklyAllowanceInClient(
+      client,
+      data.question,
+      opts.userId,
+      opts.weekStart
+    );
+    if (weeklyAllowance.kind === "blocked") return { kind: "weekly_question_not_allowed" };
+    const policy = await getMatchPolicyInClient(client, data.pair.id, opts.userId);
+    const allowedMatchTokens = filterTokensByPolicy(opts.matchTokens, policy);
+
     const weeklyCount = await countWeeklyAnswersInClient(
       client,
       data.pair.id,
@@ -227,7 +258,7 @@ async function writeAnswer(opts: {
       opts.weekEnd
     );
     if (
-      data.question.createdBy !== opts.userId &&
+      (data.question.createdBy !== opts.userId || weeklyAllowance.kind === "catchup") &&
       data.pair.weeklyLimit > 0 &&
       weeklyCount >= data.pair.weeklyLimit
     ) {
@@ -273,7 +304,17 @@ async function countWeeklyAnswersInClient(
        and a.user_id = $2
        and a.created_at >= $3
        and a.created_at < $4
-       and (q.created_by is null or q.created_by <> $2)`,
+       and (
+         q.created_by is null
+         or q.created_by <> $2
+         or exists (
+           select 1
+           from answers partner
+           where partner.question_id = a.question_id
+             and partner.user_id <> $2
+             and partner.created_at <= a.created_at
+         )
+       )`,
     [pairId, userId, weekStart, weekEnd]
   );
   return Number(result.rows[0]?.count ?? 0);

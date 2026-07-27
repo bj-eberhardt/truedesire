@@ -20,7 +20,9 @@ import { registerAccount } from "../src/services/authService.js";
 import {
   createPairRecordForUsers,
   getPairDetails,
-  seedQuestionsForPair
+  proposeWeeklyLimitForPair,
+  seedQuestionsForPair,
+  seedWeeklyQuestionsForPair
 } from "../src/services/pairService.js";
 import {
   listPendingPairingRequests,
@@ -37,7 +39,8 @@ import { transaction } from "../src/db/pool.js";
 import { insertPair } from "../src/repositories/pairRepository.js";
 import { publishSystemQuestionVersion } from "../src/repositories/systemQuestionRepository.js";
 import type { EncryptedBlob, PairRecord } from "../src/storage/db.js";
-import { readSystemQuestions } from "../src/services/systemQuestions.js";
+import { readSystemQuestions, readWeeklySystemQuestions } from "../src/services/systemQuestions.js";
+import { assertSafeTestDatabase } from "./dbSafety.js";
 
 const jwk = { kty: "EC", crv: "P-256", x: "x", y: "y" };
 
@@ -59,9 +62,10 @@ function requestMock() {
 }
 
 async function resetDb() {
+  assertSafeTestDatabase();
+  await query("truncate auth_nonces, answers, questions, pair_requests, pairs, users cascade");
   await query("delete from system_questions where catalog_version > 1");
   await query("delete from system_question_versions where version > 1");
-  await query("truncate auth_nonces, answers, questions, pair_requests, pairs, users cascade");
 }
 
 async function user(nickname: string) {
@@ -70,6 +74,46 @@ async function user(nickname: string) {
 
 async function activePair(userA: string, userB: string): Promise<PairRecord> {
   return transaction((client) => insertPair(client, createPairRecordForUsers(userA, userB)));
+}
+
+async function createCurrentWeeklySet(pairId: string, userId: string) {
+  const weekly = await readWeeklySystemQuestions(pairId, userId);
+  expect(weekly.ok).toBe(true);
+  if (!weekly.ok) throw new Error("weekly system questions failed");
+  return weekly;
+}
+
+async function insertSystemQuestionForWeek(
+  pairId: string,
+  weekStart: number,
+  createdAt = weekStart
+) {
+  const questionId = newId();
+  await query(
+    `insert into questions(
+       id, pair_id, created_by, created_at, blob,
+       system_question_id, system_catalog_version, system_week_start, intensity_level
+     )
+     values ($1, $2, 'computer', $3, $4::jsonb, $5, 1, $6, 3)`,
+    [questionId, pairId, createdAt, JSON.stringify(blob), `test_${questionId}`, weekStart]
+  );
+  return questionId;
+}
+
+async function insertAnswerRow(
+  questionId: string,
+  pairId: string,
+  userId: string,
+  createdAt: number
+) {
+  await query(
+    `insert into answers(
+       id, question_id, pair_id, user_id, created_at, blob,
+       match_tokens, policy_version, maybe_counts_as_match
+     )
+     values ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, 1, true)`,
+    [newId(), questionId, pairId, userId, createdAt, JSON.stringify(blob), JSON.stringify(tokens())]
+  );
 }
 
 beforeAll(async () => {
@@ -88,7 +132,7 @@ test("migrations are idempotent", async () => {
   await initializeDatabase();
   await initializeDatabase();
   const result = await query<{ count: string }>("select count(*)::text from schema_migrations");
-  expect(Number(result.rows[0].count)).toBe(5);
+  expect(Number(result.rows[0].count)).toBe(6);
 });
 
 test("system question migration seeds version 1", async () => {
@@ -115,8 +159,8 @@ test("system questions API reads latest version and keeps historical verificatio
     version: 2,
     description: "Integration test catalog",
     questions: [
-      { id: "q_v2_only", text: "Neue Frage aus Version 2?" },
-      { id: "q_v2_second", text: "Noch eine Frage aus Version 2?" }
+      { id: "q_v2_only", text: "Neue Frage aus Version 2?", intensityLevel: 1 },
+      { id: "q_v2_second", text: "Noch eine Frage aus Version 2?", intensityLevel: 5 }
     ]
   });
 
@@ -134,6 +178,16 @@ test("system questions API reads latest version and keeps historical verificatio
   );
 });
 
+test("system question catalog validation requires intensity levels", async () => {
+  await expect(
+    publishSystemQuestionVersion({
+      version: 2,
+      description: "Invalid catalog",
+      questions: [{ id: "q_missing_intensity", text: "Fehlt ein Härtegrad?" }] as never
+    })
+  ).rejects.toThrow("intensityLevel");
+});
+
 test("config validates valid and invalid env", () => {
   const valid = parseConfig({
     DATABASE_URL: "postgres://user:pass@localhost:5432/app",
@@ -141,7 +195,14 @@ test("config validates valid and invalid env", () => {
     DB_SSL: "false"
   });
   expect(valid.port).toBe(3001);
+  expect(valid.defaultWeeklyLimit).toBe(7);
   expect(() => parseConfig({ DATABASE_URL: "not-a-url" })).toThrow(/Invalid server configuration/);
+  expect(() =>
+    parseConfig({
+      DATABASE_URL: "postgres://user:pass@localhost:5432/app",
+      WEEKLY_LIMIT_DEFAULT: "5"
+    })
+  ).toThrow(/Invalid server configuration/);
 });
 
 test("user register and lookup by generated code", async () => {
@@ -170,6 +231,22 @@ test("pairing request create, list, and accept", async () => {
   expect(response.ok).toBe(true);
   if (!response.ok) throw new Error("pairing response failed");
   expect(response.value.pairId).toBeTruthy();
+});
+
+test("weekly limit proposal rejects nonzero limits below six", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+
+  const rejected = await proposeWeeklyLimitForPair(pair.id, alice.userId, 5);
+  expect(rejected.ok).toBe(false);
+  if (rejected.ok) throw new Error("weekly limit proposal unexpectedly succeeded");
+  expect(rejected.error.code).toBe(ApiErrorCode.BadRequest);
+
+  const unlimited = await proposeWeeklyLimitForPair(pair.id, alice.userId, 0);
+  expect(unlimited.ok).toBe(true);
+  if (!unlimited.ok) throw new Error("unlimited weekly limit proposal failed");
+  expect(unlimited.value.pending.limit).toBe(0);
 });
 
 test("duplicate pair is rejected", async () => {
@@ -245,6 +322,334 @@ test("system question seed stores encrypted pair questions only", async () => {
   expect(questions.rows[0].text).toBeNull();
 });
 
+test("weekly question set is stable and freezes catalog updates until next week", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const now = Date.UTC(2026, 6, 20, 12);
+
+  const first = await readWeeklySystemQuestions(pair.id, alice.userId, now);
+  expect(first.ok).toBe(true);
+  if (!first.ok) throw new Error("first weekly read failed");
+  expect(first.catalogVersion).toBe(1);
+  expect(new Set(first.questions.map((question) => question.intensityLevel))).toEqual(
+    new Set([1, 2, 3, 4, 5])
+  );
+
+  await publishSystemQuestionVersion({
+    version: 2,
+    description: "Midweek test catalog",
+    questions: [
+      { id: "q_new_soft", text: "Neue sanfte Frage?", intensityLevel: 1 },
+      { id: "q_new_sensual", text: "Neue sinnliche Frage?", intensityLevel: 2 },
+      { id: "q_new_sex", text: "Neue sexuelle Frage?", intensityLevel: 3 },
+      { id: "q_new_play", text: "Neue Spielart-Frage?", intensityLevel: 4 },
+      { id: "q_new_hard", text: "Neue harte Frage?", intensityLevel: 5 }
+    ]
+  });
+
+  const sameWeek = await readWeeklySystemQuestions(pair.id, bob.userId, now + 86400000);
+  expect(sameWeek.ok).toBe(true);
+  if (!sameWeek.ok) throw new Error("same week read failed");
+  expect(sameWeek.catalogVersion).toBe(1);
+  expect(sameWeek.questions.map((question) => question.id)).toEqual(
+    first.questions.map((question) => question.id)
+  );
+
+  const nextWeek = await readWeeklySystemQuestions(pair.id, alice.userId, now + 7 * 86400000);
+  expect(nextWeek.ok).toBe(true);
+  if (!nextWeek.ok) throw new Error("next week read failed");
+  expect(nextWeek.catalogVersion).toBe(2);
+  expect(nextWeek.questions.some((question) => question.id === "q_new_hard")).toBe(true);
+});
+
+test("weekly question set excludes system questions already answered by both partners", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const weekOne = Date.UTC(2026, 6, 20, 12);
+  const weekTwo = weekOne + 7 * 86400000;
+  await publishSystemQuestionVersion({
+    version: 2,
+    description: "Answered-system-filter catalog",
+    questions: [
+      { id: "q_filter_soft", text: "Sanft?", intensityLevel: 1 },
+      { id: "q_filter_near", text: "Nah?", intensityLevel: 2 },
+      { id: "q_filter_wish", text: "Wunsch?", intensityLevel: 3 },
+      { id: "q_filter_play", text: "Spiel?", intensityLevel: 4 },
+      { id: "q_filter_hard", text: "Hart?", intensityLevel: 5 },
+      { id: "q_filter_extra_a", text: "Extra A?", intensityLevel: 1 },
+      { id: "q_filter_extra_b", text: "Extra B?", intensityLevel: 2 }
+    ]
+  });
+
+  const first = await readWeeklySystemQuestions(pair.id, alice.userId, weekOne);
+  expect(first.ok).toBe(true);
+  if (!first.ok) throw new Error("first weekly read failed");
+  expect(first.questions).toHaveLength(7);
+  await seedWeeklyQuestionsForPair(
+    pair.id,
+    alice.userId,
+    first.weekStart,
+    first.questions.map((question) => ({
+      systemId: question.id,
+      systemVersion: question.version,
+      intensityLevel: question.intensityLevel,
+      blob
+    }))
+  );
+  const fullyAnsweredSystemId = first.questions[0].id;
+  const halfAnsweredSystemId = first.questions[1].id;
+  const seeded = await query<{ id: string; system_question_id: string }>(
+    `select id, system_question_id
+     from questions
+     where pair_id = $1
+       and system_question_id = any($2::text[])`,
+    [pair.id, [fullyAnsweredSystemId, halfAnsweredSystemId]]
+  );
+  const questionIdBySystemId = new Map(
+    seeded.rows.map((row) => [row.system_question_id, row.id] as const)
+  );
+  const fullyAnsweredQuestionId = questionIdBySystemId.get(fullyAnsweredSystemId);
+  const halfAnsweredQuestionId = questionIdBySystemId.get(halfAnsweredSystemId);
+  if (!fullyAnsweredQuestionId || !halfAnsweredQuestionId) {
+    throw new Error("seeded system questions not found");
+  }
+
+  await insertAnswerRow(fullyAnsweredQuestionId, pair.id, alice.userId, weekOne + 1);
+  await insertAnswerRow(fullyAnsweredQuestionId, pair.id, bob.userId, weekOne + 2);
+  await insertAnswerRow(halfAnsweredQuestionId, pair.id, alice.userId, weekOne + 3);
+
+  const next = await readWeeklySystemQuestions(pair.id, bob.userId, weekTwo);
+  expect(next.ok).toBe(true);
+  if (!next.ok) throw new Error("next weekly read failed");
+  expect(next.questions.map((question) => question.id)).not.toContain(fullyAnsweredSystemId);
+  expect(next.questions.map((question) => question.id)).toContain(halfAnsweredSystemId);
+});
+
+test("weekly question set includes at most two open manual questions", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const first = await createQuestionForPair(pair.id, alice.userId, blob);
+  const second = await createQuestionForPair(pair.id, bob.userId, blob);
+  const third = await createQuestionForPair(pair.id, alice.userId, blob);
+  expect(first.ok && second.ok && third.ok).toBe(true);
+  if (!first.ok || !second.ok || !third.ok) throw new Error("question create failed");
+
+  const weekly = await readWeeklySystemQuestions(pair.id, alice.userId, Date.UTC(2026, 6, 20, 12));
+  expect(weekly.ok).toBe(true);
+  if (!weekly.ok) throw new Error("weekly read failed");
+  expect(weekly.ownQuestionIds).toEqual([first.value.id, second.value.id]);
+  expect(weekly.ownQuestionIds).not.toContain(third.value.id);
+});
+
+test("weekly question set does not treat legacy computer questions as own questions", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const now = Date.UTC(2026, 6, 20, 12);
+
+  const legacySeeded = await seedQuestionsForPair(pair.id, alice.userId, [{ blob }, { blob }]);
+  expect(legacySeeded.ok).toBe(true);
+  const legacyQuestions = await query<{ id: string }>(
+    "select id from questions where pair_id = $1 and created_by = 'computer' and system_question_id is null order by created_at, id",
+    [pair.id]
+  );
+  expect(legacyQuestions.rows).toHaveLength(2);
+
+  const weekly = await readWeeklySystemQuestions(pair.id, alice.userId, now);
+  expect(weekly.ok).toBe(true);
+  if (!weekly.ok) throw new Error("weekly read failed");
+  expect(weekly.ownQuestionIds).toEqual([]);
+
+  await query(
+    "update pair_weekly_question_sets set own_question_ids = $3::jsonb where pair_id = $1 and week_start = $2",
+    [pair.id, weekly.weekStart, JSON.stringify(legacyQuestions.rows.map((question) => question.id))]
+  );
+
+  const normalized = await readWeeklySystemQuestions(pair.id, bob.userId, now);
+  expect(normalized.ok).toBe(true);
+  if (!normalized.ok) throw new Error("normalized weekly read failed");
+  expect(normalized.ownQuestionIds).toEqual([]);
+});
+
+test("answer writes are limited to questions allowed in the current week", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const first = await createQuestionForPair(pair.id, alice.userId, blob);
+  const second = await createQuestionForPair(pair.id, alice.userId, blob);
+  const third = await createQuestionForPair(pair.id, alice.userId, blob);
+  expect(first.ok && second.ok && third.ok).toBe(true);
+  if (!first.ok || !second.ok || !third.ok) throw new Error("question create failed");
+
+  await createCurrentWeeklySet(pair.id, alice.userId);
+
+  const allowed = await createAnswerForQuestion(first.value.id, bob.userId, blob);
+  expect(allowed.ok).toBe(true);
+
+  const blocked = await createAnswerForQuestion(third.value.id, bob.userId, blob);
+  expect(blocked.ok).toBe(false);
+  if (blocked.ok) throw new Error("blocked answer unexpectedly succeeded");
+  expect(blocked.error.code).toBe(ApiErrorCode.WeeklyQuestionNotAllowed);
+});
+
+test("old questions without a partner answer stay blocked as catch-up questions", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  await createCurrentWeeklySet(pair.id, alice.userId);
+  const oldQuestionId = await insertSystemQuestionForWeek(pair.id, Date.UTC(2026, 5, 1));
+
+  const blocked = await createAnswerForQuestion(oldQuestionId, bob.userId, blob);
+  expect(blocked.ok).toBe(false);
+  if (blocked.ok) throw new Error("old unanswered question unexpectedly succeeded");
+  expect(blocked.error.code).toBe(ApiErrorCode.WeeklyQuestionNotAllowed);
+});
+
+test("old half-answered questions are answerable as catch-up questions and count this week", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  await createCurrentWeeklySet(pair.id, alice.userId);
+  const oldQuestionId = await insertSystemQuestionForWeek(pair.id, Date.UTC(2026, 5, 1));
+  await insertAnswerRow(oldQuestionId, pair.id, alice.userId, Date.UTC(2026, 5, 2));
+
+  const answered = await createAnswerForQuestion(oldQuestionId, bob.userId, blob);
+  expect(answered.ok).toBe(true);
+
+  const now = Date.now();
+  const count = await countWeeklyAnswers(pair.id, bob.userId, now - 7 * 86400000, now + 1);
+  expect(count).toBe(1);
+});
+
+test("existing own answers can be updated outside the current weekly plan until the partner answered", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  await createCurrentWeeklySet(pair.id, alice.userId);
+  const oldQuestionId = await insertSystemQuestionForWeek(pair.id, Date.UTC(2026, 5, 1));
+  await insertAnswerRow(oldQuestionId, pair.id, bob.userId, Date.UTC(2026, 5, 2));
+
+  const updated = await upsertAnswerForQuestion(oldQuestionId, bob.userId, {
+    ...blob,
+    ciphertextB64: "dXBkYXRlZA=="
+  });
+  expect(updated.ok).toBe(true);
+  if (!updated.ok) throw new Error("old own answer update failed");
+  expect(updated.value.updated).toBe(true);
+});
+
+test("catch-up answers are rejected when the weekly limit is already reached", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  await query("update pairs set weekly_limit = 6 where id = $1", [pair.id]);
+  await createCurrentWeeklySet(pair.id, alice.userId);
+
+  const now = Date.now();
+  for (let i = 0; i < 6; i += 1) {
+    const questionId = await insertSystemQuestionForWeek(pair.id, Date.UTC(2026, 6, 1), now + i);
+    await insertAnswerRow(questionId, pair.id, bob.userId, now + i);
+  }
+  const oldQuestionId = await insertSystemQuestionForWeek(pair.id, Date.UTC(2026, 5, 1));
+  await insertAnswerRow(oldQuestionId, pair.id, alice.userId, Date.UTC(2026, 5, 2));
+
+  const blocked = await createAnswerForQuestion(oldQuestionId, bob.userId, blob);
+  expect(blocked.ok).toBe(false);
+  if (blocked.ok) throw new Error("catch-up answer unexpectedly succeeded");
+  expect(blocked.error.code).toBe(ApiErrorCode.WeeklyLimitReached);
+});
+
+test("pair details include the partner's current weekly answer count", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const now = Date.now();
+  const aliceQuestionA = await insertSystemQuestionForWeek(pair.id, Date.UTC(2026, 6, 1), now);
+  const aliceQuestionB = await insertSystemQuestionForWeek(pair.id, Date.UTC(2026, 6, 1), now + 1);
+  const bobQuestion = await insertSystemQuestionForWeek(pair.id, Date.UTC(2026, 6, 1), now + 2);
+  await insertAnswerRow(aliceQuestionA, pair.id, bob.userId, now);
+  await insertAnswerRow(aliceQuestionB, pair.id, bob.userId, now + 1);
+  await query("update questions set created_by = $2 where id = $1", [bobQuestion, bob.userId]);
+  await insertAnswerRow(bobQuestion, pair.id, alice.userId, now + 2);
+
+  const details = await getPairDetails(pair.id, alice.userId);
+  expect(details.ok).toBe(true);
+  if (!details.ok) throw new Error("pair details failed");
+  expect(details.value.usage.answeredThisWeek).toBe(1);
+  expect(details.value.usage.partnerAnsweredThisWeek).toBe(2);
+});
+
+test("weekly system question seeding validates the frozen plan and is idempotent", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const weekly = await createCurrentWeeklySet(pair.id, alice.userId);
+  const items = weekly.questions.map((question) => ({
+    systemId: question.id,
+    systemVersion: question.version,
+    intensityLevel: question.intensityLevel,
+    blob
+  }));
+
+  const seeded = await seedWeeklyQuestionsForPair(pair.id, alice.userId, weekly.weekStart, items);
+  expect(seeded.ok).toBe(true);
+  if (!seeded.ok) throw new Error("weekly seed failed");
+  expect(seeded.value.alreadySeeded).toBe(false);
+
+  const reseeded = await seedWeeklyQuestionsForPair(pair.id, bob.userId, weekly.weekStart, items);
+  expect(reseeded.ok).toBe(true);
+  if (!reseeded.ok) throw new Error("weekly reseed failed");
+  expect(reseeded.value.alreadySeeded).toBe(true);
+
+  const stored = await query<{
+    system_question_id: string;
+    system_week_start: string;
+    intensity_level: string;
+  }>(
+    `select system_question_id, system_week_start::text, intensity_level::text
+     from questions
+     where pair_id = $1 and system_question_id is not null`,
+    [pair.id]
+  );
+  expect(stored.rows).toHaveLength(weekly.questions.length);
+  expect(stored.rows.every((row) => Number(row.system_week_start) === weekly.weekStart)).toBe(true);
+
+  const badSeed = await seedWeeklyQuestionsForPair(pair.id, alice.userId, weekly.weekStart, [
+    items[0]
+  ]);
+  expect(badSeed.ok).toBe(false);
+  if (badSeed.ok) throw new Error("bad seed unexpectedly succeeded");
+  expect(badSeed.error.code).toBe(ApiErrorCode.BadSystemQuestions);
+});
+
+test("seeded weekly system questions keep metadata when checking answer access", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const weekly = await createCurrentWeeklySet(pair.id, alice.userId);
+  await seedWeeklyQuestionsForPair(
+    pair.id,
+    alice.userId,
+    weekly.weekStart,
+    weekly.questions.map((question) => ({
+      systemId: question.id,
+      systemVersion: question.version,
+      intensityLevel: question.intensityLevel,
+      blob
+    }))
+  );
+  const stored = await query<{ id: string }>(
+    "select id from questions where pair_id = $1 and system_question_id = $2",
+    [pair.id, weekly.questions[0].id]
+  );
+
+  const answered = await createAnswerForQuestion(stored.rows[0].id, bob.userId, blob);
+  expect(answered.ok).toBe(true);
+});
+
 test("answer create and upsert", async () => {
   const alice = await user("Alice");
   const bob = await user("Bob");
@@ -252,6 +657,7 @@ test("answer create and upsert", async () => {
   const question = await createQuestionForPair(pair.id, alice.userId, blob);
   expect(question.ok).toBe(true);
   if (!question.ok) throw new Error("question create failed");
+  await createCurrentWeeklySet(pair.id, alice.userId);
 
   const created = await createAnswerForQuestion(question.value.id, bob.userId, blob);
   expect(created.ok).toBe(true);
@@ -271,6 +677,7 @@ test("answer lists expose only own blobs and matches use opaque token intersecti
   const question = await createQuestionForPair(pair.id, alice.userId, blob);
   expect(question.ok).toBe(true);
   if (!question.ok) throw new Error("question create failed");
+  await createCurrentWeeklySet(pair.id, alice.userId);
 
   const aliceBlob = { ...blob, ciphertextB64: "YWxpY2U=" };
   const bobBlob = { ...blob, ciphertextB64: "Ym9i" };
@@ -313,6 +720,7 @@ test("opaque token mismatch prevents a private match", async () => {
   const question = await createQuestionForPair(pair.id, alice.userId, blob);
   expect(question.ok).toBe(true);
   if (!question.ok) throw new Error("question create failed");
+  await createCurrentWeeklySet(pair.id, alice.userId);
 
   await createAnswerForQuestion(
     question.value.id,
@@ -344,6 +752,7 @@ test("stricter match policy prunes existing maybe tokens", async () => {
   const question = await createQuestionForPair(pair.id, alice.userId, blob);
   expect(question.ok).toBe(true);
   if (!question.ok) throw new Error("question create failed");
+  await createCurrentWeeklySet(pair.id, alice.userId);
 
   await createAnswerForQuestion(
     question.value.id,
@@ -383,6 +792,7 @@ test("match policy proposal requires partner acceptance and applies to both user
   const question = await createQuestionForPair(pair.id, alice.userId, blob);
   expect(question.ok).toBe(true);
   if (!question.ok) throw new Error("question create failed");
+  await createCurrentWeeklySet(pair.id, alice.userId);
 
   await createAnswerForQuestion(
     question.value.id,
@@ -445,6 +855,7 @@ test("weekly limit count excludes own questions", async () => {
   expect(partnerQuestion.ok).toBe(true);
   expect(ownQuestion.ok).toBe(true);
   if (!partnerQuestion.ok || !ownQuestion.ok) throw new Error("question create failed");
+  await createCurrentWeeklySet(pair.id, alice.userId);
   await createAnswerForQuestion(partnerQuestion.value.id, bob.userId, blob);
   await createAnswerForQuestion(ownQuestion.value.id, bob.userId, blob);
 

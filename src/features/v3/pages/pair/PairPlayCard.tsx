@@ -1,4 +1,4 @@
-import type { PointerEventHandler } from "react";
+import type { CSSProperties, PointerEventHandler } from "react";
 import type { AnswerChoice, DecryptedQuestion } from "../../../../types";
 import { AnswerChoiceGroup } from "../../components";
 import { ChevronLeftIcon } from "../../components/icons/ChevronLeftIcon";
@@ -14,11 +14,16 @@ type PairPlayCardProps = {
   canAnswerNew: boolean;
   canPrev: boolean;
   canNext: boolean;
+  answerError: string | null;
+  animationDirection: "prev" | "next" | null;
+  animationState: "idle" | "leaving" | "entering";
   flash: {
     showSaved: boolean;
     isSaving: boolean;
   };
   swipe: {
+    dragX: number;
+    isDragging: boolean;
     onPointerDown: PointerEventHandler<HTMLDivElement>;
     onPointerMove: PointerEventHandler<HTMLDivElement>;
     onPointerUp: PointerEventHandler<HTMLDivElement>;
@@ -35,6 +40,9 @@ type PairPlayCardProps = {
 
 export function PairPlayCard(props: PairPlayCardProps) {
   if (!props.orderedCount && !props.showSavedOnlyCard) return null;
+  const swipeStyle = {
+    "--swipe-x": `${props.swipe.dragX}px`
+  } as CSSProperties;
 
   return (
     <div className="v3-play-panel">
@@ -42,7 +50,11 @@ export function PairPlayCard(props: PairPlayCardProps) {
         className="v3-play-card"
         data-testid="play-card"
         data-question-id={props.visibleQuestionId}
+        data-nav-direction={props.animationDirection ?? "none"}
+        data-nav-state={props.animationState}
         data-saved={props.flash.showSaved ? "true" : "false"}
+        data-swipe-active={props.swipe.isDragging ? "true" : "false"}
+        style={swipeStyle}
         onPointerDown={props.swipe.onPointerDown}
         onPointerMove={props.swipe.onPointerMove}
         onPointerUp={props.swipe.onPointerUp}
@@ -68,6 +80,7 @@ export function PairPlayCard(props: PairPlayCardProps) {
         <PairPlayCardNav
           canPrev={props.canPrev}
           canNext={props.canNext}
+          answerError={props.answerError}
           showSaved={props.flash.showSaved}
           onPrev={props.onPrev}
           onNext={props.onNext}
@@ -80,12 +93,14 @@ export function PairPlayCard(props: PairPlayCardProps) {
 function PairPlayCardNav({
   canPrev,
   canNext,
+  answerError,
   showSaved,
   onPrev,
   onNext
 }: {
   canPrev: boolean;
   canNext: boolean;
+  answerError: string | null;
   showSaved: boolean;
   onPrev: () => void;
   onNext: () => void;
@@ -106,7 +121,11 @@ function PairPlayCardNav({
         ) : null}
       </div>
       <div className="v3-play-nav-message">
-        {showSaved ? (
+        {answerError ? (
+          <div className="v3-answer-error v3-answer-error-nav" data-testid="answer-error-message">
+            {answerError}
+          </div>
+        ) : showSaved ? (
           <div className="v3-answer-saved v3-answer-saved-nav" data-testid="answer-saved-indicator">
             Frage wurde beantwortet.
           </div>

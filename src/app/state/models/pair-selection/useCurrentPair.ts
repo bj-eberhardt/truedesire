@@ -8,7 +8,7 @@ import {
 
 export function useCurrentPair() {
   const [pair, setPair] = useState<PairView | null>(null);
-  const [weeklyLimitInput, setWeeklyLimitInput] = useState("15");
+  const [weeklyLimitInput, setWeeklyLimitInput] = useState("7");
   const [allowAllQuestions, setAllowAllQuestions] = useState(false);
   const [answerLimitReached, setAnswerLimitReached] = useState(false);
 

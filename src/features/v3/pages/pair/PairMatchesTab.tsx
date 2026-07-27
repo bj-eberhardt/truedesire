@@ -1,5 +1,5 @@
 import { RefreshButton } from "../../../../components/RefreshButton";
-import { V3RevealContent, V3SectionHeader } from "../../components";
+import { V3LoadingText, V3RevealContent, V3SectionHeader } from "../../components";
 import { PairMatchCard } from "./PairMatchCard";
 import { usePairMatchesModel } from "./usePairMatchesModel";
 
@@ -32,7 +32,11 @@ export function PairMatchesTab() {
 
       <V3RevealContent
         isLoading={model.isLoadingMatches}
-        loading={<div className="hint">Matches werden geladen...</div>}
+        loading={
+          <div className="hint">
+            <V3LoadingText>Matches werden geladen...</V3LoadingText>
+          </div>
+        }
       >
         {model.matches.length ? (
           <div className="match-grid" data-testid="matches-grid">

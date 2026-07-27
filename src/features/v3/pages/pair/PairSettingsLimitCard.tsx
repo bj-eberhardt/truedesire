@@ -1,4 +1,10 @@
 import type { PairView } from "../../../../types";
+import {
+  getEffectiveWeeklyLimit,
+  MAX_WEEKLY_LIMIT,
+  MIN_WEEKLY_LIMIT,
+  validateWeeklyLimitDraft
+} from "../../../../app/state/models/pair-selection/groupSettingsState";
 
 type GroupSettingsAction = "accept" | "reject" | "cancel";
 
@@ -16,6 +22,8 @@ export type PairSettingsLimitCardProps = {
 };
 
 export function PairSettingsLimitCard(props: PairSettingsLimitCardProps) {
+  const showChangeWarning = shouldShowWeeklyLimitChangeWarning(props);
+
   return (
     <>
       <div className="settings-item">
@@ -45,8 +53,8 @@ export function PairSettingsLimitCard(props: PairSettingsLimitCardProps) {
                   data-testid="weekly-limit-input"
                   type="number"
                   inputMode="numeric"
-                  min="0"
-                  max="50"
+                  min={MIN_WEEKLY_LIMIT}
+                  max={MAX_WEEKLY_LIMIT}
                   step="1"
                   aria-label="Fragen pro Woche"
                   value={props.weeklyLimitDraft}
@@ -78,6 +86,7 @@ export function PairSettingsLimitCard(props: PairSettingsLimitCardProps) {
             Änderung vorschlagen
           </button>
         </div>
+        {showChangeWarning ? <WeeklyLimitChangeWarning /> : null}
         <PairSettingsLimitPendingRequest {...props} />
       </div>
     </>
@@ -162,6 +171,31 @@ function PendingRequestSummary({ limit }: { limit: number }) {
       <div className="pair-card-code mono">
         {limit === 0 ? "Alle Fragen erlauben" : `${limit} Fragen/Woche`}
       </div>
+    </div>
+  );
+}
+
+function shouldShowWeeklyLimitChangeWarning(props: PairSettingsLimitCardProps): boolean {
+  if (props.pair.weeklyLimitPending) return false;
+  const validation = validateWeeklyLimitDraft({
+    allowAllQuestions: props.allowAllQuestions,
+    weeklyLimitDraft: props.weeklyLimitDraft
+  });
+  if (!validation.ok) return false;
+  const currentLimit = getEffectiveWeeklyLimit(props.pair);
+  return validation.limit !== currentLimit;
+}
+
+function WeeklyLimitChangeWarning() {
+  return (
+    <div
+      className="settings-warning settings-limit-warning"
+      data-id="weekly-limit-change-warning"
+      data-testid="weekly-limit-decrease-warning"
+      role="status"
+    >
+      Wenn ihr das Limit ändert, bleibt der Fragenkatalog dieser Woche unverändert. Es sind aber
+      sofort entsprechend viele Antworten pro Person in dieser Woche möglich.
     </div>
   );
 }

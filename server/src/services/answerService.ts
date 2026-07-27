@@ -23,6 +23,9 @@ function mapAnswerWriteFailure(kind: string) {
   if (kind === "already_answered") return fail(ApiErrorCode.AlreadyAnswered, 409);
   if (kind === "partner_answered") return fail(ApiErrorCode.CannotUpdateAfterPartnerAnswer, 409);
   if (kind === "weekly_limit") return fail(ApiErrorCode.WeeklyLimitReached, 429);
+  if (kind === "weekly_question_not_allowed") {
+    return fail(ApiErrorCode.WeeklyQuestionNotAllowed, 403);
+  }
   return fail(ApiErrorCode.Forbidden, 403);
 }
 

@@ -37,6 +37,10 @@ function renderCard(pair: PairView, overrides = {}) {
   return rendererRef.current;
 }
 
+function expectMissingTestId(renderer: ReactTestRenderer, testId: string) {
+  expect(() => renderer.root.findByProps({ "data-testid": testId })).toThrow();
+}
+
 beforeEach(() => {
   const originalConsoleError = console.error;
   vi.spyOn(console, "error").mockImplementation((message?: unknown, ...args: unknown[]) => {
@@ -92,4 +96,27 @@ test("shows accept and reject for a partner pending proposal", () => {
 
   expect(renderer.root.findByProps({ "data-testid": "match-policy-accept-button" })).toBeTruthy();
   expect(renderer.root.findByProps({ "data-testid": "match-policy-reject-button" })).toBeTruthy();
+});
+
+test("warns when changing from perfect-only matches to a broader match rule", () => {
+  const renderer = renderCard(basePair, {
+    matchPolicy: "perfectOnly",
+    matchPolicyDraft: "allowMutualMaybe"
+  });
+
+  expect(renderer.root.findByProps({ "data-testid": "match-policy-relax-warning" })).toBeTruthy();
+});
+
+test("does not warn for stricter or unchanged match rule changes", () => {
+  const stricter = renderCard(basePair, {
+    matchPolicy: "allowMutualMaybe",
+    matchPolicyDraft: "perfectOnly"
+  });
+  expectMissingTestId(stricter, "match-policy-relax-warning");
+
+  const unchanged = renderCard(basePair, {
+    matchPolicy: "perfectOnly",
+    matchPolicyDraft: "perfectOnly"
+  });
+  expectMissingTestId(unchanged, "match-policy-relax-warning");
 });
