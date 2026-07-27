@@ -12,238 +12,132 @@ Privacy-first „Fragen-Spiel“ für Paare:
 - Auswertung: nur Optionen ohne „Nein“ werden als Match gezeigt
 - Wochenlimit pro Pair (nur aktiv, wenn beide zustimmen)
 
-## Start (Dev)
+Weitere Liebesspiele gibt es auf: https://love-games.app/
 
-Voraussetzungen: Node.js `>= 24`.
+## Regeln und Ablauf
 
-1. Server (Node.js + TypeScript, eigenes `server/package.json`)
+TrueDesire ist ein privates Frage- und Matching-Spiel für zwei Personen oder mehrere einzelne
+Paare, die auf spannende Weise herausbekommen wollen, was sich beide schon immer gewünscht haben.
 
-```bash
-npm ci --prefix server
-npm run server:build
-npm run server:start
+Ziel ist es auf voreingestellte aber auch eigene Fragen per "Ja/Nein/Vielleicht" 💌 zu antworten.
+Wenn beide einer Meinung sind oder sich darauf einlassen wollen, gibt es ein Match, und das Paar
+kann über die gemeinsame Umsetzung nachdenken.
+
+### 1. Konto erstellen 🔐
+
+Jede Person erstellt ein eigenes Konto mit Nickname. Die privaten Schlüssel bleiben auf dem Gerät.
+Lege direkt ein Backup an, damit du dein Konto später auf demselben oder einem neuen Gerät
+wiederherstellen kannst.
+
+### 2. Pairing herstellen 🤝
+
+Jedes Konto hat einen Pairing-Code. Eine Person gibt den Code der anderen Person ein und sendet eine
+Verknüpfungsanfrage. Die andere Person kann diese Anfrage annehmen oder ablehnen. Erst nach der
+Annahme entsteht ein aktives Pair.
+
+### 3. Fragen beantworten 🎴
+
+Ihr beantwortet dieselben Fragen unabhängig voneinander mit:
+
+- **Ja**: Das möchtest du.
+- **Vielleicht**: Du bist offen oder neugierig.
+- **Nein**: Das möchtest du nicht.
+
+Du kannst eigene Fragen hinzufügen. Beim Speichern beantwortest du deine eigene Frage direkt mit,
+damit sie für das Pair spielbar ist.
+
+### 4. Matches sehen ✨
+
+Ein Ergebnis wird erst angezeigt, wenn beide Personen dieselbe Frage beantwortet haben. Sichtbar
+werden nur Matches, bei denen niemand **Nein** gesagt hat:
+
+- **Ja + Ja**: klares Match.
+- **Ja + Vielleicht** oder **Vielleicht + Ja**: vorsichtiges Match.
+- **Vielleicht + Vielleicht**: beide sind neugierig.
+- Sobald mindestens eine Person **Nein** wählt, bleibt die Antwort verborgen.
+
+### 5. Antworten ändern und Grenzen respektieren 🧭
+
+Du kannst deine Antwort ändern, solange dein Partner dieselbe Frage noch nicht beantwortet hat.
+Sobald beide geantwortet haben, ist die Frage abgeschlossen. Das Wochenlimit begrenzt neue Antworten,
+sodass auch noch nach einigen Wochen die Spannung nach neuen Matches aussteht.
+
+## Nutzung
+
+### Hosted
+
+Kostenlos nutzbare Version gehostet unter: [https://truedesire.love-games.app/](https://truedesire.love-games.app/).
+
+### Docker compose
+
+Via Docker Compose:
+
+```yaml
+name: truedesire
+
+services:
+  app:
+    image: beberhardt/truedesire:latest
+    restart: unless-stopped
+    environment:
+      # Runtime
+      NODE_ENV: production
+      PORT: ${PORT:-3001}
+      STATIC_DIR: /app/dist
+
+      # Datenbank
+      DATABASE_URL: postgresql://${POSTGRES_USER:-truedesire}:${POSTGRES_PASSWORD:-change-me}@db:5432/${POSTGRES_DB:-truedesire}
+      DB_SSL: ${DB_SSL:-false}
+      DB_MIGRATIONS_LOCK_TIMEOUT_MS: ${DB_MIGRATIONS_LOCK_TIMEOUT_MS:-10000}
+
+      # Logging
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      REQUEST_LOGS: ${REQUEST_LOGS:-true}
+
+      # Spielregeln
+      WEEKLY_LIMIT_DEFAULT: ${WEEKLY_LIMIT_DEFAULT:-7}
+
+      # Pairing-Rate-Limits
+      PAIRING_LIMIT_USER_PER_MIN: ${PAIRING_LIMIT_USER_PER_MIN:-10}
+      PAIRING_LIMIT_USER_PER_HOUR: ${PAIRING_LIMIT_USER_PER_HOUR:-50}
+      PAIRING_LIMIT_IP_PER_MIN: ${PAIRING_LIMIT_IP_PER_MIN:-30}
+      PAIRING_LIMIT_IP_PER_HOUR: ${PAIRING_LIMIT_IP_PER_HOUR:-200}
+    ports:
+      - "${PUBLISHED_PORT:-3001}:${PORT:-3001}"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'node -e "fetch(''http://127.0.0.1:'' + process.env.PORT + ''/health'').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"'
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-truedesire}
+      POSTGRES_USER: ${POSTGRES_USER:-truedesire}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - truedesire_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-truedesire} -d ${POSTGRES_DB:-truedesire}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  truedesire_postgres_data:
 ```
 
-- Server läuft standardmäßig auf `http://localhost:3001`
-- Die API liegt unter `/api` (z.B. `/api/auth/register`); `/health` bleibt separat für Healthchecks.
-- Persistenz: Postgres über `DATABASE_URL`
+## Entwickler
 
-2. Client (Vite)
-
-```bash
-npm install
-npm run dev
-```
-
-Für lokale Entwicklung ohne Same-Origin-Backend `VITE_API_BASE` setzen (z.B. `.env.local`):
-
-```bash
-VITE_API_BASE=http://localhost:3001
-```
-
-## Start mit Docker Compose (lokale Entwicklung)
-
-Der Dev-Stack startet Backend und Frontend in Containern mit Watch-Modus:
-
-```bash
-npm run dev:docker
-```
-
-Alternativ direkt mit Docker Compose:
-
-```bash
-docker compose -f docker-compose.dev.yml up --build
-```
-
-Danach sind die Dienste erreichbar unter:
-
-- Frontend: `http://localhost:5173`
-- Backend: `http://localhost:3001`
-
-Der Frontend-Container setzt `VITE_API_BASE=http://localhost:3001`. Der Backend-Container läuft mit `LOG_LEVEL=debug` und `REQUEST_LOGS=true`, sodass Requests und Pairing-Diagnose im Container-Log sichtbar sind.
-
-Nützliche Befehle:
-
-```bash
-docker compose -f docker-compose.dev.yml logs -f backend
-docker compose -f docker-compose.dev.yml logs -f frontend
-docker compose -f docker-compose.dev.yml down
-```
-
-Hinweise:
-
-- Die Container verwenden eigene Named Volumes für `node_modules`, damit Host- und Container-Abhängigkeiten getrennt bleiben.
-- Die Dev-Datenbank liegt im Named Volume `postgres_dev_data` und bleibt nach Backend-Neustarts erhalten.
-- Dev-Daten zurücksetzen: `docker compose -f docker-compose.dev.yml down -v`.
-- Der Backend-Service mountet nur `./server` und nutzt ausschließlich `server/package.json`.
-- Der Backend-Service baut `server/src` initial nach `server/dist` und startet zusätzlich TypeScript-Watch plus `node --watch`.
-- App-Daten werden nicht mehr in `server/data/db.json` geschrieben.
-
-## Qualität und CI
-
-Lokale Checks, analog zur GitHub-PR-Pipeline:
-
-```bash
-npm run format:check
-npm run lint
-npm run typecheck
-npm run build
-npm run server:lint
-npm run server:typecheck
-npm run server:build
-npm run test:e2e
-```
-
-Formatierung und Lint-Fixes:
-
-```bash
-npm run format
-npm run lint:fix
-```
-
-### E2E UI Tests
-
-Die E2E-Tests laufen gegen einen separaten, production-nahen Docker-Stack. Dadurch kollidieren sie nicht mit den Dev-Ports (`5173`/`3001`). Die E2E-Datenbank liegt auf `tmpfs` und startet pro Stack-Lauf leer.
-
-Headless im Docker-Runner:
-
-```bash
-npm run test:e2e:docker
-```
-
-Playwright UI im Docker-Runner starten:
-
-```bash
-npm run test:e2e:docker:ui
-```
-
-Danach die Playwright-Test-UI öffnen:
-
-```text
-http://localhost:9323
-```
-
-Die getestete E2E-App ist parallel erreichbar unter:
-
-```text
-http://localhost:3101
-```
-
-Wenn sich Playwright lokal selbst mit UI-Fenster öffnen soll, zuerst nur die E2E-App starten:
-
-```bash
-docker compose -f docker-compose.e2e.yml up --build app-e2e
-```
-
-Dann in einem zweiten Terminal die lokale Playwright UI starten:
-
-```bash
-npm run test:e2e -- --ui
-```
-
-Aufräumen/Stoppen:
-
-```bash
-docker compose -f docker-compose.e2e.yml down
-```
-
-GitHub Actions:
-
-- Pull Requests gegen `master`: Prettier, ESLint, Typecheck, Build und Playwright-E2E.
-- Push auf `master`: gleiche Checks, Production-Docker-Image bauen, `/health` Smoke-Test, Push nach DockerHub.
-- DockerHub Secrets: `DOCKERHUB_USERNAME` und `DOCKERHUB_TOKEN`.
-- Image: `beberhardt/truedesire:latest` und `beberhardt/truedesire:<package.json version>`.
-
-## Production mit Docker Compose
-
-Production läuft als Single-App-Container: Das Node-Backend liefert API und gebaute Vite-Dateien unter derselben Origin aus.
-
-```bash
-cp release/.env.example release/.env
-# release/.env prüfen/anpassen
-docker compose -f release/docker-compose.prod.yml up -d --build
-```
-
-Der Stack veröffentlicht standardmäßig Port `3001`. Persistente Daten liegen im Docker Volume `truedesire_postgres_data`.
-
-Ein bestimmtes DockerHub-Image starten:
-
-```bash
-TRUEDESIRE_TAG=0.1.0 docker compose -f release/docker-compose.prod.yml up -d
-
-```
-
-Image lokal bauen und pushen
-
-```
-npm run docker:prod:build
-docker tag beberhardt/truedesire:local beberhardt/truedesire:latest
-docker push beberhardt/truedesire:latest
-```
-
-## UI/Flow (MVP)
-
-1. **Account**
-   - Nickname setzen → Account erstellen/laden
-   - Backup exportieren / importieren (Copy/Paste JSON)
-   - Account löschen (lokal + serverseitig als gelöscht markieren)
-
-2. **Pairing (Multi-Pairing)**
-   - Du hast einen **Pairing-Code** (öffentlich für alle, die ihn kennen)
-   - Eine Person gibt den Code des Partners ein, der Partner nimmt die Anfrage an
-   - Offene Pairing-Anfragen werden angezeigt und können angenommen/abgelehnt/abgebrochen werden
-
-3. **Fragen (nur eigene)**
-   - Eigene Fragen hinzufügen
-   - Beim Speichern wählst du deine eigene Antwort (Ja/Vielleicht/Nein), damit du nicht extra später antworten musst
-   - Eigene Fragen kannst du löschen, solange dein Partner noch nicht geantwortet hat
-
-4. **Spielen**
-   - Karten-Ansicht (Vorige/Nächste)
-   - Es werden nur Fragen angezeigt, die noch nicht von beiden beantwortet wurden
-   - Wenn das Wochenlimit erreicht ist, werden keine neuen Partner-/Computer-Fragen mehr angezeigt
-   - Button **„Bereits gespielte Fragen“**: zeigt Fragen, die du schon beantwortet hast, solange dein Partner noch nicht geantwortet hat (Antwort anpassen möglich)
-
-5. **Auswertung (Matches)**
-   - Nur Matches werden angezeigt: sobald beide geantwortet haben und keiner „Nein“ gesagt hat
-
-6. **Wochenlimit**
-   - Ein Partner schlägt ein Limit vor, der andere kann **annehmen** oder **ablehnen**
-
-## System-Fragen (Computer)
-
-Die „Computer“-Fragen liegen versioniert in Postgres und können über die API abgefragt werden:
-
-- `GET /system/questions`
-
-Die Kataloge liegen als versionierte JSON-Dateien unter `server/data/system-question-catalogs`
-(`v1.json`, `v2.json`, ...). Beim Serverstart synchronisiert der Server fehlende Katalogversionen
-idempotent nach Postgres und berechnet die SHA-256-Hashes intern. Bereits vorhandene Versionen
-werden nicht verändert.
-
-Neue Kataloge werden als vollständige neue Version angelegt. Alternativ kann ein Katalog explizit
-veröffentlicht werden, z.B. nach dem Server-Build:
-
-```bash
-npm --prefix server run system-questions:publish -- server/data/system-question-catalogs/v2.json
-```
-
-Wichtig: System-Fragen werden **nachdem ein Pair aktiv ist** von einem Client **clientseitig verschlüsselt** und dann einmalig dem Pair hinzugefügt. In der Datenbank liegen sie nur als Ciphertext.
-
-Integrität: Der Server kann den Klartext nicht prüfen (Zero-Knowledge). Stattdessen enthält der verschlüsselte Payload `systemId` + `systemHash` (SHA‑256). Der Client verifiziert diese gegen `GET /system/questions` und markiert Abweichungen als „nicht verifiziert“.
-
-## Sicherheit (Kurzüberblick)
-
-- **API-Auth:** Alle API-Requests (außer `/health` und `/auth/register`) sind signiert (ECDSA P‑256). Der Server akzeptiert nur Requests mit gültiger Signatur für die gespeicherte `signPublicJwk` des Users.
-- **E2E Inhalte:** Fragen/Antworten sind AES‑GCM verschlüsselt. Key-Derivation: ECDH (P‑256) + HKDF‑SHA256 (browser-native WebCrypto).
-- **Replay-Schutz:** `x-nonce` + Zeitfenster.
-- **Backup/Restore:** Private Keys bleiben auf dem Gerät (IndexedDB). Export/Import ist im UI verfügbar.
-
-## Limits
-
-- **Fragen hinzufügen:** unbegrenzt.
-- **Antworten pro Woche:** serverseitig limitiert über das vereinbarte Wochenlimit.
-  - Der Limit-Zähler gilt nur für Antworten auf Fragen, die **nicht von dir** erstellt wurden (Partner/Computer).
-  - **Eigene Fragen** kannst du immer beantworten – auch wenn das Wochenlimit erreicht ist.
-  - **Änderungen** an bereits gespeicherten Antworten sind möglich, solange dein Partner noch nicht geantwortet hat.
-  - Sobald beide geantwortet haben, sperrt die API Änderungen.
+Mehr Informationen für Entwickler gibt es [hier](DEV.md).

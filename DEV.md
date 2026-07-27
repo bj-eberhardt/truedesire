@@ -1,98 +1,136 @@
-# Development Configuration
+# Entwicklung
 
-This project supports simple runtime configuration for weekly limits.
+## Schnellstart
 
-## Weekly Limit (Default = 7)
-
-- Server default weekly limit is controlled by environment variable:
-  - `WEEKLY_LIMIT_DEFAULT`
-- If not set, the fallback default is `7`.
-- Applied when new pair links are created on the server.
-
-Example:
+Empfohlen ist der Docker-Dev-Stack. Er startet Postgres, Backend und Frontend mit Watch-Modus:
 
 ```bash
-WEEKLY_LIMIT_DEFAULT=20 npm run server:start
+npm run dev:docker
 ```
 
-## System Questions
+Aufrufbar im Browser:
 
-- System questions are stored in Postgres.
-- SQL migration `002_system_questions.sql` creates only the catalog tables.
-- Versioned catalog files live in `server/data/system-question-catalogs` (`v1.json`, `v2.json`,
-  ...).
-- On startup, the server imports missing catalog versions and calculates question hashes
-  internally. Existing versions are not changed.
-- New catalogs are published as complete versions; no questions are inherited from previous
-  versions.
-- Startup migrations are SQL files in `server/src/db/migrations` and are copied to
-  `server/dist/db/migrations` during `npm --prefix server run build`. Catalog files are copied to
-  `server/dist/data/system-question-catalogs`.
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3001`
+- Healthcheck: `http://localhost:3001/health`
+- API: `http://localhost:3001/api/...`
 
-Example after building the server:
+Nützliche Docker-Befehle:
+
+```bash
+docker compose -f docker-compose.dev.yml logs -f backend
+docker compose -f docker-compose.dev.yml logs -f frontend
+docker compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.dev.yml down -v
+```
+
+`down -v` löscht auch die lokale Dev-Datenbank im Volume `postgres_dev_data`.
+
+## Lokal Ohne Docker
+
+Voraussetzung: Node.js `>= 24` und eine laufende Postgres-Datenbank.
+
+Backend:
+
+```bash
+npm ci --prefix server
+npm run server:build
+npm run server:start
+```
+
+Frontend:
+
+```bash
+npm install
+npm run dev
+```
+
+Für getrennte lokale Frontend-/Backend-Ports:
+
+```bash
+VITE_API_BASE=http://localhost:3001
+```
+
+## Checks
+
+Häufig genutzte Checks:
+
+```bash
+npm run lint
+npm run typecheck
+npm run test:unit
+npm run build
+```
+
+Backend separat:
+
+```bash
+npm run server:lint
+npm run server:typecheck
+npm run server:test
+npm run server:build
+```
+
+Alles zusammen:
+
+```bash
+npm run check
+```
+
+Formatierung:
+
+```bash
+npm run format:check
+npm run format
+```
+
+## E2E Tests
+
+Headless im Docker-Runner:
+
+```bash
+npm run test:e2e:docker
+```
+
+Playwright UI im Docker-Runner:
+
+```bash
+npm run test:e2e:docker:ui
+```
+
+Aufrufbar im Browser:
+
+- Playwright UI: `http://localhost:9323`
+- E2E-App: `http://localhost:3101`
+
+Aufräumen:
+
+```bash
+docker compose -f docker-compose.e2e.yml down
+```
+
+## Wichtige ENV
+
+Im Docker-Dev-Stack sind die wichtigsten Werte bereits gesetzt.
+
+- `DATABASE_URL`: Postgres-Verbindung für das Backend.
+- `PORT`: Backend-Port, Standard `3001`.
+- `VITE_API_BASE`: API-Basis-URL für lokale Frontend-Entwicklung.
+- `LOG_LEVEL`: `debug`, `info`, `warn`, `error` oder `silent`.
+- `REQUEST_LOGS`: Request-Logs aktivieren oder deaktivieren.
+- `WEEKLY_LIMIT_DEFAULT`: Standard-Wochenlimit für neue Pairs.
+- `PAIRING_LIMIT_USER_PER_MIN`, `PAIRING_LIMIT_USER_PER_HOUR`: Pairing-Limits pro User.
+- `PAIRING_LIMIT_IP_PER_MIN`, `PAIRING_LIMIT_IP_PER_HOUR`: Pairing-Limits pro IP.
+
+Die Production-Vorlage liegt in `release/.env.example`.
+
+## Systemfragen
+
+Systemfragen liegen versioniert unter `server/data/system-question-catalogs`. Beim Serverstart werden
+fehlende Katalogversionen nach Postgres synchronisiert.
+
+Nach einem Server-Build kann ein Katalog manuell veröffentlicht werden:
 
 ```bash
 npm --prefix server run system-questions:publish -- server/data/system-question-catalogs/v2.json
 ```
-
-## Notes
-
-- The client-side weekly limit input now defaults to `7` as well.
-- Existing pairs keep their stored weekly limit unless changed via the weekly limit proposal flow.
-
-## Pairing Rate Limits (`/pairing/request`)
-
-To reduce partner-code brute-force attempts, the server enforces request limits on:
-
-- authenticated user (`userId`)
-- client IP address
-
-Configurable env vars:
-
-- `PAIRING_LIMIT_USER_PER_MIN` (default: `10`)
-- `PAIRING_LIMIT_USER_PER_HOUR` (default: `50`)
-- `PAIRING_LIMIT_IP_PER_MIN` (default: `30`)
-- `PAIRING_LIMIT_IP_PER_HOUR` (default: `200`)
-
-If exceeded, API returns:
-
-- HTTP `429`
-- error code: `rate_limited`
-
-## Runtime ENV
-
-Die vollständige Production-Vorlage liegt in `release/.env.example`.
-
-Backend-ENV:
-
-- `PORT` (default: `3001`)
-- `LOG_LEVEL` (`debug`, `info`, `warn`, `error`, `silent`; default: `info`)
-- `REQUEST_LOGS` (default: `true`)
-- `DATABASE_URL` (default: `postgres://truedesire:truedesire@localhost:5432/truedesire`)
-- `DB_SSL` (`true`/`false`; default: `false`)
-- `DB_MIGRATIONS_LOCK_TIMEOUT_MS` (default: `10000`)
-- `STATIC_DIR` (wenn gesetzt, liefert das Backend die gebaute Vite-App aus)
-- `WEEKLY_LIMIT_DEFAULT` (default: `7`)
-- `PAIRING_LIMIT_USER_PER_MIN` (default: `10`)
-- `PAIRING_LIMIT_USER_PER_HOUR` (default: `50`)
-- `PAIRING_LIMIT_IP_PER_MIN` (default: `30`)
-- `PAIRING_LIMIT_IP_PER_HOUR` (default: `200`)
-
-Frontend-Build-ENV:
-
-- `VITE_API_BASE`: optional. Wenn leer, nutzt der Browser `window.location.origin`.
-
-Production-Docker-ENV:
-
-- `TRUEDESIRE_TAG`: DockerHub-Tag für `beberhardt/truedesire`.
-- `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`: interne Postgres-Credentials.
-
-## API namespace and static serving
-
-Production follows the Herzgarten pattern:
-
-- `/health` is a public health endpoint.
-- `/api/*` is handled as API traffic.
-- All other `GET`/`HEAD` requests are served from `STATIC_DIR` with an SPA fallback to `index.html`.
-
-The frontend API helper prefixes requests with `/api`, so same-origin production can leave `VITE_API_BASE` empty.

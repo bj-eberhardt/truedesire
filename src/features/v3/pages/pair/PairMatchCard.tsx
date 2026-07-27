@@ -78,7 +78,7 @@ function matchGradeKicker(grade: MatchGrade) {
 
 function matchGradeLabel(grade: MatchGrade) {
   if (grade === "perfect") return "Das bleibt zwischen euch.";
-  if (grade === "maybe") return "Vielleicht ist genug fuer ein Gespraech.";
+  if (grade === "maybe") return "Vielleicht ist genug für ein Gespräch.";
   if (grade === "mutualMaybe") return "Ihr seid beide neugierig.";
-  return "Sprecht darueber, wenn es passt.";
+  return "Sprecht darüber, wenn es passt.";
 }
