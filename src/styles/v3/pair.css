@@ -646,10 +646,26 @@
   border-radius: 18px;
   border: 1px solid color-mix(in oklab, var(--accent) 20%, var(--border));
   background:
-    radial-gradient(circle at 50% 16%, color-mix(in oklab, var(--accent2) 16%, transparent) 0 24px, transparent 25px),
-    radial-gradient(circle at 16% 24%, color-mix(in oklab, var(--accent2) 11%, transparent) 0 7px, transparent 8px),
-    radial-gradient(circle at 86% 36%, color-mix(in oklab, #a855f7 12%, transparent) 0 6px, transparent 7px),
-    linear-gradient(180deg, color-mix(in oklab, var(--bg) 98%, #fff1f2), color-mix(in oklab, var(--bg) 95%, #faf5ff));
+    radial-gradient(
+      circle at 50% 16%,
+      color-mix(in oklab, var(--accent2) 16%, transparent) 0 24px,
+      transparent 25px
+    ),
+    radial-gradient(
+      circle at 16% 24%,
+      color-mix(in oklab, var(--accent2) 11%, transparent) 0 7px,
+      transparent 8px
+    ),
+    radial-gradient(
+      circle at 86% 36%,
+      color-mix(in oklab, #a855f7 12%, transparent) 0 6px,
+      transparent 7px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--bg) 98%, #fff1f2),
+      color-mix(in oklab, var(--bg) 95%, #faf5ff)
+    );
   box-shadow:
     rgba(0, 0, 0, 0.09) 0 18px 34px -28px,
     color-mix(in oklab, var(--accent) 8%, transparent) 0 0 0 3px;
@@ -679,9 +695,17 @@
   z-index: 0;
   pointer-events: none;
   background-image:
-    radial-gradient(circle, color-mix(in oklab, var(--accent) 58%, transparent) 0 2px, transparent 2.8px),
+    radial-gradient(
+      circle,
+      color-mix(in oklab, var(--accent) 58%, transparent) 0 2px,
+      transparent 2.8px
+    ),
     radial-gradient(circle, color-mix(in oklab, #a855f7 44%, transparent) 0 2px, transparent 2.8px),
-    radial-gradient(circle, color-mix(in oklab, var(--accent2) 48%, transparent) 0 2px, transparent 2.8px),
+    radial-gradient(
+      circle,
+      color-mix(in oklab, var(--accent2) 48%, transparent) 0 2px,
+      transparent 2.8px
+    ),
     radial-gradient(circle, color-mix(in oklab, #c084fc 48%, transparent) 0 2px, transparent 2.8px);
   background-position:
     24px 32px,
@@ -700,7 +724,11 @@
       color-mix(in oklab, var(--accent2) 20%, transparent) 0 25px,
       transparent 26px
     ),
-    linear-gradient(180deg, color-mix(in oklab, var(--bg) 98%, #fff1f2), color-mix(in oklab, var(--bg) 94%, #fdf2f8));
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--bg) 98%, #fff1f2),
+      color-mix(in oklab, var(--bg) 94%, #fdf2f8)
+    );
 }
 
 .v3-shell .match-card.perfect::before {
@@ -716,7 +744,11 @@
       color-mix(in oklab, #c084fc 16%, transparent) 0 24px,
       transparent 25px
     ),
-    linear-gradient(180deg, color-mix(in oklab, var(--bg) 98%, #faf5ff), color-mix(in oklab, var(--bg) 94%, #fdf2f8));
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--bg) 98%, #faf5ff),
+      color-mix(in oklab, var(--bg) 94%, #fdf2f8)
+    );
 }
 
 .v3-shell .match-card.maybe::before,
@@ -732,7 +764,11 @@
       color-mix(in oklab, #cbd5e1 16%, transparent) 0 23px,
       transparent 24px
     ),
-    linear-gradient(180deg, color-mix(in oklab, var(--bg) 98%, #f8fafc), color-mix(in oklab, var(--bg) 94%, #f1f5f9));
+    linear-gradient(
+      180deg,
+      color-mix(in oklab, var(--bg) 98%, #f8fafc),
+      color-mix(in oklab, var(--bg) 94%, #f1f5f9)
+    );
 }
 
 .v3-shell .match-card.ok::before {
