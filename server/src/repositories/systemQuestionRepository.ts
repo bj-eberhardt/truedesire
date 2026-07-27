@@ -6,6 +6,7 @@ export type SystemQuestionRecord = {
   version: number;
   text: string;
   sha256B64: string;
+  intensityLevel: number;
 };
 
 export type SystemQuestionVerificationRecord = Omit<SystemQuestionRecord, "text">;
@@ -15,11 +16,13 @@ type SystemQuestionRow = {
   question_id: string;
   text: string;
   sha256_b64: string;
+  intensity_level: string | number;
 };
 
 export type PublishSystemQuestion = {
   id: string;
   text: string;
+  intensityLevel: number;
 };
 
 export type PublishSystemQuestionVersionInput = {
@@ -33,7 +36,8 @@ function mapQuestion(row: SystemQuestionRow): SystemQuestionRecord {
     id: row.question_id,
     version: Number(row.catalog_version),
     text: row.text,
-    sha256B64: row.sha256_b64
+    sha256B64: row.sha256_b64,
+    intensityLevel: Number(row.intensity_level)
   };
 }
 
@@ -52,7 +56,7 @@ export async function listLatestSystemQuestions(): Promise<{
   if (!version) return { catalogVersion: null, questions: [] };
 
   const result = await query<SystemQuestionRow>(
-    `select catalog_version, question_id, text, sha256_b64
+    `select catalog_version, question_id, text, sha256_b64, intensity_level
      from system_questions
      where catalog_version = $1
      order by position`,
@@ -65,13 +69,18 @@ export async function listSystemQuestionVerificationCatalog(): Promise<
   SystemQuestionVerificationRecord[]
 > {
   const result = await query<SystemQuestionRow>(
-    `select catalog_version, question_id, text, sha256_b64
+    `select catalog_version, question_id, text, sha256_b64, intensity_level
      from system_questions
      order by catalog_version, position`
   );
   return result.rows.map(({ text: _text, ...row }) => {
     const question = mapQuestion({ ...row, text: "" });
-    return { id: question.id, version: question.version, sha256B64: question.sha256B64 };
+    return {
+      id: question.id,
+      version: question.version,
+      sha256B64: question.sha256B64,
+      intensityLevel: question.intensityLevel
+    };
   });
 }
 
@@ -95,6 +104,13 @@ export function validateSystemQuestionVersion(input: PublishSystemQuestionVersio
     if (typeof question.text !== "string" || question.text.trim() === "") {
       throw new Error(`question ${question.id} has empty text`);
     }
+    if (
+      !Number.isInteger(question.intensityLevel) ||
+      question.intensityLevel < 1 ||
+      question.intensityLevel > 5
+    ) {
+      throw new Error(`question ${question.id} needs intensityLevel between 1 and 5`);
+    }
   }
 }
 
@@ -112,10 +128,18 @@ async function insertSystemQuestionVersion(
   for (const [index, question] of input.questions.entries()) {
     await client.query(
       `insert into system_questions(
-         catalog_version, question_id, position, text, sha256_b64, created_at
+         catalog_version, question_id, position, text, sha256_b64, intensity_level, created_at
        )
-       values ($1, $2, $3, $4, $5, $6)`,
-      [input.version, question.id, index + 1, question.text, hashQuestionText(question.text), now]
+       values ($1, $2, $3, $4, $5, $6, $7)`,
+      [
+        input.version,
+        question.id,
+        index + 1,
+        question.text,
+        hashQuestionText(question.text),
+        question.intensityLevel,
+        now
+      ]
     );
   }
 }
@@ -160,10 +184,18 @@ export async function publishSystemQuestionVersionIfMissing(
     for (const [index, question] of input.questions.entries()) {
       await client.query(
         `insert into system_questions(
-           catalog_version, question_id, position, text, sha256_b64, created_at
+           catalog_version, question_id, position, text, sha256_b64, intensity_level, created_at
          )
-         values ($1, $2, $3, $4, $5, $6)`,
-        [input.version, question.id, index + 1, question.text, hashQuestionText(question.text), now]
+         values ($1, $2, $3, $4, $5, $6, $7)`,
+        [
+          input.version,
+          question.id,
+          index + 1,
+          question.text,
+          hashQuestionText(question.text),
+          question.intensityLevel,
+          now
+        ]
       );
     }
     return true;

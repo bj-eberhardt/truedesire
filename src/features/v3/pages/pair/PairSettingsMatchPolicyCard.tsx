@@ -16,6 +16,11 @@ export type PairSettingsMatchPolicyCardProps = {
 };
 
 export function PairSettingsMatchPolicyCard(props: PairSettingsMatchPolicyCardProps) {
+  const showStrictPolicyRelaxWarning =
+    !props.pair.matchPolicyPending &&
+    props.matchPolicy === "perfectOnly" &&
+    props.matchPolicyDraft !== "perfectOnly";
+
   return (
     <>
       <div className="settings-item">
@@ -55,6 +60,7 @@ export function PairSettingsMatchPolicyCard(props: PairSettingsMatchPolicyCardPr
             Änderung vorschlagen
           </button>
         </div>
+        {showStrictPolicyRelaxWarning ? <MatchPolicyRelaxWarning /> : null}
         <PairSettingsMatchPolicyPendingRequest {...props} />
       </div>
     </>
@@ -117,6 +123,21 @@ function PairSettingsMatchPolicyPendingRequest(props: PairSettingsMatchPolicyCar
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function MatchPolicyRelaxWarning() {
+  return (
+    <div
+      className="settings-warning settings-match-policy-warning"
+      data-id="match-policy-relax-warning"
+      data-testid="match-policy-relax-warning"
+      role="status"
+    >
+      Wenn ihr von Nur Ja + Ja auf mehr sichtbare Matches wechselt, gilt die neue Regel für neue
+      Antworten. Bereits beantwortete Vielleicht-Kombinationen können aber nicht automatisch
+      rückwirkend als Matches sichtbar werden.
     </div>
   );
 }

@@ -19,8 +19,13 @@ export function assertStaticDirReady() {
 
 export function createApp() {
   const app = express();
+  app.set("etag", false);
 
   app.use(requestLogger);
+  app.use("/api", (_req, res, next) => {
+    res.set("cache-control", "no-store");
+    next();
+  });
   app.use(parseBody);
   registerRoutes(app);
 

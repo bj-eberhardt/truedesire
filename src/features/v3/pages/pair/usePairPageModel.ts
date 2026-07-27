@@ -5,6 +5,7 @@ import {
   usePairWorkspaceContext,
   useSessionContext
 } from "../../../../app/state";
+import { usePairWelcomePanelState } from "./usePairWelcomePanelState";
 
 export type PairPageTab = "play" | "matches" | "settings";
 
@@ -17,6 +18,7 @@ export function usePairPageModel() {
   const routeMode = workspace.route.route.mode;
   const pair = workspace.pair;
   const pairReady = !!pair && pair.id === pairId;
+  const identityUserId = identity?.userId ?? "";
   const activeTab: PairPageTab =
     routeMode === "pairMatches" ? "matches" : routeMode === "pairSettings" ? "settings" : "play";
   const pendingSettingsCount = pairReady
@@ -24,10 +26,18 @@ export function usePairPageModel() {
         (proposedBy) => proposedBy && proposedBy !== (identity?.userId ?? "")
       ).length
     : 0;
+  const welcomePanel = usePairWelcomePanelState({
+    identityUserId,
+    isLoadingPairData: workspace.isLoadingPairData,
+    pairId,
+    pairReady
+  });
 
   return {
+    acknowledgeWelcomePanel: welcomePanel.acknowledgeWelcomePanel,
     activeTab,
     goBack: goV3,
+    matchPolicy: groupSettings.matchPolicy,
     isLoadingPairData: workspace.isLoadingPairData,
     openSettingsNotice: () => goV3PairSettings(pairId),
     pair,
@@ -35,6 +45,7 @@ export function usePairPageModel() {
     pairReady,
     pendingSettingsCount,
     refreshPairView: workspace.refreshPairView,
+    showWelcomePanel: welcomePanel.showWelcomePanel,
     showMatches: activeTab === "matches",
     showPlay: activeTab === "play",
     showSettings: activeTab === "settings",

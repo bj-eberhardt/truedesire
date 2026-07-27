@@ -1,7 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
   createRegisteredUser,
-  findQuestionByText,
   partnerCard,
   refreshPairingRequests,
   sendPairRequest,
@@ -49,9 +48,12 @@ test("covers unknown code, reject, cancel, accept, and duplicate pairing flows",
     );
     await expect(outgoing).toBeVisible();
     await outgoing.getByTestId("pairing-request-cancel-button").click();
+    await expect(outgoing).toBeHidden();
     await alice.page.reload();
     await expect(alice.page.getByTestId("home-view")).toBeVisible();
-    await expect(outgoing).toBeHidden();
+    await expect(
+      alice.page.locator(`[data-testid="pairing-request-row"][data-request-code="${bob.code}"]`)
+    ).toBeHidden();
   });
 
   await test.step("accept a request and show partner cards for both users", async () => {
@@ -62,7 +64,7 @@ test("covers unknown code, reject, cancel, accept, and duplicate pairing flows",
     );
     await incoming.getByTestId("pairing-request-accept-button").click();
     await expect(bob.page.getByTestId("pair-view")).toBeVisible();
-    await findQuestionByText(bob.page, "Möchtest du gerne einen Dreier ausprobieren?");
+    await expect(bob.page.getByTestId("play-question-text")).toBeVisible();
     await expect(bob.page.getByTestId("play-question-text")).not.toContainText("nicht verifiziert");
 
     await bob.page.getByTestId("pair-back-button").click();
@@ -74,7 +76,7 @@ test("covers unknown code, reject, cancel, accept, and duplicate pairing flows",
     await expect(alicePartner).toBeVisible();
     await alicePartner.click();
     await expect(alice.page.getByTestId("pair-view")).toBeVisible();
-    await findQuestionByText(alice.page, "Möchtest du gerne einen Dreier ausprobieren?");
+    await expect(alice.page.getByTestId("play-question-text")).toBeVisible();
     await expect(alice.page.getByTestId("play-question-text")).not.toContainText(
       "nicht verifiziert"
     );

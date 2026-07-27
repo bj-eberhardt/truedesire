@@ -44,7 +44,8 @@ export function useQuestions(opts: {
     apiClient,
     identity,
     pair,
-    systemQuestionHashesRef: systemQuestions.systemQuestionHashesRef
+    systemQuestionHashesRef: systemQuestions.systemQuestionHashesRef,
+    weeklyQuestionAccessRef: systemQuestions.weeklyQuestionAccessRef
   });
   const questionActions = useQuestionActions({
     apiClient,

@@ -7,6 +7,8 @@ import { closePool, query } from "../src/db/pool.js";
 import { authenticate } from "../src/middleware/auth.js";
 import { createUser } from "../src/repositories/userRepository.js";
 import { encryptedBlobSchema } from "../src/schemas/commonSchemas.js";
+import { weeklyLimitProposeBodySchema } from "../src/schemas/apiSchemas.js";
+import { assertSafeTestDatabase } from "./dbSafety.js";
 
 const validBlob = {
   ciphertextB64: Buffer.from("cipher").toString("base64"),
@@ -15,6 +17,7 @@ const validBlob = {
 };
 
 function resetDb() {
+  assertSafeTestDatabase();
   return query("truncate auth_nonces, answers, questions, pair_requests, pairs, users cascade");
 }
 
@@ -143,6 +146,14 @@ test("encrypted blob schema rejects malformed or unsupported blob fields", () =>
     }).success
   ).toBe(false);
   expect(encryptedBlobSchema.safeParse({ ...validBlob, schemaVersion: 2 }).success).toBe(false);
+});
+
+test("weekly limit API schema allows unlimited or at least six questions", () => {
+  expect(weeklyLimitProposeBodySchema.safeParse({ pairId: "pair-1", limit: 0 }).success).toBe(true);
+  expect(weeklyLimitProposeBodySchema.safeParse({ pairId: "pair-1", limit: 6 }).success).toBe(true);
+  expect(weeklyLimitProposeBodySchema.safeParse({ pairId: "pair-1", limit: 5 }).success).toBe(
+    false
+  );
 });
 
 test("auth stores nonce only after a valid signature and rejects replay", async () => {

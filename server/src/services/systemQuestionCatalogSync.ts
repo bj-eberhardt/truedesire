@@ -25,6 +25,7 @@ type RawCatalog = {
 type RawQuestion = {
   id?: unknown;
   text?: unknown;
+  intensityLevel?: unknown;
 };
 
 function parseCatalog(raw: unknown, fileName: string): PublishSystemQuestionVersionInput {
@@ -45,12 +46,19 @@ function parseCatalog(raw: unknown, fileName: string): PublishSystemQuestionVers
       throw new Error(`question at position ${index + 1} in ${fileName} must be an object`);
     }
     const question = item as RawQuestion;
-    if (typeof question.id !== "string" || typeof question.text !== "string") {
-      throw new Error(`question at position ${index + 1} in ${fileName} needs string id and text`);
+    if (
+      typeof question.id !== "string" ||
+      typeof question.text !== "string" ||
+      typeof question.intensityLevel !== "number"
+    ) {
+      throw new Error(
+        `question at position ${index + 1} in ${fileName} needs string id, text and numeric intensityLevel`
+      );
     }
     return {
       id: question.id,
-      text: question.text
+      text: question.text,
+      intensityLevel: question.intensityLevel
     };
   });
 

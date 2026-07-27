@@ -1,11 +1,13 @@
 import { CalendarIcon } from "../../components/icons/CalendarIcon";
 import { ClockIcon } from "../../components/icons/ClockIcon";
-import { nextWeeklyResetDateText } from "./usePairPlayModel";
+import { V3LoadingText } from "../../components";
+import { nextWeeklyResetDateText, type PartnerWeeklyProgressMessage } from "./pairPlayState";
 
 type PairPlayIntroProps = {
   showLimitNotice: boolean;
   isUnlimited: boolean;
   remainingNew: number;
+  partnerWeeklyProgressMessage: PartnerWeeklyProgressMessage | null;
 };
 
 type PairPlayLoadingProps = {
@@ -23,7 +25,12 @@ type PairPlayEmptyStateProps = {
   allCurrentAnswered: boolean;
 };
 
-export function PairPlayIntro({ isUnlimited, remainingNew, showLimitNotice }: PairPlayIntroProps) {
+export function PairPlayIntro({
+  isUnlimited,
+  partnerWeeklyProgressMessage,
+  remainingNew,
+  showLimitNotice
+}: PairPlayIntroProps) {
   if (showLimitNotice) return null;
 
   return (
@@ -32,18 +39,39 @@ export function PairPlayIntro({ isUnlimited, remainingNew, showLimitNotice }: Pa
       <p className="hint">
         Du und dein Partner habt jetzt Fragen zum Spielen. Beantworte offene Fragen, um neue Matches
         zu entdecken.
-        {!isUnlimited ? (
+        {!isUnlimited || partnerWeeklyProgressMessage ? (
           <span className="v3-weekly-hint">
-            Du kannst diese Woche noch
-            <span
-              className={`pill mono v3-inline-count-pill ${
-                remainingNew < 3 ? "v3-inline-count-low" : ""
-              }`}
-            >
-              {remainingNew}
-            </span>
-            neue Antworten geben. Wochenreset am {nextWeeklyResetDateText()}.{" "}
-            <CalendarIcon className="v3-weekly-calendar-icon" />
+            {!isUnlimited ? (
+              <span className="v3-weekly-hint-line">
+                Du kannst diese Woche noch
+                <span
+                  className={`pill mono v3-inline-count-pill ${
+                    remainingNew < 3 ? "v3-inline-count-low" : ""
+                  }`}
+                >
+                  {remainingNew}
+                </span>
+                neue Antworten geben.{" "}
+                <span className="v3-weekly-reset-date">
+                  Wochenreset am {nextWeeklyResetDateText()}.{" "}
+                  <CalendarIcon className="v3-weekly-calendar-icon" />
+                </span>{" "}
+              </span>
+            ) : null}
+            {partnerWeeklyProgressMessage ? (
+              <span className="v3-weekly-hint-line v3-weekly-partner-line">
+                {partnerWeeklyProgressMessage.leadingText}
+                {partnerWeeklyProgressMessage.count !== null ? (
+                  <>
+                    {" "}
+                    <span className="pill mono v3-inline-count-pill v3-partner-count-pill">
+                      {partnerWeeklyProgressMessage.count}
+                    </span>{" "}
+                  </>
+                ) : null}
+                {partnerWeeklyProgressMessage.trailingText}
+              </span>
+            ) : null}
           </span>
         ) : null}
       </p>
@@ -56,7 +84,7 @@ export function PairPlayLoading({ isLoading }: PairPlayLoadingProps) {
 
   return (
     <div className="hint" data-testid="pair-loading-indicator">
-      Fragen werden geladen...
+      <V3LoadingText>Fragen werden geladen...</V3LoadingText>
     </div>
   );
 }

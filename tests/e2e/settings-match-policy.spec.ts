@@ -86,6 +86,7 @@ test("manages match policy proposals with withdraw, reject, and accept", async (
 
   await test.step("switch to mutual maybe through the same proposal flow", async () => {
     await alice.page.getByTestId("match-policy-select").selectOption("allowMutualMaybe");
+    await expect(alice.page.locator('[data-id="match-policy-relax-warning"]')).toBeVisible();
     await alice.page.getByTestId("match-policy-propose-button").click();
 
     await gotoPair(bob.page, pairId);

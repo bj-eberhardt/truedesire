@@ -19,8 +19,17 @@ const envBoolean = (fallback: boolean) =>
     })
     .pipe(z.boolean());
 
+const weeklyLimit = () =>
+  envNumber(7).pipe(
+    z
+      .number()
+      .int()
+      .max(50)
+      .refine((limit) => limit === 0 || limit >= 6)
+  );
+
 const envSchema = z.object({
-  WEEKLY_LIMIT_DEFAULT: envNumber(15),
+  WEEKLY_LIMIT_DEFAULT: weeklyLimit(),
   STATIC_DIR: z.string().optional(),
   PORT: envNumber(3001),
   DATABASE_URL: z

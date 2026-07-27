@@ -13,6 +13,7 @@ type RawCatalog = {
 type RawQuestion = {
   id?: unknown;
   text?: unknown;
+  intensityLevel?: unknown;
 };
 
 function usage(): never {
@@ -38,12 +39,19 @@ function parseCatalog(raw: unknown) {
       if (!question || typeof question !== "object") {
         throw new Error(`question at position ${index + 1} must be an object`);
       }
-      if (typeof question.id !== "string" || typeof question.text !== "string") {
-        throw new Error(`question at position ${index + 1} must contain string id and text`);
+      if (
+        typeof question.id !== "string" ||
+        typeof question.text !== "string" ||
+        typeof question.intensityLevel !== "number"
+      ) {
+        throw new Error(
+          `question at position ${index + 1} must contain string id, text and numeric intensityLevel`
+        );
       }
       return {
         id: question.id,
-        text: question.text
+        text: question.text,
+        intensityLevel: question.intensityLevel
       };
     })
   };

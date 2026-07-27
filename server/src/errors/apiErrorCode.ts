@@ -28,6 +28,7 @@ export enum ApiErrorCode {
 
   AlreadyAnswered = "already_answered",
   WeeklyLimitReached = "weekly_limit_reached",
+  WeeklyQuestionNotAllowed = "weekly_question_not_allowed",
   CannotUpdateAfterPartnerAnswer = "cannot_update_after_partner_answer",
   CannotDeleteAfterPartnerAnswer = "cannot_delete_after_partner_answer",
 

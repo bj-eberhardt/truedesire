@@ -26,7 +26,11 @@ export const pairIdBodySchema = z.object({
 
 export const weeklyLimitProposeBodySchema = z.object({
   pairId: z.string().min(1),
-  limit: z.number().int().min(0).max(50)
+  limit: z
+    .number()
+    .int()
+    .max(50)
+    .refine((limit) => limit === 0 || limit >= 6)
 });
 
 export const weeklyLimitRespondBodySchema = z.object({
@@ -41,6 +45,19 @@ export const seedSystemQuestionsBodySchema = z.object({
     z.object({
       systemId: z.string().min(1),
       systemVersion: z.number().int().min(1).optional(),
+      blob: encryptedBlobSchema
+    })
+  )
+});
+
+export const seedWeeklySystemQuestionsBodySchema = z.object({
+  pairId: z.string().min(1),
+  weekStart: z.number().int().min(0),
+  items: z.array(
+    z.object({
+      systemId: z.string().min(1),
+      systemVersion: z.number().int().min(1),
+      intensityLevel: z.number().int().min(1).max(5),
       blob: encryptedBlobSchema
     })
   )
@@ -97,6 +114,7 @@ export type PairIdBody = z.infer<typeof pairIdBodySchema>;
 export type WeeklyLimitProposeBody = z.infer<typeof weeklyLimitProposeBodySchema>;
 export type WeeklyLimitRespondBody = z.infer<typeof weeklyLimitRespondBodySchema>;
 export type SeedSystemQuestionsBody = z.infer<typeof seedSystemQuestionsBodySchema>;
+export type SeedWeeklySystemQuestionsBody = z.infer<typeof seedWeeklySystemQuestionsBodySchema>;
 export type QuestionBody = z.infer<typeof questionBodySchema>;
 export type DeleteQuestionBody = z.infer<typeof deleteQuestionBodySchema>;
 export type AnswerBody = z.infer<typeof answerBodySchema>;

@@ -26,10 +26,11 @@ import {
   proposeWeeklyLimit,
   respondWeeklyLimit,
   seedSystemQuestions,
+  seedWeeklySystemQuestions,
   unpair
 } from "../handlers/pairHandlers.js";
 import { createQuestion, deleteQuestion, listQuestions } from "../handlers/questionHandlers.js";
-import { getSystemQuestions } from "../handlers/systemHandlers.js";
+import { getSystemQuestions, getWeeklySystemQuestions } from "../handlers/systemHandlers.js";
 import type { RouteSchemas } from "../middleware/validateRequest.js";
 import {
   answerBodySchema,
@@ -44,6 +45,7 @@ import {
   questionIdParamsSchema,
   registerBodySchema,
   seedSystemQuestionsBodySchema,
+  seedWeeklySystemQuestionsBodySchema,
   weeklyLimitProposeBodySchema,
   weeklyLimitRespondBodySchema
 } from "../schemas/apiSchemas.js";
@@ -100,6 +102,13 @@ export const routes: RouteDefinition[] = [
     auth: "required",
     schemas: { body: seedSystemQuestionsBodySchema },
     handler: seedSystemQuestions
+  },
+  {
+    method: "post",
+    path: "/api/pairs/seed-weekly-system-questions",
+    auth: "required",
+    schemas: { body: seedWeeklySystemQuestionsBodySchema },
+    handler: seedWeeklySystemQuestions
   },
   {
     method: "post",
@@ -169,6 +178,13 @@ export const routes: RouteDefinition[] = [
   },
 
   { method: "get", path: "/api/system/questions", auth: "required", handler: getSystemQuestions },
+  {
+    method: "get",
+    path: "/api/system/questions/weekly/:pairId",
+    auth: "required",
+    schemas: { params: pairIdParamsSchema },
+    handler: getWeeklySystemQuestions
+  },
 
   {
     method: "post",

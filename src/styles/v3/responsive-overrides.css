@@ -413,6 +413,23 @@
   margin-bottom: 0;
 }
 
+.v3-shell .settings-warning {
+  width: fit-content;
+  max-width: 72ch;
+  padding: 9px 12px;
+  border: 1px solid color-mix(in oklab, #f59e0b 36%, var(--border));
+  border-radius: 8px;
+  background: color-mix(in oklab, #f59e0b 10%, var(--bg));
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.v3-shell .settings-limit-warning,
+.v3-shell .settings-match-policy-warning {
+  margin-top: -2px;
+}
+
 @media (max-width: 860px) {
   .v3-shell .v3-welcome-teaser {
     grid-template-columns: 1fr;
