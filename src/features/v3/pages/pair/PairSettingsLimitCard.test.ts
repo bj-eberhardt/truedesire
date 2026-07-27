@@ -59,7 +59,9 @@ afterEach(() => {
 test("shows a warning when lowering the weekly limit", () => {
   const renderer = renderCard();
 
-  expect(renderer.root.findByProps({ "data-testid": "weekly-limit-decrease-warning" })).toBeTruthy();
+  expect(
+    renderer.root.findByProps({ "data-testid": "weekly-limit-decrease-warning" })
+  ).toBeTruthy();
 });
 
 test("shows a warning when increasing the weekly limit", () => {
@@ -80,5 +82,7 @@ test("shows the warning when changing unlimited questions to a limit", () => {
     weeklyLimitDraft: "10"
   });
 
-  expect(renderer.root.findByProps({ "data-testid": "weekly-limit-decrease-warning" })).toBeTruthy();
+  expect(
+    renderer.root.findByProps({ "data-testid": "weekly-limit-decrease-warning" })
+  ).toBeTruthy();
 });
