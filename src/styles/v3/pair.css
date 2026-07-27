@@ -638,16 +638,21 @@
 .v3-shell .match-card {
   position: relative;
   display: grid;
-  gap: 16px;
-  min-height: 190px;
+  grid-template-rows: auto auto 1fr auto;
+  gap: 12px;
+  min-height: 250px;
   padding: 18px;
   overflow: hidden;
-  border-radius: 20px;
-  border: 1px solid color-mix(in oklab, var(--accent) 14%, var(--border));
+  border-radius: 18px;
+  border: 1px solid color-mix(in oklab, var(--accent) 20%, var(--border));
   background:
-    linear-gradient(135deg, color-mix(in oklab, var(--bg) 94%, transparent), var(--bg)),
-    color-mix(in oklab, var(--bg) 90%, transparent);
-  box-shadow: rgba(0, 0, 0, 0.1) 0 18px 34px -28px;
+    radial-gradient(circle at 50% 16%, color-mix(in oklab, var(--accent2) 16%, transparent) 0 24px, transparent 25px),
+    radial-gradient(circle at 16% 24%, color-mix(in oklab, var(--accent2) 11%, transparent) 0 7px, transparent 8px),
+    radial-gradient(circle at 86% 36%, color-mix(in oklab, #a855f7 12%, transparent) 0 6px, transparent 7px),
+    linear-gradient(180deg, color-mix(in oklab, var(--bg) 98%, #fff1f2), color-mix(in oklab, var(--bg) 95%, #faf5ff));
+  box-shadow:
+    rgba(0, 0, 0, 0.09) 0 18px 34px -28px,
+    color-mix(in oklab, var(--accent) 8%, transparent) 0 0 0 3px;
   transition:
     transform 180ms ease,
     border-color 180ms ease,
@@ -659,41 +664,75 @@
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
+  z-index: 2;
   width: 5px;
-  border-radius: 20px 0 0 20px;
-  background: color-mix(in oklab, var(--accent) 36%, transparent);
+  border-radius: 18px 0 0 18px;
+  background: linear-gradient(180deg, var(--accent), var(--accent2));
+  pointer-events: none;
+}
+
+.v3-shell .match-card::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 154px;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle, color-mix(in oklab, var(--accent) 58%, transparent) 0 2px, transparent 2.8px),
+    radial-gradient(circle, color-mix(in oklab, #a855f7 44%, transparent) 0 2px, transparent 2.8px),
+    radial-gradient(circle, color-mix(in oklab, var(--accent2) 48%, transparent) 0 2px, transparent 2.8px),
+    radial-gradient(circle, color-mix(in oklab, #c084fc 48%, transparent) 0 2px, transparent 2.8px);
+  background-position:
+    24px 32px,
+    calc(100% - 34px) 30px,
+    52px 108px,
+    calc(100% - 28px) 116px;
+  background-repeat: no-repeat;
+  opacity: 0.82;
 }
 
 .v3-shell .match-card.perfect {
   border-color: color-mix(in oklab, #e11d48 22%, var(--border));
   background:
     radial-gradient(
-      520px 180px at 0% 0%,
-      color-mix(in oklab, #e11d48 10%, transparent),
-      transparent 58%
+      circle at 50% 16%,
+      color-mix(in oklab, var(--accent2) 20%, transparent) 0 25px,
+      transparent 26px
     ),
-    color-mix(in oklab, var(--bg) 92%, transparent);
+    linear-gradient(180deg, color-mix(in oklab, var(--bg) 98%, #fff1f2), color-mix(in oklab, var(--bg) 94%, #fdf2f8));
 }
 
 .v3-shell .match-card.perfect::before {
-  background: linear-gradient(180deg, #e11d48, #fb7185);
+  background: linear-gradient(180deg, var(--accent), var(--accent2));
 }
 
 .v3-shell .match-card.maybe,
 .v3-shell .match-card.mutualMaybe {
-  border-color: color-mix(in oklab, #7c3aed 20%, var(--border));
+  border-color: color-mix(in oklab, #a855f7 22%, var(--border));
   background:
     radial-gradient(
-      460px 160px at 0% 0%,
-      color-mix(in oklab, #7c3aed 9%, transparent),
-      transparent 58%
+      circle at 50% 16%,
+      color-mix(in oklab, #c084fc 16%, transparent) 0 24px,
+      transparent 25px
     ),
-    color-mix(in oklab, var(--bg) 92%, transparent);
+    linear-gradient(180deg, color-mix(in oklab, var(--bg) 98%, #faf5ff), color-mix(in oklab, var(--bg) 94%, #fdf2f8));
 }
 
 .v3-shell .match-card.maybe::before,
 .v3-shell .match-card.mutualMaybe::before {
   background: linear-gradient(180deg, #7c3aed, #a78bfa);
+}
+
+.v3-shell .match-card.ok {
+  border-color: color-mix(in oklab, #94a3b8 26%, var(--border));
+  background:
+    radial-gradient(
+      circle at 50% 16%,
+      color-mix(in oklab, #cbd5e1 16%, transparent) 0 23px,
+      transparent 24px
+    ),
+    linear-gradient(180deg, color-mix(in oklab, var(--bg) 98%, #f8fafc), color-mix(in oklab, var(--bg) 94%, #f1f5f9));
 }
 
 .v3-shell .match-card.ok::before {
@@ -702,32 +741,111 @@
 
 .v3-shell .match-card:hover {
   transform: translateY(-2px);
-  border-color: color-mix(in oklab, var(--accent) 28%, var(--border));
+  border-color: color-mix(in oklab, var(--accent) 34%, var(--border));
   box-shadow:
     rgba(0, 0, 0, 0.14) 0 22px 42px -30px,
-    color-mix(in oklab, var(--accent) 12%, transparent) 0 0 0 3px;
+    color-mix(in oklab, var(--accent) 14%, transparent) 0 0 0 3px;
 }
 
-.v3-shell .match-head {
+.v3-shell .match-card-sprinkles,
+.v3-shell .match-card-hero,
+.v3-shell .match-card-divider,
+.v3-shell .match-card-body,
+.v3-shell .match-card-actions {
+  position: relative;
+  z-index: 1;
+}
+
+.v3-shell .match-card-sprinkles {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+}
+
+.v3-shell .match-card-sprinkles::before,
+.v3-shell .match-card-sprinkles::after {
+  content: "\2665";
+  position: absolute;
+  color: color-mix(in oklab, var(--accent2) 30%, transparent);
+  font-size: 15px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.v3-shell .match-card-sprinkles::before {
+  top: 28px;
+  left: 30px;
+  transform: rotate(-18deg);
+  text-shadow:
+    62px 96px 0 color-mix(in oklab, #c084fc 26%, transparent),
+    144px 20px 0 color-mix(in oklab, var(--accent2) 24%, transparent),
+    210px 92px 0 color-mix(in oklab, var(--accent) 18%, transparent);
+}
+
+.v3-shell .match-card-sprinkles::after {
+  top: 98px;
+  right: 34px;
+  transform: rotate(16deg);
+  color: color-mix(in oklab, var(--accent2) 28%, transparent);
+  text-shadow:
+    -72px -58px 0 color-mix(in oklab, var(--accent2) 22%, transparent),
+    -178px -16px 0 color-mix(in oklab, #c084fc 24%, transparent),
+    -130px 28px 0 color-mix(in oklab, var(--accent) 16%, transparent);
+}
+
+.v3-shell .match-card-hero {
   display: grid;
-  gap: 12px;
+  justify-items: center;
+  gap: 3px;
+  min-height: 122px;
+  padding: 8px 18px 6px;
+  text-align: center;
+}
+
+.v3-shell .match-card-divider {
+  width: min(100%, 260px);
+  height: 1px;
+  justify-self: center;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, #ec4899 26%, var(--border)),
+    color-mix(in oklab, #a855f7 22%, var(--border)),
+    transparent
+  );
+}
+
+.v3-shell .match-card-body {
+  display: grid;
+  align-content: center;
+  min-height: 64px;
 }
 
 .v3-shell .match-title {
   color: var(--text-h);
-  font-size: 20px;
-  font-weight: 750;
-  line-height: 1.25;
+  font-size: 18px;
+  font-weight: 760;
+  line-height: 1.3;
   letter-spacing: 0;
+  overflow-wrap: anywhere;
+  text-align: center;
 }
 
 .v3-shell .badge {
-  display: inline-flex;
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  border-radius: 999px;
   align-items: center;
-  gap: 9px;
-  justify-self: start;
-  width: fit-content;
-  color: var(--text-h);
+  justify-self: center;
+  color: color-mix(in oklab, var(--accent) 88%, var(--text-h));
+  background: color-mix(in oklab, var(--accent2) 18%, var(--bg));
+  box-shadow:
+    color-mix(in oklab, var(--accent) 14%, transparent) 0 10px 18px -13px,
+    inset 0 0 0 1px color-mix(in oklab, #ffffff 50%, transparent);
 }
 
 .v3-shell .badge.perfect {
@@ -741,33 +859,49 @@
 
 .v3-shell .badge.ok {
   color: color-mix(in oklab, #64748b 78%, var(--text-h));
+  background: color-mix(in oklab, #cbd5e1 22%, var(--bg));
 }
 
 .v3-shell .match-grade-icon {
   width: 22px;
   height: 22px;
   flex: 0 0 auto;
-  filter: drop-shadow(0 4px 8px color-mix(in oklab, currentColor 22%, transparent));
+  filter: drop-shadow(0 6px 10px color-mix(in oklab, currentColor 24%, transparent));
+}
+
+.v3-shell .badge.perfect .match-grade-icon {
+  animation: match-heart-pulse 1900ms ease-in-out infinite;
+  transform-origin: center;
+}
+
+.v3-shell .match-hero-title {
+  color: var(--accent);
+  font-family: "Playwrite AU SA", "Segoe Script", "Brush Script MT", cursive;
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  text-shadow: 0 8px 20px color-mix(in oklab, var(--accent) 14%, transparent);
 }
 
 .v3-shell .match-grade-copy {
   display: grid;
-  gap: 1px;
+  gap: 3px;
+  justify-items: center;
 }
 
 .v3-shell .match-grade-kicker {
-  color: var(--text);
-  font-size: 11px;
+  color: var(--text-h);
+  font-size: 13px;
   font-weight: 800;
-  line-height: 1.1;
-  text-transform: uppercase;
+  line-height: 1.2;
 }
 
 .v3-shell .match-grade-label {
-  color: var(--text-h);
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.15;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.25;
 }
 
 .v3-shell .match-answers {
@@ -818,16 +952,28 @@
 }
 
 .v3-shell .match-card-actions .icon-btn {
-  border-color: color-mix(in oklab, var(--accent) 12%, var(--border));
-  background: color-mix(in oklab, var(--bg) 82%, transparent);
+  border-color: color-mix(in oklab, var(--accent) 14%, var(--border));
+  background: color-mix(in oklab, var(--bg) 88%, transparent);
   color: var(--text);
+  backdrop-filter: blur(8px);
 }
 
 .v3-shell .match-card-actions .icon-btn:hover,
 .v3-shell .match-card-actions .icon-btn:focus-visible {
   color: var(--text-h);
-  border-color: color-mix(in oklab, var(--accent) 28%, var(--border));
+  border-color: color-mix(in oklab, var(--accent) 30%, var(--border));
   background: color-mix(in oklab, var(--accent) 8%, var(--bg));
+}
+
+@keyframes match-heart-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  45% {
+    transform: scale(1.14);
+  }
 }
 
 @media (max-width: 760px) {
