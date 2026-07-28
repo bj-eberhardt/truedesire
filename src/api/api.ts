@@ -20,6 +20,43 @@ type ApiOpts = {
   getAuthMaterial: () => Promise<AuthMaterial>;
 };
 
+export type AdminStatsRedactedNumber = { value: number | null; redacted: boolean };
+export type AdminStatsRedactedRate = {
+  value: number | null;
+  redacted: boolean;
+  numerator: number | null;
+  denominator: number | null;
+};
+export type AdminStatsMetricSet = {
+  registeredUsers: AdminStatsRedactedNumber;
+  activeUsers: AdminStatsRedactedNumber;
+  activePairs: AdminStatsRedactedNumber;
+  questionsCreated: AdminStatsRedactedNumber;
+  answersGiven: AdminStatsRedactedNumber;
+  activatedUsers: AdminStatsRedactedNumber;
+  activatedPairs: AdminStatsRedactedNumber;
+  mutuallyAnsweredQuestions: AdminStatsRedactedNumber;
+  matchedQuestions: AdminStatsRedactedNumber;
+  perfectMatches: AdminStatsRedactedNumber;
+  maybeMatches: AdminStatsRedactedNumber;
+  matchRate: AdminStatsRedactedRate;
+};
+export type AdminStatsResponse = {
+  computedAt: number;
+  generatedAt: number;
+  privacy: { minCohort: number };
+  totals: AdminStatsMetricSet;
+  windows: Record<7 | 30 | 90, AdminStatsMetricSet>;
+  trend: Array<{
+    dayStart: number;
+    registeredUsers: AdminStatsRedactedNumber;
+    activeUsers: AdminStatsRedactedNumber;
+    activePairs: AdminStatsRedactedNumber;
+    questionsCreated: AdminStatsRedactedNumber;
+    answersGiven: AdminStatsRedactedNumber;
+  }>;
+};
+
 export class ApiError extends Error {
   readonly status: number | null;
 
@@ -52,6 +89,24 @@ type SignedInit = Omit<RequestInit, "body"> & { body?: unknown };
 
 function apiPath(inputPath: string): string {
   return inputPath.startsWith("/api/") ? inputPath : "/api" + inputPath;
+}
+
+export async function publicApiFetch<T>(baseUrl: string, inputPath: string): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(new URL(apiPath(inputPath), baseUrl).toString());
+  } catch (error: unknown) {
+    if (error instanceof Error) throw new ApiError(error.message || "network_error", null);
+    throw new ApiError("network_error", null);
+  }
+
+  const contentType = res.headers.get("content-type") ?? "";
+  const payload = contentType.includes("application/json") ? await res.json() : await res.text();
+  if (!res.ok) {
+    const msg = typeof payload === "string" ? payload : (payload?.error ?? "request_failed");
+    throw new ApiError(msg, res.status);
+  }
+  return payload as T;
 }
 
 async function signedFetch<T>(opts: ApiOpts, inputPath: string, init?: SignedInit): Promise<T> {

@@ -41,6 +41,10 @@ test("maps backup, welcome, import and onboarding routes", () => {
     kind: "v3",
     route: { mode: "accountDeleted", pairId: null }
   });
+  expect(parseAppRoute("#/v3/admin/stats")).toEqual({
+    kind: "v3",
+    route: { mode: "adminStats", pairId: null }
+  });
   expect(parseAppRoute("#/v3/welcome")).toEqual({
     kind: "v3",
     route: { mode: "welcome", pairId: null }

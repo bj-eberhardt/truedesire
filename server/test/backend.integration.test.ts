@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, beforeEach, expect, test } from "vitest";
+import { afterAll, beforeAll, beforeEach, expect, test, vi } from "vitest";
 import { parseConfig } from "../src/config.js";
 import { newId } from "../src/crypto/auth.js";
 import { initializeDatabase } from "../src/db/migrations.js";
@@ -40,6 +40,9 @@ import { insertPair } from "../src/repositories/pairRepository.js";
 import { publishSystemQuestionVersion } from "../src/repositories/systemQuestionRepository.js";
 import type { EncryptedBlob, PairRecord } from "../src/storage/db.js";
 import { readSystemQuestions, readWeeklySystemQuestions } from "../src/services/systemQuestions.js";
+import { readAdminStats } from "../src/services/adminStatsService.js";
+import { createApp } from "../src/app.js";
+import { clearAdminStatsCache } from "../src/handlers/adminStatsHandlers.js";
 import { assertSafeTestDatabase } from "./dbSafety.js";
 
 const jwk = { kty: "EC", crv: "P-256", x: "x", y: "y" };
@@ -63,6 +66,7 @@ function requestMock() {
 
 async function resetDb() {
   assertSafeTestDatabase();
+  clearAdminStatsCache();
   await query("truncate auth_nonces, answers, questions, pair_requests, pairs, users cascade");
   await query("delete from system_questions where catalog_version > 1");
   await query("delete from system_question_versions where version > 1");
@@ -104,15 +108,26 @@ async function insertAnswerRow(
   questionId: string,
   pairId: string,
   userId: string,
-  createdAt: number
+  createdAt: number,
+  matchTokens = tokens(),
+  updatedAt: number | null = null
 ) {
   await query(
     `insert into answers(
-       id, question_id, pair_id, user_id, created_at, blob,
+       id, question_id, pair_id, user_id, created_at, updated_at, blob,
        match_tokens, policy_version, maybe_counts_as_match
      )
-     values ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, 1, true)`,
-    [newId(), questionId, pairId, userId, createdAt, JSON.stringify(blob), JSON.stringify(tokens())]
+     values ($1, $2, $3, $4, $5, $6, $7::jsonb, $8::jsonb, 1, true)`,
+    [
+      newId(),
+      questionId,
+      pairId,
+      userId,
+      createdAt,
+      updatedAt,
+      JSON.stringify(blob),
+      JSON.stringify(matchTokens)
+    ]
   );
 }
 
@@ -132,7 +147,7 @@ test("migrations are idempotent", async () => {
   await initializeDatabase();
   await initializeDatabase();
   const result = await query<{ count: string }>("select count(*)::text from schema_migrations");
-  expect(Number(result.rows[0].count)).toBe(6);
+  expect(Number(result.rows[0].count)).toBe(7);
 });
 
 test("system question migration seeds version 1", async () => {
@@ -203,6 +218,129 @@ test("config validates valid and invalid env", () => {
       WEEKLY_LIMIT_DEFAULT: "5"
     })
   ).toThrow(/Invalid server configuration/);
+});
+
+test("admin stats redacts small public aggregate cohorts", async () => {
+  const alice = await user("Alice");
+  const bob = await user("Bob");
+  const pair = await activePair(alice.userId, bob.userId);
+  const question = await createQuestionForPair(pair.id, alice.userId, blob);
+  expect(question.ok).toBe(true);
+  if (!question.ok) throw new Error("question create failed");
+  await insertAnswerRow(question.value.id, pair.id, alice.userId, Date.now() - 1000);
+
+  const stats = await readAdminStats(Date.now());
+  expect(stats.privacy.minCohort).toBe(10);
+  expect(stats.totals.registeredUsers).toEqual({ value: null, redacted: true });
+  expect(stats.totals.activeUsers).toEqual({ value: null, redacted: true });
+  expect(stats.totals.matchRate).toEqual({
+    value: null,
+    redacted: true,
+    numerator: null,
+    denominator: null
+  });
+});
+
+test("admin stats aggregates activation, answer updates and match rate", async () => {
+  const now = Date.UTC(2026, 6, 27, 12);
+
+  for (let i = 0; i < 10; i += 1) {
+    const alice = await user(`Alice ${i}`);
+    const bob = await user(`Bob ${i}`);
+    const pair = await activePair(alice.userId, bob.userId);
+    const question = await createQuestionForPair(pair.id, alice.userId, blob);
+    expect(question.ok).toBe(true);
+    if (!question.ok) throw new Error("question create failed");
+    await query("update users set created_at = $2 where id in ($1, $3)", [
+      alice.userId,
+      now - 2 * 86400000,
+      bob.userId
+    ]);
+    await query("update questions set created_at = $2 where id = $1", [
+      question.value.id,
+      now - 2 * 86400000
+    ]);
+    await insertAnswerRow(
+      question.value.id,
+      pair.id,
+      alice.userId,
+      now - 10 * 86400000,
+      tokens({ perfect: [`match-${i}`] }),
+      now - 2 * 86400000
+    );
+    await insertAnswerRow(
+      question.value.id,
+      pair.id,
+      bob.userId,
+      now - 2 * 86400000,
+      tokens({ perfect: [`match-${i}`] })
+    );
+  }
+
+  const stats = await readAdminStats(now);
+  expect(stats.windows[7].registeredUsers).toEqual({ value: 20, redacted: false });
+  expect(stats.windows[7].activeUsers).toEqual({ value: 20, redacted: false });
+  expect(stats.windows[7].activePairs).toEqual({ value: 10, redacted: false });
+  expect(stats.windows[7].questionsCreated).toEqual({ value: 10, redacted: false });
+  expect(stats.windows[7].answersGiven).toEqual({ value: 20, redacted: false });
+  expect(stats.totals.activatedUsers).toEqual({ value: 20, redacted: false });
+  expect(stats.totals.activatedPairs).toEqual({ value: 10, redacted: false });
+  expect(stats.windows[7].mutuallyAnsweredQuestions).toEqual({ value: 10, redacted: false });
+  expect(stats.windows[7].matchedQuestions).toEqual({ value: 10, redacted: false });
+  expect(stats.windows[7].matchRate).toEqual({
+    value: 1,
+    redacted: false,
+    numerator: 10,
+    denominator: 10
+  });
+});
+
+test("admin stats endpoint is public and does not expose identifiers", async () => {
+  const server = createApp().listen(0);
+  try {
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("test server did not bind");
+    const res = await fetch(`http://127.0.0.1:${address.port}/api/admin/stats`);
+    expect(res.status).toBe(200);
+    const payloadText = await res.text();
+    expect(payloadText).not.toMatch(/userId|pairId|nickname|code|Alice|Bob/);
+    const payload = JSON.parse(payloadText) as { privacy?: { minCohort?: number } };
+    expect(payload.privacy?.minCohort).toBe(10);
+  } finally {
+    await new Promise<void>((resolve, reject) => {
+      server.close((err) => (err ? reject(err) : resolve()));
+    });
+  }
+});
+
+test("admin stats endpoint reuses cached calculations for thirty minutes", async () => {
+  let now = Date.UTC(2026, 6, 27, 12);
+  vi.spyOn(Date, "now").mockImplementation(() => now);
+  const server = createApp().listen(0);
+  try {
+    const address = server.address();
+    if (!address || typeof address === "string") throw new Error("test server did not bind");
+    const url = `http://127.0.0.1:${address.port}/api/admin/stats`;
+
+    const first = (await (await fetch(url)).json()) as { computedAt: number; generatedAt: number };
+    expect(first.computedAt).toBe(now);
+    expect(first.generatedAt).toBe(now);
+
+    now += 10 * 60 * 1000;
+    const second = (await (await fetch(url)).json()) as { computedAt: number; generatedAt: number };
+    expect(second.computedAt).toBe(first.computedAt);
+    expect(second.generatedAt).toBe(first.generatedAt);
+
+    now += 21 * 60 * 1000;
+    const third = (await (await fetch(url)).json()) as { computedAt: number; generatedAt: number };
+    expect(third.computedAt).toBe(now);
+    expect(third.generatedAt).toBe(now);
+  } finally {
+    vi.restoreAllMocks();
+    await new Promise<void>((resolve, reject) => {
+      server.close((err) => (err ? reject(err) : resolve()));
+    });
+  }
 });
 
 test("user register and lookup by generated code", async () => {
