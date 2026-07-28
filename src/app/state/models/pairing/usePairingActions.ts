@@ -28,7 +28,7 @@ export function usePairingActions(opts: {
           setPairingInlineError(inlineError);
           return false;
         }
-        throw new Error(msg);
+        throw new Error(msg, { cause: e });
       }
     },
     [apiClient, refreshPairing]
