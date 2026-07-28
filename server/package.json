@@ -20,11 +20,11 @@
     "system-questions:publish": "node dist/scripts/publishSystemQuestions.js"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
+    "@eslint/js": "^10.0.1",
     "@types/express": "^5.0.6",
     "@types/node": "^24.12.0",
     "@types/pg": "^8.20.0",
-    "eslint": "^9.39.4",
+    "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.7.0",
     "typescript": "~5.9.3",
