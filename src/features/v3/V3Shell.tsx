@@ -10,6 +10,7 @@ import { V3Footer } from "./components/V3Footer";
 import { V3Header } from "./components/V3Header";
 import { V3AccountBootstrapState, V3LoadingText, V3Notice, V3RouteTransition } from "./components";
 import { InfoIcon } from "./components/icons/InfoIcon";
+import { getV3RouteTransitionKey, isPairRouteMode } from "./V3ShellRouteKey";
 
 const AccountHomePage = lazy(() =>
   import("./pages/AccountHome").then((module) => ({ default: module.AccountHomePage }))
@@ -49,19 +50,11 @@ export function V3Shell() {
   const routeOnboard = route.onboard ?? "start";
   const isPublicRoute = routeMode === "adminStats";
   const isBootstrappingGate = !isPublicRoute && bootstrapAccountStatus !== "ready";
-  const routeKey = isBootstrappingGate
-    ? "account-bootstrap"
-    : routeMode === "adminStats"
-      ? "admin-stats"
-      : routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings"
-        ? `pair:${route.pairId ?? ""}`
-        : routeMode === "welcome" || routeOnboard !== "start"
-          ? "welcome"
-          : routeMode === "home"
-            ? identity?.userId
-              ? "account-home"
-              : "home"
-            : `${routeMode}:${route.pairId ?? ""}`;
+  const routeKey = getV3RouteTransitionKey({
+    identityUserId: identity?.userId,
+    isBootstrappingGate,
+    route
+  });
 
   useEffect(() => {
     if (feedback.inlineNotice) {
@@ -111,9 +104,7 @@ export function V3Shell() {
               <Suspense fallback={<V3RouteChunkFallback />}>
                 {routeMode === "adminStats" ? (
                   <AdminStatsPage />
-                ) : routeMode === "pair" ||
-                  routeMode === "pairMatches" ||
-                  routeMode === "pairSettings" ? (
+                ) : isPairRouteMode(routeMode) ? (
                   <PairPage />
                 ) : routeMode === "accountDeleted" ? (
                   <AccountDeletedPage />
