@@ -10,6 +10,7 @@ import {
   respondMatchPolicy,
   upsertAnswer
 } from "../handlers/answerHandlers.js";
+import { getAdminStats } from "../handlers/adminStatsHandlers.js";
 import { deleteAccount, getMe, registerUser } from "../handlers/authHandlers.js";
 import { getHealth, optionsHandler } from "../handlers/healthHandlers.js";
 import {
@@ -63,6 +64,7 @@ export type RouteDefinition = {
 export const routes: RouteDefinition[] = [
   { method: "options", path: /.*/, auth: "public", handler: optionsHandler },
   { method: "get", path: "/health", auth: "public", handler: getHealth },
+  { method: "get", path: "/api/admin/stats", auth: "public", handler: getAdminStats },
 
   {
     method: "post",

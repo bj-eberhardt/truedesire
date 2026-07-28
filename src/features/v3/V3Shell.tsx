@@ -14,6 +14,9 @@ import { InfoIcon } from "./components/icons/InfoIcon";
 const AccountHomePage = lazy(() =>
   import("./pages/AccountHome").then((module) => ({ default: module.AccountHomePage }))
 );
+const AdminStatsPage = lazy(() =>
+  import("./pages/AdminStats").then((module) => ({ default: module.AdminStatsPage }))
+);
 const AccountDeletedPage = lazy(() =>
   import("./pages/AccountDeleted").then((module) => ({ default: module.AccountDeletedPage }))
 );
@@ -44,18 +47,21 @@ export function V3Shell() {
   const route = workspace.route.route;
   const routeMode = route.mode;
   const routeOnboard = route.onboard ?? "start";
-  const isBootstrappingGate = bootstrapAccountStatus !== "ready";
+  const isPublicRoute = routeMode === "adminStats";
+  const isBootstrappingGate = !isPublicRoute && bootstrapAccountStatus !== "ready";
   const routeKey = isBootstrappingGate
     ? "account-bootstrap"
-    : routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings"
-      ? `pair:${route.pairId ?? ""}`
-      : routeMode === "welcome" || routeOnboard !== "start"
-        ? "welcome"
-        : routeMode === "home"
-          ? identity?.userId
-            ? "account-home"
-            : "home"
-          : `${routeMode}:${route.pairId ?? ""}`;
+    : routeMode === "adminStats"
+      ? "admin-stats"
+      : routeMode === "pair" || routeMode === "pairMatches" || routeMode === "pairSettings"
+        ? `pair:${route.pairId ?? ""}`
+        : routeMode === "welcome" || routeOnboard !== "start"
+          ? "welcome"
+          : routeMode === "home"
+            ? identity?.userId
+              ? "account-home"
+              : "home"
+            : `${routeMode}:${route.pairId ?? ""}`;
 
   useEffect(() => {
     if (feedback.inlineNotice) {
@@ -103,9 +109,11 @@ export function V3Shell() {
               />
             ) : (
               <Suspense fallback={<V3RouteChunkFallback />}>
-                {routeMode === "pair" ||
-                routeMode === "pairMatches" ||
-                routeMode === "pairSettings" ? (
+                {routeMode === "adminStats" ? (
+                  <AdminStatsPage />
+                ) : routeMode === "pair" ||
+                  routeMode === "pairMatches" ||
+                  routeMode === "pairSettings" ? (
                   <PairPage />
                 ) : routeMode === "accountDeleted" ? (
                   <AccountDeletedPage />

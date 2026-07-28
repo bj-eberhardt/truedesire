@@ -1,0 +1,152 @@
+.v3-shell .v3-admin-stats {
+  display: grid;
+  gap: 22px;
+}
+
+.v3-shell .v3-admin-stats-meta {
+  color: var(--text-m);
+  font-size: 0.9rem;
+}
+
+.v3-shell .v3-admin-kpi-grid,
+.v3-shell .v3-admin-match-grid,
+.v3-shell .v3-admin-window-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.v3-shell .v3-admin-kpi-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.v3-shell .v3-admin-match-grid,
+.v3-shell .v3-admin-window-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.v3-shell .v3-admin-kpi,
+.v3-shell .v3-admin-window-card {
+  border: 1px solid color-mix(in oklab, var(--accent) 16%, var(--border));
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--bg) 74%, transparent);
+}
+
+.v3-shell .v3-admin-kpi {
+  min-width: 0;
+  padding: 14px;
+}
+
+.v3-shell .v3-admin-kpi-label {
+  color: var(--text-m);
+  font-size: 0.85rem;
+}
+
+.v3-shell .v3-admin-kpi-value {
+  margin-top: 8px;
+  color: var(--text-h);
+  font-size: clamp(1.35rem, 3vw, 2rem);
+  font-weight: 760;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.v3-shell .v3-admin-stats-section {
+  display: grid;
+  gap: 12px;
+}
+
+.v3-shell .v3-admin-stats-section h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.v3-shell .v3-admin-window-card {
+  min-width: 0;
+  padding: 14px;
+}
+
+.v3-shell .v3-admin-window-card h4 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.v3-shell .v3-admin-window-card dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.v3-shell .v3-admin-metric-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.v3-shell .v3-admin-metric-row dt {
+  color: var(--text-m);
+}
+
+.v3-shell .v3-admin-metric-row dd {
+  margin: 0;
+  color: var(--text-h);
+  font-weight: 720;
+  text-align: right;
+}
+
+.v3-shell .v3-admin-trend {
+  display: grid;
+  gap: 7px;
+}
+
+.v3-shell .v3-admin-trend-day {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 10px;
+}
+
+.v3-shell .v3-admin-trend-date,
+.v3-shell .v3-admin-trend-value {
+  color: var(--text-m);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.v3-shell .v3-admin-trend-value {
+  text-align: right;
+}
+
+.v3-shell .v3-admin-trend-track {
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--accent) 8%, var(--border));
+}
+
+.v3-shell .v3-admin-trend-bar {
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    color-mix(in oklab, #0f766e 70%, var(--accent)),
+    color-mix(in oklab, #e11d48 58%, var(--accent2))
+  );
+}
+
+@media (max-width: 780px) {
+  .v3-shell .v3-admin-kpi-grid,
+  .v3-shell .v3-admin-match-grid,
+  .v3-shell .v3-admin-window-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .v3-shell .v3-admin-kpi-grid,
+  .v3-shell .v3-admin-match-grid,
+  .v3-shell .v3-admin-window-grid {
+    grid-template-columns: 1fr;
+  }
+}

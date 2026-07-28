@@ -6,6 +6,7 @@ export type V3RouteMode =
   | "played"
   | "backup"
   | "accountDeleted"
+  | "adminStats"
   | "pairMatches"
   | "pairSettings";
 
@@ -21,6 +22,7 @@ function parseV3SubRoute(hashPath: string): V3Route {
   const h = hashPath || "/";
   if (new RegExp("^/backup/?$").test(h)) return { pairId: null, mode: "backup" };
   if (new RegExp("^/account-deleted/?$").test(h)) return { pairId: null, mode: "accountDeleted" };
+  if (new RegExp("^/admin/stats/?$").test(h)) return { pairId: null, mode: "adminStats" };
   if (new RegExp("^/welcome/?$").test(h)) return { pairId: null, mode: "welcome" };
   const mPairMatches = h.match(new RegExp("^/pair/([^/]+)/matches/?$"));
   if (mPairMatches) return { pairId: decodeURIComponent(mPairMatches[1]), mode: "pairMatches" };
@@ -84,6 +86,10 @@ export function goV3Backup() {
 
 export function goV3AccountDeleted() {
   window.location.hash = "#/v3/account-deleted";
+}
+
+export function goV3AdminStats() {
+  window.location.hash = "#/v3/admin/stats";
 }
 
 export function goV3Welcome() {
