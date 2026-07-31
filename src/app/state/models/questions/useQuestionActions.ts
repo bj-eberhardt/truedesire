@@ -61,11 +61,14 @@ export function useQuestionActions(opts: {
         const msg = e instanceof Error ? e.message : String(e);
         if (msg === "weekly_limit_reached") {
           throw new Error(
-            "Frage erstellt, aber Wochenlimit fürs Antworten erreicht (deine Antwort wurde nicht gespeichert)."
+            "Frage erstellt, aber Wochenlimit fürs Antworten erreicht (deine Antwort wurde nicht gespeichert).",
+            { cause: e }
           );
         }
         if (msg !== "already_answered") {
-          throw new Error(`Frage erstellt, aber Antwort konnte nicht gespeichert werden: ${msg}`);
+          throw new Error(`Frage erstellt, aber Antwort konnte nicht gespeichert werden: ${msg}`, {
+            cause: e
+          });
         }
       }
 
@@ -119,15 +122,17 @@ export function useQuestionActions(opts: {
         if (msg === "weekly_limit_reached") {
           onAnswerLimitReached?.(true);
           throw new Error(
-            "Wochenlimit fürs Antworten erreicht. Du kannst diese Woche keine weiteren Antworten abgeben."
+            "Wochenlimit fürs Antworten erreicht. Du kannst diese Woche keine weiteren Antworten abgeben.",
+            { cause: e }
           );
         }
         if (msg === "cannot_update_after_partner_answer") {
           throw new Error(
-            "Dein Partner hat bereits geantwortet. Deine Antwort ist jetzt gesperrt und kann nicht mehr geändert werden."
+            "Dein Partner hat bereits geantwortet. Deine Antwort ist jetzt gesperrt und kann nicht mehr geändert werden.",
+            { cause: e }
           );
         }
-        throw new Error(msg);
+        throw new Error(msg, { cause: e });
       }
     },
     [

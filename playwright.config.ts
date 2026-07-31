@@ -1,7 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const baseURL = process.env.BASE_URL ?? "http://127.0.0.1:3101";
-const shouldStartLocalServer = !process.env.BASE_URL && process.env.PLAYWRIGHT_START_SERVER === "1";
 const insecureOriginArgs =
   baseURL.startsWith("http://localhost") || baseURL.startsWith("http://127.0.0.1")
     ? []
@@ -18,14 +17,6 @@ export default defineConfig({
     ["json", { outputFile: "test-results/playwright-results.json" }],
     ["html", { open: "never" }]
   ],
-  webServer: shouldStartLocalServer
-    ? {
-        command: "npm run dev -- --host 127.0.0.1 --port 3101",
-        url: baseURL,
-        reuseExistingServer: !process.env.CI,
-        timeout: 120_000
-      }
-    : undefined,
   use: {
     baseURL,
     trace: "on-first-retry",
