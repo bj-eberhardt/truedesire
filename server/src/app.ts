@@ -7,7 +7,20 @@ import { bad } from "./http/responses.js";
 import { parseBody } from "./middleware/bodyParser.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { requestLogger } from "./middleware/requestLogger.js";
+import { createStaticFallbackRateLimit } from "./middleware/staticFallbackRateLimit.js";
 import { registerRoutes } from "./routes/registerRoutes.js";
+
+const fallbackHtmlCache = new Map<string, string>();
+
+export function readStaticFallbackIndex(staticDir: string): string {
+  if (!staticDir) return "";
+  const indexFile = path.join(staticDir, "index.html");
+  const cached = fallbackHtmlCache.get(indexFile);
+  if (cached !== undefined) return cached;
+  const html = fs.readFileSync(indexFile, "utf8");
+  fallbackHtmlCache.set(indexFile, html);
+  return html;
+}
 
 export function assertStaticDirReady() {
   if (!STATIC_DIR) return;
@@ -30,11 +43,12 @@ export function createApp() {
   registerRoutes(app);
 
   if (STATIC_DIR) {
+    app.use(createStaticFallbackRateLimit());
     app.use(express.static(STATIC_DIR));
     app.get(/.*/, (_req, res, next) => {
-      res.sendFile(path.join(STATIC_DIR, "index.html"), (err) => {
-        if (err) next(err);
-      });
+      const fallback = readStaticFallbackIndex(STATIC_DIR);
+      if (!fallback) return next(new Error("Static frontend index not found"));
+      res.send(fallback);
     });
   }
 
