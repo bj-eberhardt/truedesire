@@ -1,6 +1,19 @@
+import fs from "node:fs";
 import express from "express";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
+import { readStaticFallbackIndex } from "../src/app.js";
 import { createStaticFallbackRateLimit } from "../src/middleware/staticFallbackRateLimit.js";
+
+test("static frontend fallback HTML is cached after the first read", () => {
+  const readFileSpy = vi.spyOn(fs, "readFileSync").mockReturnValue("<!doctype html><html>ok</html>");
+
+  const first = readStaticFallbackIndex("/tmp/static-fallback-1");
+  const second = readStaticFallbackIndex("/tmp/static-fallback-1");
+
+  expect(first).toBe("<!doctype html><html>ok</html>");
+  expect(second).toBe(first);
+  expect(readFileSpy).toHaveBeenCalledTimes(1);
+});
 
 test("static frontend requests are rate limited by client IP", async () => {
   const app = express();
