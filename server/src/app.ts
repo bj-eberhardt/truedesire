@@ -7,6 +7,7 @@ import { bad } from "./http/responses.js";
 import { parseBody } from "./middleware/bodyParser.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 import { requestLogger } from "./middleware/requestLogger.js";
+import { createStaticFallbackRateLimit } from "./middleware/staticFallbackRateLimit.js";
 import { registerRoutes } from "./routes/registerRoutes.js";
 
 export function assertStaticDirReady() {
@@ -30,6 +31,7 @@ export function createApp() {
   registerRoutes(app);
 
   if (STATIC_DIR) {
+    app.use(createStaticFallbackRateLimit());
     app.use(express.static(STATIC_DIR));
     app.get(/.*/, (_req, res, next) => {
       res.sendFile(path.join(STATIC_DIR, "index.html"), (err) => {
